@@ -28,6 +28,7 @@
          [struct-out rhs-token]
          [struct-out rhs-choice]
          [struct-out rhs-repeat]
+         [struct-out rhs-maybe]
          [struct-out rhs-seq])
 
 (define-tokens tokens (LPAREN
@@ -74,17 +75,36 @@
             $2))]]
 
     [rhs
-     [(rhs-sequence PIPE rhs)
-      (rhs-choice (position-offset $1-start-pos) (position-offset $3-end-pos) $1 $3)]
-     [(rhs-sequence)
+     [(implicit-rhs-sequence PIPE rhs)
+      (if (rhs-choice? $3)
+          (rhs-choice (position-offset $1-start-pos)
+                      (position-offset $3-end-pos)
+                      (cons $1 (rhs-choice-vals $3)))
+          (rhs-choice (position-offset $1-start-pos)
+                      (position-offset $3-end-pos)
+                      (list $1 $3)))]
+     [(implicit-rhs-sequence)
       $1]]
 
-    [rhs-sequence
-     [(atomic-rhs rhs-sequence)
-      (rhs-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (list $1 $2))]
+    [implicit-rhs-sequence
+     [(repeatable-rhs implicit-rhs-sequence)
+      (if (rhs-seq? $2)
+          (rhs-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (cons $1 (rhs-seq-vals $2)))
+          (rhs-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (list $1 $2)))]
+     [(repeatable-rhs)
+      $1]]
+
+    [repeatable-rhs
+     [(atomic-rhs REPEAT)
+      (cond [(string=? $2 "*")
+             (rhs-repeat (position-offset $1-start-pos) (position-offset $2-end-pos) 0 $1)]
+            [(string=? $2 "+")
+             (rhs-repeat (position-offset $1-start-pos) (position-offset $2-end-pos) 1 $1)]
+            [else
+             (error 'grammar-parse "unknown repetition operator ~e" $2)])]
      [(atomic-rhs)
       $1]]
-    
+
     [atomic-rhs
      [(LIT)
       (rhs-lit (position-offset $1-start-pos) (position-offset $1-end-pos) $1)]
@@ -92,7 +112,15 @@
      [(ID)
       (if (token-id? $1)
           (rhs-token (position-offset $1-start-pos) (position-offset $1-end-pos) $1)
-          (rhs-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1))]])
+          (rhs-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1))]
+
+     [(LBRACKET rhs RBRACKET)
+      (rhs-maybe (position-offset $1-start-pos) (position-offset $3-end-pos) $2)]
+     
+     [(LPAREN rhs RPAREN)
+      (if (rhs-seq? $2)
+          (rhs-seq (position-offset $1-start-pos) (position-offset $3-end-pos) (rhs-seq-vals $2))
+          (rhs-seq (position-offset $1-start-pos) (position-offset $3-end-pos) (list $2)))]])
 
    
    (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
@@ -119,10 +147,13 @@
 (struct rhs-lit rhs (val)
         #:transparent)
 
-(struct rhs-choice rhs (x y)
+(struct rhs-choice rhs (vals)
         #:transparent)
 
-(struct rhs-repeat rhs (val)
+(struct rhs-repeat rhs (min val)
+        #:transparent)
+
+(struct rhs-maybe rhs ( val)
         #:transparent)
 
 (struct rhs-seq rhs (vals)
