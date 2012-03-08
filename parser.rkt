@@ -1,6 +1,7 @@
 #lang racket/base
 (require parser-tools/yacc
-         parser-tools/lex)
+         parser-tools/lex
+         racket/list)
 
 ;; A parser for grammars.
 
@@ -23,7 +24,9 @@
          [struct-out rhs-id]
          [struct-out rhs-lit]
          [struct-out rhs-token]
-         [struct-out rhs-choice])
+         [struct-out rhs-choice]
+         [struct-out rhs-repeat]
+         [struct-out rhs-seq])
 
 (define-tokens tokens (LPAREN
                        RPAREN
@@ -42,8 +45,7 @@
    (src-pos)
    (start rules)
    (end EOF)
-   (precs [left REPEAT]
-          [left PIPE])
+   (precs [left PIPE])
 
    (grammar
     [rules
@@ -56,21 +58,30 @@
       '()]]
 
     [rule
-     [(ID COLON rhs)
-      (rule (lhs-id $1 (position-offset $1-start-pos) (position-offset $1-end-pos))
-            $3)]]
+     [(ID COLON rhs+)
+      (rule (lhs-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1)
+            (if (> (length $3) 1)
+                (rhs-seq (rhs-start (first $3))
+                         (rhs-end (last $3))
+                         $3)
+                (first $3)))]]
 
+    [rhs+
+     [(rhs rhs+) (cons $1 $2)]
+     [(rhs) (list $1)]]
+    
+    
     [rhs     
      [(LIT)
-      (rhs-lit $1 (position-offset $1-start-pos) (position-offset $1-end-pos))]
+      (rhs-lit (position-offset $1-start-pos) (position-offset $1-end-pos) $1)]
 
      [(ID)
       (if (token-id? $1)
-          (rhs-token $1 (position-offset $1-start-pos) (position-offset $1-end-pos))
-          (rhs-id $1 (position-offset $1-start-pos) (position-offset $1-end-pos)))]
+          (rhs-token (position-offset $1-start-pos) (position-offset $1-end-pos) $1)
+          (rhs-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1))]
      
      [(rhs PIPE rhs)
-      (rhs-choice $1 $3 (position-offset $1-start-pos) (position-offset $3-end-pos))]])
+      (rhs-choice (position-offset $1-start-pos) (position-offset $3-end-pos) $1 $3)]])
 
    
    (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
@@ -85,36 +96,26 @@
 
 
 ;; A rhs can be one of the following:
-(struct rhs-id (val start end)
+(struct rhs (start end)
         #:transparent)
 
-(struct rhs-token (val start end)
+(struct rhs-id rhs (val)
         #:transparent)
 
-(struct rhs-lit (val start end)
+(struct rhs-token rhs (val)
         #:transparent)
 
-(struct rhs-choice (x y start end)
+(struct rhs-lit rhs (val)
         #:transparent)
 
+(struct rhs-choice rhs (x y)
+        #:transparent)
 
+(struct rhs-repeat rhs (val)
+        #:transparent)
 
-;; Selectors to get the start and end of a rhs.
-(define (rhs-start rhs)
-  (cond
-   [(rhs-id? rhs) (rhs-id-start rhs)]
-   [(rhs-token? rhs) (rhs-token-start rhs)]
-   [(rhs-lit? rhs) (rhs-lit-start rhs)]
-   [(rhs-choice? rhs) (rhs-choice-start rhs)]))
-
-(define (rhs-end rhs)
-  (cond
-   [(rhs-id? rhs) (rhs-id-end rhs)]
-   [(rhs-token? rhs) (rhs-token-end rhs)]
-   [(rhs-lit? rhs) (rhs-lit-end rhs)]
-   [(rhs-choice? rhs) (rhs-choice-end rhs)]))
-
-
+(struct rhs-seq rhs (vals)
+        #:transparent)
 
 
 
