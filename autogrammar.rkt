@@ -5,9 +5,9 @@
 ;;
 ;; Danny Yoo (dyoo@hashcollision.org)
 ;;
-;; Intent: make it trivial to generate language for Racket.  At the
-;; moment, I find it personally painful to use parser-tools.  This
-;; library is meant to make it less painful.
+;; Intent: make it trivial to generate languages for Racket.  At the
+;; moment, I find it painful to use parser-tools.  This library is
+;; meant to make it less agonizing.
 ;;
 ;; The intended use of this language is as follows:
 ;;
@@ -17,10 +17,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;; What this generates is a module that binds two values, plus constructors
-;; associated to the token types in upper-case:
+;; What this generates is a module that binds constructors associated
+;; to the token types in upper-case, plus the following:
 ;;
-;;     * grammar: a grammar that consumes a position-aware lexer
+;;     * grammar: a grammar that consumes a source and a position-aware lexer, and produces
+;;       a syntax object.
 ;;
 ;;     * default-lexer: a partially-defined lexer that knows how to read
 ;;       the literal strings.  You'll use this to create the full lexer.
@@ -86,18 +87,43 @@
 ;; TODO: handle precedence
 ;;
 
-(require "runtime.rkt")
 (require (for-syntax racket/base))
-
 
 (provide rules
          (rename-out [#%plain-module-begin #%module-begin]))
 
+
+(begin-for-syntax
+ (define (rules->grammar-defn rules)
+   #'(lambda (source tokenizer)
+       'test!)))
+
+ 
 (define-syntax (rules stx)
   (syntax-case stx ()
     [(_ r ...)
 
-     (for-each displayln (syntax->list #'(r ...)))
-     
-     (syntax/loc stx
-       (void))]))
+
+     (with-syntax ([(toplevel-token-constructors ...)
+                    '()]
+                   [grammar-defn
+                    (rules->grammar-defn (syntax->list #'(r ...)))])
+       (syntax/loc stx
+         (begin
+           (require parser-tools/lex
+                    parser-tools/yacc)
+
+           (provide grammar
+                    toplevel-token-constructors ...)
+           
+           (define grammar
+             grammar-defn)
+           
+           ;; the token types
+           
+           ;; the provides
+
+           ;; the lexer
+
+           ;; the parser         
+           (void))))]))
