@@ -87,8 +87,14 @@
 ;;
 
 (require "runtime.rkt")
+(require (for-syntax racket/base))
 
-(define-syntax (define-grammar stx)
+
+(provide rules
+         (rename-out [#%plain-module-begin #%module-begin]))
+
+(define-syntax (rules stx)
   (syntax-case stx ()
-    (syntax/loc stx
-      (void))))
+    [(_ r ...)
+     (syntax/loc stx
+       (void))]))

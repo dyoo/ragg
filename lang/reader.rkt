@@ -3,6 +3,7 @@
 #:read my-read
 #:read-syntax my-read-syntax
 #:info my-get-info
+#:whole-body-readers? #t
 
 (require "../parser.rkt"
          "../lexer.rkt"
@@ -14,7 +15,7 @@
 (define (my-read-syntax src in)
   (define tokenizer (tokenize in))
   (define rules (grammar-parser tokenizer))
-  (rules->stx src in))
+  (list (rules->stx src in)))
 
 
 ;; Extension: we'd like to cooperate with DrRacket and tell
