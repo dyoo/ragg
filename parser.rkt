@@ -48,7 +48,6 @@
    (src-pos)
    (start rules)
    (end EOF)
-   (precs [left PIPE])
 
    (grammar
     [rules
@@ -65,35 +64,35 @@
     ;; of top-level rules.  i.e. the parser can't currently tell, when
     ;; it sees an ID, if it should shift or reduce to a new rule.
     [rule
-     [(RULE_HEAD rhs+)
+     [(RULE_HEAD rhs)
       (begin 
         (define trimmed (regexp-replace #px"\\s*:$" $1 ""))
         (rule (lhs-id (position-offset $1-start-pos)
                     (+ (position-offset $1-start-pos)
                        (string-length trimmed))
                     trimmed)
-            (if (> (length $2) 1)
-                (rhs-seq (rhs-start (first $2))
-                         (rhs-end (last $2))
-                         $2)
-                (first $2))))]]
+            $2))]]
 
-    [rhs+
-     [(rhs rhs+) (cons $1 $2)]
-     [(rhs) (list $1)]]
+    [rhs
+     [(rhs-sequence PIPE rhs)
+      (rhs-choice (position-offset $1-start-pos) (position-offset $3-end-pos) $1 $3)]
+     [(rhs-sequence)
+      $1]]
+
+    [rhs-sequence
+     [(atomic-rhs rhs-sequence)
+      (rhs-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (list $1 $2))]
+     [(atomic-rhs)
+      $1]]
     
-    
-    [rhs     
+    [atomic-rhs
      [(LIT)
       (rhs-lit (position-offset $1-start-pos) (position-offset $1-end-pos) $1)]
-
+     
      [(ID)
       (if (token-id? $1)
           (rhs-token (position-offset $1-start-pos) (position-offset $1-end-pos) $1)
-          (rhs-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1))]
-     
-     [(rhs PIPE rhs)
-      (rhs-choice (position-offset $1-start-pos) (position-offset $3-end-pos) $1 $3)]])
+          (rhs-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1))]])
 
    
    (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
