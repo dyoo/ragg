@@ -3,7 +3,8 @@
 (require rackunit
          parser-tools/lex
          "parser.rkt"
-         "lexer.rkt")
+         "lexer.rkt"
+         "rule-structs.rkt")
 
 ;; FIXME: fix the test cases so they work on locations rather than just offsets.
 

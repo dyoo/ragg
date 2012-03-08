@@ -87,22 +87,44 @@
 ;; TODO: handle precedence
 ;;
 
-(require (for-syntax racket/base))
+(require (for-syntax racket/base)
+         "runtime.rkt")
 
 (provide rules
+         rule
+         pattern
+         id
+         lit
+         token
+         choice
+         repeat
+         maybe
+         seq
          (rename-out [#%plain-module-begin #%module-begin]))
 
 
 (begin-for-syntax
+
+ ;; collect-token-types: (listof rule-syntax) -> (values (listof identifier) (listof identifier))
+ ;;
+ ;; Given the rules, automatically derive the list of implicit and explicit rules
+ ;; we need to generate.
+ (define (collect-token-types rules)
+   (values '() '()))
+
+ 
  (define (rules->grammar-defn rules)
-   #'(lambda (source tokenizer)
-       'test!)))
+   #'(let ([THE-GRAMMAR
+            (lambda (tokenizer)
+              'the-grammar)])
+       (lambda (source tokenizer)
+         (parameterize ([current-source source])
+           (THE-GRAMMAR tokenizer))))))
 
  
 (define-syntax (rules stx)
   (syntax-case stx ()
     [(_ r ...)
-
 
      (with-syntax ([(toplevel-token-constructors ...)
                     '()]
@@ -127,3 +149,13 @@
 
            ;; the parser         
            (void))))]))
+
+(define-syntax (rule stx) (raise-syntax-error #f "Used out of context" stx))
+(define-syntax (pattern stx) (raise-syntax-error #f "Used out of context" stx))
+(define-syntax (id stx) (raise-syntax-error #f "Used out of context" stx))
+(define-syntax (lit stx) (raise-syntax-error #f "Used out of context" stx))
+(define-syntax (token stx) (raise-syntax-error #f "Used out of context" stx))
+(define-syntax (choice stx) (raise-syntax-error #f "Used out of context" stx))
+(define-syntax (repeat stx) (raise-syntax-error #f "Used out of context" stx))
+(define-syntax (maybe stx) (raise-syntax-error #f "Used out of context" stx))
+(define-syntax (seq stx) (raise-syntax-error #f "Used out of context of rules" stx))

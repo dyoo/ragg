@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require "parser.rkt"
+(require "rule-structs.rkt"
          parser-tools/lex
          racket/match
          syntax/strip-context)
@@ -19,17 +19,18 @@
      #'(rules rule ...))))
 
 (define (rule->stx source a-rule)
-  (define id-stx (datum->syntax #f
-                                (string->symbol (lhs-id-val (rule-lhs a-rule)))
-                                (list source
-                                      (position-line (lhs-id-start (rule-lhs a-rule)))
-                                      (position-col (lhs-id-start (rule-lhs a-rule)))
-                                      (position-offset (lhs-id-start (rule-lhs a-rule)))
-                                      (if (and (number? (position-offset (lhs-id-start (rule-lhs a-rule))))
-                                               (number? (position-offset (lhs-id-end (rule-lhs a-rule)))))
-                                          (- (position-offset (lhs-id-end (rule-lhs a-rule)))
-                                             (position-offset (lhs-id-start (rule-lhs a-rule))))
-                                          #f))))
+  (define id-stx
+    (datum->syntax #f
+                   (string->symbol (lhs-id-val (rule-lhs a-rule)))
+                   (list source
+                         (position-line (lhs-id-start (rule-lhs a-rule)))
+                         (position-col (lhs-id-start (rule-lhs a-rule)))
+                         (position-offset (lhs-id-start (rule-lhs a-rule)))
+                         (if (and (number? (position-offset (lhs-id-start (rule-lhs a-rule))))
+                                  (number? (position-offset (lhs-id-end (rule-lhs a-rule)))))
+                             (- (position-offset (lhs-id-end (rule-lhs a-rule)))
+                                (position-offset (lhs-id-start (rule-lhs a-rule))))
+                             #f))))
   (define pattern-stx (pattern->stx source (rule-pattern a-rule)))
   (define line (position-line (rule-start a-rule)))
   (define column (position-col (rule-start a-rule)))
@@ -54,14 +55,15 @@
                    (- (position-offset (pattern-end a-pattern))
                       (position-offset (pattern-start a-pattern)))
                    #f))
+  (define source-location (list source line column position span))
   (datum->syntax #f
                  (match a-pattern
                    [(struct pattern-id (start end val))
-                    `(id ,(string->symbol val))]
+                    `(id ,(datum->syntax #f (string->symbol val) source-location))]
                    [(struct pattern-lit (start end val))
-                    `(lit ,val)]
+                    `(lit ,(datum->syntax #f val source-location))]
                    [(struct pattern-token (start end val))
-                    `(token ,(string->symbol val))]
+                    `(token ,(datum->syntax #f (string->symbol val) source-location))]
                    [(struct pattern-choice (start end vals))
                     `(choice ,@(map recur vals))]
                    [(struct pattern-repeat (start end min val))
@@ -70,4 +72,4 @@
                     `(maybe ,(recur val))]
                    [(struct pattern-seq (start end vals))
                     `(seq ,(map recur vals))])
-                 (list source line column position span)))
+                 source-location))
