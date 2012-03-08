@@ -1,8 +1,11 @@
 #lang racket/base
 
 (require rackunit
+         parser-tools/lex
          "parser.rkt"
          "lexer.rkt")
+
+;; FIXME: fix the test cases so they work on locations rather than just offsets.
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : 'hello'")))
               (list (rule 1 15
@@ -122,4 +125,4 @@ EOF
          (lambda (ip)
            (port-count-lines! ip)
            (grammar-parser (tokenize ip))))])
-  (for ([rule parsed]) (displayln rule) (newline)))
+  (void))

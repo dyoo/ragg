@@ -15,7 +15,7 @@
 (define (my-read-syntax src in)
   (define tokenizer (tokenize in))
   (define rules (grammar-parser tokenizer))
-  (list (rules->stx src in)))
+  (list (rules->stx src rules)))
 
 
 ;; Extension: we'd like to cooperate with DrRacket and tell

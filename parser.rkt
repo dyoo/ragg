@@ -23,6 +23,7 @@
          
          [struct-out rule]
          [struct-out lhs-id]
+         [struct-out pattern]
          [struct-out pattern-id]
          [struct-out pattern-lit]
          [struct-out pattern-token]
@@ -42,7 +43,7 @@
                        LIT
                        EOF))
 
-
+;; grammar-parser: (-> token) -> (listof rule)
 (define grammar-parser
   (parser
    (tokens tokens)
@@ -68,40 +69,42 @@
      [(RULE_HEAD pattern)
       (begin 
         (define trimmed (regexp-replace #px"\\s*:$" $1 ""))
-        (rule (position-offset $1-start-pos)
-              (position-offset $2-end-pos)
-              (lhs-id (position-offset $1-start-pos)
-                      (+ (position-offset $1-start-pos)
-                         (string-length trimmed))
+        (rule $1-start-pos
+              $2-end-pos
+              (lhs-id $1-start-pos
+                      (position (+ (position-offset $1-start-pos)
+                                   (string-length trimmed))
+                                (position-line $1-start-pos)
+                                (position-col $1-start-pos))
                       trimmed)
               $2))]]
 
     [pattern
      [(implicit-pattern-sequence PIPE pattern)
       (if (pattern-choice? $3)
-          (pattern-choice (position-offset $1-start-pos)
-                      (position-offset $3-end-pos)
-                      (cons $1 (pattern-choice-vals $3)))
-          (pattern-choice (position-offset $1-start-pos)
-                      (position-offset $3-end-pos)
-                      (list $1 $3)))]
+          (pattern-choice $1-start-pos
+                          $3-end-pos
+                          (cons $1 (pattern-choice-vals $3)))
+          (pattern-choice $1-start-pos
+                          $3-end-pos
+                          (list $1 $3)))]
      [(implicit-pattern-sequence)
       $1]]
 
     [implicit-pattern-sequence
      [(repeatable-pattern implicit-pattern-sequence)
       (if (pattern-seq? $2)
-          (pattern-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (cons $1 (pattern-seq-vals $2)))
-          (pattern-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (list $1 $2)))]
+          (pattern-seq $1-start-pos $2-end-pos (cons $1 (pattern-seq-vals $2)))
+          (pattern-seq $1-start-pos $2-end-pos (list $1 $2)))]
      [(repeatable-pattern)
       $1]]
 
     [repeatable-pattern
      [(atomic-pattern REPEAT)
       (cond [(string=? $2 "*")
-             (pattern-repeat (position-offset $1-start-pos) (position-offset $2-end-pos) 0 $1)]
+             (pattern-repeat $1-start-pos $2-end-pos 0 $1)]
             [(string=? $2 "+")
-             (pattern-repeat (position-offset $1-start-pos) (position-offset $2-end-pos) 1 $1)]
+             (pattern-repeat $1-start-pos $2-end-pos 1 $1)]
             [else
              (error 'grammar-parse "unknown repetition operator ~e" $2)])]
      [(atomic-pattern)
@@ -109,20 +112,20 @@
 
     [atomic-pattern
      [(LIT)
-      (pattern-lit (position-offset $1-start-pos) (position-offset $1-end-pos) $1)]
+      (pattern-lit $1-start-pos $1-end-pos $1)]
      
      [(ID)
       (if (token-id? $1)
-          (pattern-token (position-offset $1-start-pos) (position-offset $1-end-pos) $1)
-          (pattern-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1))]
+          (pattern-token $1-start-pos $1-end-pos $1)
+          (pattern-id $1-start-pos $1-end-pos $1))]
 
      [(LBRACKET pattern RBRACKET)
-      (pattern-maybe (position-offset $1-start-pos) (position-offset $3-end-pos) $2)]
+      (pattern-maybe $1-start-pos $3-end-pos $2)]
      
      [(LPAREN pattern RPAREN)
       (if (pattern-seq? $2)
-          (pattern-seq (position-offset $1-start-pos) (position-offset $3-end-pos) (pattern-seq-vals $2))
-          (pattern-seq (position-offset $1-start-pos) (position-offset $3-end-pos) (list $2)))]])
+          (pattern-seq $1-start-pos $3-end-pos (pattern-seq-vals $2))
+          (pattern-seq $1-start-pos $3-end-pos (list $2)))]])
 
    
    (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
@@ -156,7 +159,7 @@
                         val)
         #:transparent)
 
-(struct pattern-maybe pattern ( val)
+(struct pattern-maybe pattern (val)
         #:transparent)
 
 (struct pattern-seq pattern (vals)

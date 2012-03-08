@@ -96,5 +96,8 @@
 (define-syntax (rules stx)
   (syntax-case stx ()
     [(_ r ...)
+
+     (for-each displayln (syntax->list #'(r ...)))
+     
      (syntax/loc stx
        (void))]))
