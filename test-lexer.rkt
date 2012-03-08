@@ -21,6 +21,15 @@
 (check-equal? (l "hi")
               '(ID "hi" 1 3))
 
+(check-equal? (l "# foobar\nhi")
+              '(ID "hi" 10 12))
+
+(check-equal? (l "# foobar\rhi")
+              '(ID "hi" 10 12))
+
+(check-equal? (l "# foobar\r\nhi")
+              '(ID "hi" 11 13))
+
 (check-equal? (l "hi:")
               '(RULE_HEAD "hi:" 1 4))
 
@@ -44,3 +53,6 @@
 
 (check-equal? (l "'hello'")
               '(LIT "'hello'" 1 8))
+
+(check-equal? (l "'he\\'llo'")
+              '(LIT "'he\\'llo'" 1 10))

@@ -68,11 +68,13 @@
      [(RULE_HEAD rhs)
       (begin 
         (define trimmed (regexp-replace #px"\\s*:$" $1 ""))
-        (rule (lhs-id (position-offset $1-start-pos)
-                    (+ (position-offset $1-start-pos)
-                       (string-length trimmed))
-                    trimmed)
-            $2))]]
+        (rule (position-offset $1-start-pos)
+              (position-offset $2-end-pos)
+              (lhs-id (position-offset $1-start-pos)
+                      (+ (position-offset $1-start-pos)
+                         (string-length trimmed))
+                      trimmed)
+              $2))]]
 
     [rhs
      [(implicit-rhs-sequence PIPE rhs)
@@ -127,10 +129,10 @@
             ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos)))))
 
 
-(struct rule (lhs rhs)
+(struct rule (start end lhs rhs)
         #:transparent)
 
-(struct lhs-id (val start end)
+(struct lhs-id (start end val)
         #:transparent)
 
 
@@ -173,11 +175,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; During parsing, we can define the source of the input.
+;; During parsing, we should define the source of the input.
 (define current-source (make-parameter #f))
 
 
-;; When bad things happen, we need to emit errors:
+;; When bad things happen, we need to emit errors with source location.
 (struct exn:fail:parse-grammar exn:fail (srclocs)
         #:transparent
         #:property prop:exn:srclocs (lambda (instance)
