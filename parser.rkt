@@ -23,13 +23,13 @@
          
          [struct-out rule]
          [struct-out lhs-id]
-         [struct-out rhs-id]
-         [struct-out rhs-lit]
-         [struct-out rhs-token]
-         [struct-out rhs-choice]
-         [struct-out rhs-repeat]
-         [struct-out rhs-maybe]
-         [struct-out rhs-seq])
+         [struct-out pattern-id]
+         [struct-out pattern-lit]
+         [struct-out pattern-token]
+         [struct-out pattern-choice]
+         [struct-out pattern-repeat]
+         [struct-out pattern-maybe]
+         [struct-out pattern-seq])
 
 (define-tokens tokens (LPAREN
                        RPAREN
@@ -65,7 +65,7 @@
     ;; of top-level rules.  i.e. the parser can't currently tell, when
     ;; it sees an ID, if it should shift or reduce to a new rule.
     [rule
-     [(RULE_HEAD rhs)
+     [(RULE_HEAD pattern)
       (begin 
         (define trimmed (regexp-replace #px"\\s*:$" $1 ""))
         (rule (position-offset $1-start-pos)
@@ -76,90 +76,90 @@
                       trimmed)
               $2))]]
 
-    [rhs
-     [(implicit-rhs-sequence PIPE rhs)
-      (if (rhs-choice? $3)
-          (rhs-choice (position-offset $1-start-pos)
+    [pattern
+     [(implicit-pattern-sequence PIPE pattern)
+      (if (pattern-choice? $3)
+          (pattern-choice (position-offset $1-start-pos)
                       (position-offset $3-end-pos)
-                      (cons $1 (rhs-choice-vals $3)))
-          (rhs-choice (position-offset $1-start-pos)
+                      (cons $1 (pattern-choice-vals $3)))
+          (pattern-choice (position-offset $1-start-pos)
                       (position-offset $3-end-pos)
                       (list $1 $3)))]
-     [(implicit-rhs-sequence)
+     [(implicit-pattern-sequence)
       $1]]
 
-    [implicit-rhs-sequence
-     [(repeatable-rhs implicit-rhs-sequence)
-      (if (rhs-seq? $2)
-          (rhs-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (cons $1 (rhs-seq-vals $2)))
-          (rhs-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (list $1 $2)))]
-     [(repeatable-rhs)
+    [implicit-pattern-sequence
+     [(repeatable-pattern implicit-pattern-sequence)
+      (if (pattern-seq? $2)
+          (pattern-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (cons $1 (pattern-seq-vals $2)))
+          (pattern-seq (position-offset $1-start-pos) (position-offset $2-end-pos) (list $1 $2)))]
+     [(repeatable-pattern)
       $1]]
 
-    [repeatable-rhs
-     [(atomic-rhs REPEAT)
+    [repeatable-pattern
+     [(atomic-pattern REPEAT)
       (cond [(string=? $2 "*")
-             (rhs-repeat (position-offset $1-start-pos) (position-offset $2-end-pos) 0 $1)]
+             (pattern-repeat (position-offset $1-start-pos) (position-offset $2-end-pos) 0 $1)]
             [(string=? $2 "+")
-             (rhs-repeat (position-offset $1-start-pos) (position-offset $2-end-pos) 1 $1)]
+             (pattern-repeat (position-offset $1-start-pos) (position-offset $2-end-pos) 1 $1)]
             [else
              (error 'grammar-parse "unknown repetition operator ~e" $2)])]
-     [(atomic-rhs)
+     [(atomic-pattern)
       $1]]
 
-    [atomic-rhs
+    [atomic-pattern
      [(LIT)
-      (rhs-lit (position-offset $1-start-pos) (position-offset $1-end-pos) $1)]
+      (pattern-lit (position-offset $1-start-pos) (position-offset $1-end-pos) $1)]
      
      [(ID)
       (if (token-id? $1)
-          (rhs-token (position-offset $1-start-pos) (position-offset $1-end-pos) $1)
-          (rhs-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1))]
+          (pattern-token (position-offset $1-start-pos) (position-offset $1-end-pos) $1)
+          (pattern-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1))]
 
-     [(LBRACKET rhs RBRACKET)
-      (rhs-maybe (position-offset $1-start-pos) (position-offset $3-end-pos) $2)]
+     [(LBRACKET pattern RBRACKET)
+      (pattern-maybe (position-offset $1-start-pos) (position-offset $3-end-pos) $2)]
      
-     [(LPAREN rhs RPAREN)
-      (if (rhs-seq? $2)
-          (rhs-seq (position-offset $1-start-pos) (position-offset $3-end-pos) (rhs-seq-vals $2))
-          (rhs-seq (position-offset $1-start-pos) (position-offset $3-end-pos) (list $2)))]])
+     [(LPAREN pattern RPAREN)
+      (if (pattern-seq? $2)
+          (pattern-seq (position-offset $1-start-pos) (position-offset $3-end-pos) (pattern-seq-vals $2))
+          (pattern-seq (position-offset $1-start-pos) (position-offset $3-end-pos) (list $2)))]])
 
    
    (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
             ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos)))))
 
 
-(struct rule (start end lhs rhs)
+(struct rule (start end lhs pattern)
         #:transparent)
 
 (struct lhs-id (start end val)
         #:transparent)
 
 
-;; A rhs can be one of the following:
-(struct rhs (start end)
+;; A pattern can be one of the following:
+(struct pattern (start end)
         #:transparent)
 
-(struct rhs-id rhs (val)
+(struct pattern-id pattern (val)
         #:transparent)
 
-(struct rhs-token rhs (val)
+(struct pattern-token pattern (val)
         #:transparent)
 
-(struct rhs-lit rhs (val)
+(struct pattern-lit pattern (val)
         #:transparent)
 
-(struct rhs-choice rhs (vals)
+(struct pattern-choice pattern (vals)
         #:transparent)
 
-(struct rhs-repeat rhs (min ;; either 0 or 1
+(struct pattern-repeat pattern (min ;; either 0 or 1
                         val)
         #:transparent)
 
-(struct rhs-maybe rhs ( val)
+(struct pattern-maybe pattern ( val)
         #:transparent)
 
-(struct rhs-seq rhs (vals)
+(struct pattern-seq pattern (vals)
         #:transparent)
 
 
