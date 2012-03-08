@@ -67,7 +67,7 @@
                 (first $3)))]]
 
     [rhs+
-     [(rhs rhs+) (cons $1 $2)]
+     #;[(rhs rhs+) (cons $1 $2)]
      [(rhs) (list $1)]]
     
     
