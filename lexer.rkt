@@ -7,16 +7,23 @@
 
 (define lex/1
   (lexer-src-pos
+
+   [(:: (:+ (:or alphabetic numeric))
+        (:* whitespace)
+        ":")
+    (token-RULE_HEAD lexeme)]
    [(:+ (:or alphabetic numeric))
     (token-ID lexeme)]
    [(:: "'" (:+ (complement "'")) "'")
     (token-LIT lexeme)]
-   [(:or "(" "[")
+   ["("
     (token-LPAREN lexeme)]
-   [(:or ")" "]")
+   ["["
+    (token-LBRACKET lexeme)]
+   [")"
     (token-RPAREN lexeme)]
-   [":"
-    (token-COLON lexeme)]
+   ["]"
+    (token-RBRACKET lexeme)]
    ["|"
     (token-PIPE lexeme)]
    [(:or "+" "*")

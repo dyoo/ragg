@@ -8,9 +8,11 @@
 (provide tokens
          token-LPAREN
          token-RPAREN
-         token-COLON
+         token-LBRACKET
+         token-RBRACKET
          token-PIPE
          token-REPEAT
+         token-RULE_HEAD
          token-ID
          token-LIT
          token-EOF
@@ -30,13 +32,14 @@
 
 (define-tokens tokens (LPAREN
                        RPAREN
-                       COLON
+                       LBRACKET
+                       RBRACKET
                        PIPE
                        REPEAT
+                       RULE_HEAD
                        ID
                        LIT
                        EOF))
-
 
 
 (define grammar-parser
@@ -57,17 +60,26 @@
      [()
       '()]]
 
+    ;; I have a separate token type for rule identifiers to avoid the
+    ;; shift/reduce conflict that happens with the implicit sequencing
+    ;; of top-level rules.  i.e. the parser can't currently tell, when
+    ;; it sees an ID, if it should shift or reduce to a new rule.
     [rule
-     [(ID COLON rhs+)
-      (rule (lhs-id (position-offset $1-start-pos) (position-offset $1-end-pos) $1)
-            (if (> (length $3) 1)
-                (rhs-seq (rhs-start (first $3))
-                         (rhs-end (last $3))
-                         $3)
-                (first $3)))]]
+     [(RULE_HEAD rhs+)
+      (begin 
+        (define trimmed (regexp-replace #px"\\s*:$" $1 ""))
+        (rule (lhs-id (position-offset $1-start-pos)
+                    (+ (position-offset $1-start-pos)
+                       (string-length trimmed))
+                    trimmed)
+            (if (> (length $2) 1)
+                (rhs-seq (rhs-start (first $2))
+                         (rhs-end (last $2))
+                         $2)
+                (first $2))))]]
 
     [rhs+
-     #;[(rhs rhs+) (cons $1 $2)]
+     [(rhs rhs+) (cons $1 $2)]
      [(rhs) (list $1)]]
     
     
@@ -144,7 +156,7 @@
   (make-parameter
    (lambda (tok-ok? tok-name tok-value start-pos end-pos)
      (raise (exn:fail:parse-grammar
-             (format "Error while parsing grammar near: ~e [line=~a, column~a, position=~a}"
+             (format "Error while parsing grammar near: ~e [line=~a, column~a, position=~a]"
                      tok-value
                      (position-line start-pos)
                      (position-col start-pos)

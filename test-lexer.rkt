@@ -21,8 +21,11 @@
 (check-equal? (l "hi")
               '(ID "hi" 1 3))
 
-(check-equal? (l ":")
-              '(COLON ":" 1 2))
+(check-equal? (l "hi:")
+              '(RULE_HEAD "hi:" 1 4))
+
+(check-equal? (l "hi   :")
+              '(RULE_HEAD "hi   :" 1 7))
 
 (check-equal? (l "|")
               '(PIPE "|" 1 2))
@@ -31,13 +34,13 @@
               '(LPAREN "(" 1 2))
 
 (check-equal? (l "[")
-              '(LPAREN "[" 1 2))
+              '(LBRACKET "[" 1 2))
 
 (check-equal? (l ")")
               '(RPAREN ")" 1 2))
 
 (check-equal? (l "]")
-              '(RPAREN "]" 1 2))
+              '(RBRACKET "]" 1 2))
 
 (check-equal? (l "'hello'")
               '(LIT "'hello'" 1 8))
