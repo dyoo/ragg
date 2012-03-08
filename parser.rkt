@@ -150,7 +150,8 @@
 (struct rhs-choice rhs (vals)
         #:transparent)
 
-(struct rhs-repeat rhs (min val)
+(struct rhs-repeat rhs (min ;; either 0 or 1
+                        val)
         #:transparent)
 
 (struct rhs-maybe rhs ( val)

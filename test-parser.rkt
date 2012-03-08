@@ -84,3 +84,19 @@
                                                                    (list (rhs-id 9 12 "one")
                                                                          (rhs-id 13 16 "two"))))
                                               (rhs-id 19 24 "three"))))))
+
+
+(check-equal? (grammar-parser (tokenize (open-input-string #<<EOF
+statlist : stat+
+stat: ID '=' expr
+    | 'print' expr
+EOF
+)))
+              (list (rule (lhs-id 1 9 "statlist")
+                          (rhs-repeat 12 17 1 (rhs-id 12 16 "stat")))
+                    (rule (lhs-id 18 22 "stat")
+                          (rhs-choice 24 54 (list (rhs-seq 24 35 (list (rhs-token 24 26 "ID")
+                                                                       (rhs-lit 27 30 "'='")
+                                                                       (rhs-id 31 35 "expr")))
+                                                  (rhs-seq 42 54 (list (rhs-lit 42 49 "'print'")
+                                                                       (rhs-id 50 54 "expr"))))))))

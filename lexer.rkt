@@ -14,7 +14,7 @@
     (token-RULE_HEAD lexeme)]
    [(:+ (:or alphabetic numeric))
     (token-ID lexeme)]
-   [(:: "'" (:+ (complement "'")) "'")
+   [(:: "'" (:+ (char-complement "'")) "'")
     (token-LIT lexeme)]
    ["("
     (token-LPAREN lexeme)]
