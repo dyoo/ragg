@@ -20,10 +20,10 @@
 ;; What this generates is a module that binds constructors associated
 ;; to the token types in upper-case, plus the following:
 ;;
-;;     * grammar: a grammar that consumes a source and a position-aware lexer, and produces
-;;       a syntax object.
+;;     * grammar: a grammar that consumes a source and a
+;;       position-aware lexer, and produces a syntax object.
 ;;
-;;     * default-lexer: a partially-defined lexer that knows how to read
+;;     * default-lex/1: a partially-defined lexer that knows how to read
 ;;       the literal strings.  You'll use this to create the full lexer.
 ;; 
 ;; You'll still need to do a little work, by providing a lexer that
@@ -33,19 +33,22 @@
 ;;          parser-tools/lex
 ;;          parser-tools/lex-sre)
 ;;
-;; (define tokenizer
+;; (define tokenize/1
 ;;   (lexer-src-pos
 ;;     [(:+ alphabetic)
 ;;      (token-ATOM lexeme)]
 ;;     [whitespace
-;;      (return-without-pos (tokenizer input-port))]
+;;      (return-without-pos (tokenize/1 input-port))]
 ;;     [else
-;;      (return-without-pos (default-lexer input-port))]))
+;;      (return-without-pos (default-lex/1 input-port))]))
 ;;
 
 ;; However, that should be all you need.  The output of an
 ;; autogrammar-generated grammar is an honest-to-goodness syntax
 ;; object with source locations, fully-labeled by the rules.
+;;
+;; (grammar "some-source" tokenize/1)
+;;
 ;;
 ;; The first rule is treated as the start rule; any successful parse
 ;; must finish with end-of-file.
@@ -88,74 +91,10 @@
 ;;
 
 (require (for-syntax racket/base)
-         "runtime.rkt")
+         (for-syntax "compile-time.rkt"))
 
 (provide rules
-         rule
-         pattern
-         id
-         lit
-         token
-         choice
-         repeat
-         maybe
-         seq
+         (for-syntax id lit token choice repeat maybe seq)
          (rename-out [#%plain-module-begin #%module-begin]))
 
-
-(begin-for-syntax
-
- ;; collect-token-types: (listof rule-syntax) -> (values (listof identifier) (listof identifier))
- ;;
- ;; Given the rules, automatically derive the list of implicit and explicit rules
- ;; we need to generate.
- (define (collect-token-types rules)
-   (values '() '()))
-
- 
- (define (rules->grammar-defn rules)
-   #'(let ([THE-GRAMMAR
-            (lambda (tokenizer)
-              'the-grammar)])
-       (lambda (source tokenizer)
-         (parameterize ([current-source source])
-           (THE-GRAMMAR tokenizer))))))
-
- 
-(define-syntax (rules stx)
-  (syntax-case stx ()
-    [(_ r ...)
-
-     (with-syntax ([(toplevel-token-constructors ...)
-                    '()]
-                   [grammar-defn
-                    (rules->grammar-defn (syntax->list #'(r ...)))])
-       (syntax/loc stx
-         (begin
-           (require parser-tools/lex
-                    parser-tools/yacc)
-
-           (provide grammar
-                    toplevel-token-constructors ...)
-           
-           (define grammar
-             grammar-defn)
-           
-           ;; the token types
-           
-           ;; the provides
-
-           ;; the lexer
-
-           ;; the parser         
-           (void))))]))
-
-(define-syntax (rule stx) (raise-syntax-error #f "Used out of context" stx))
-(define-syntax (pattern stx) (raise-syntax-error #f "Used out of context" stx))
-(define-syntax (id stx) (raise-syntax-error #f "Used out of context" stx))
-(define-syntax (lit stx) (raise-syntax-error #f "Used out of context" stx))
-(define-syntax (token stx) (raise-syntax-error #f "Used out of context" stx))
-(define-syntax (choice stx) (raise-syntax-error #f "Used out of context" stx))
-(define-syntax (repeat stx) (raise-syntax-error #f "Used out of context" stx))
-(define-syntax (maybe stx) (raise-syntax-error #f "Used out of context" stx))
-(define-syntax (seq stx) (raise-syntax-error #f "Used out of context of rules" stx))
+(define-syntax rules rules-codegen)
