@@ -22,6 +22,9 @@
        
        (define-values (implicit-tokens explicit-tokens)
          (rules-collect-token-types rules))
+
+       (for ([token (append implicit-tokens explicit-tokens)])
+         (displayln token))
        
        (with-syntax ([(toplevel-token-constructors ...)
                       '()]
