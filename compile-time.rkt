@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require (for-template racket/base "runtime.rkt")
+(require (for-template racket/base)
+         racket/list
          racket/set)
 
 (provide rules-codegen
@@ -14,6 +15,7 @@
          seq)
 
 
+
 (define (rules-codegen stx)
   (syntax-case stx ()
     [(_)
@@ -21,10 +23,16 @@
 
     [(_ r ...)
      (begin
+       ;; (listof stx)
        (define rules (syntax->list #'(r ...)))
+
+       ;; The first rule, by default, is the start rule.
+       (define start-id (syntax-case (first rules) (rule)
+                          [(rule id pattern)
+                           #'id]))
        
-       (define-values (implicit-tokens   ;; (listof string-stx)
-                       explicit-tokens)  ;; (listof identifier-stx)
+       (define-values (implicit-tokens    ;; (listof string-stx)
+                       explicit-tokens)   ;; (listof identifier-stx)
          (rules-collect-token-types rules))
 
        ;; (listof string)
@@ -35,17 +43,16 @@
        (define explicit-token-types
          (set->list (list->set (map syntax-e explicit-tokens))))
 
-       
+       ;; (listof (U symbol string))
        (define token-types
          (set->list (list->set (append (map (lambda (x) (string->symbol (syntax-e x)))
                                             implicit-tokens)
                                        (map syntax-e explicit-tokens)))))
        
-       (with-syntax ([(token-types ...)
+       (with-syntax ([start-id start-id]
+
+                     [(token-types ...)
                       token-types]
-                     [(token-type-constructor ...)
-                      (map (lambda (x) (string->symbol (format "token-~a" x)))
-                           token-types)]
 
                      [(explicit-token-type-constructor ...)
                       (map (lambda (x) (string->symbol (format "token-~a" x)))
@@ -55,14 +62,16 @@
                            implicit-token-types)]
 
                      [(explicit-token-types ...) explicit-token-types]
-                     [(implicit-token-types ...) implicit-token-types])
+                     [(implicit-token-types ...) implicit-token-types]
+
+                     [(generated-rule ...) (generate-rules rules)])
 
          (syntax/loc stx
            (begin
              (require parser-tools/lex
                       parser-tools/yacc)
 
-             (provide grammar
+             (provide parse
                       default-lex/1
                       tokens
 
@@ -70,7 +79,11 @@
 
                       token-EOF
                       explicit-token-type-constructor ...
-                      implicit-token-type-constructor ...)
+                      implicit-token-type-constructor ...
+
+                      current-source
+                      current-parser-error-handler
+                      [struct-out exn:fail-parse-grammar])
 
              (define all-token-names '(EOF explicit-token-types ...
                                            implicit-token-types ...))
@@ -81,25 +94,56 @@
                        (implicit-token-type-constructor lexeme)]
                       ...
                       [(eof) (token-EOF eof)]))
-             
-             (define grammar
+
+             ;; During parsing, we should define the source of the input.
+             (define current-source (make-parameter #f))
+
+             ;; When bad things happen, we need to emit errors with source location.
+             (struct exn:fail:parse-grammar exn:fail (srclocs)
+                     #:transparent
+                     #:property prop:exn:srclocs (lambda (instance)
+                                                   (exn:fail:parse-grammar-srclocs instance)))
+
+             (define current-parser-error-handler
+               (make-parameter
+                (lambda (tok-ok? tok-name tok-value start-pos end-pos)
+                  (raise (exn:fail:parse-grammar
+                          (format "Error while parsing grammar near: ~e [line=~a, column~a, position=~a]"
+                                  tok-value
+                                  (position-line start-pos)
+                                  (position-col start-pos)
+                                  (position-offset start-pos))
+                          (current-continuation-marks)
+                          (list (srcloc (current-source)
+                                        (position-line start-pos)
+                                        (position-col start-pos)
+                                        (position-offset start-pos)
+                                        (if (and (number? (position-offset end-pos))
+                                                 (number? (position-offset start-pos)))
+                                            (- (position-offset end-pos)
+                                               (position-offset start-pos))
+                                            #f))))))))
+
+             (define parse
                (let ([THE-GRAMMAR
-                      (lambda (tokenizer)
-                        'the-grammar)])
+                      (parser
+                       (tokens tokens)
+                       (src-pos)
+                       (start start-id)
+                       (end EOF)
+                       (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
+                                ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos)))
+                       (grammar
+                        generated-rule  ...))])
                  (lambda (source tokenizer)
                    (parameterize ([current-source source])
-                     (THE-GRAMMAR tokenizer)))))
-             
-             ;; the token types
-             
-             ;; the provides
-
-             ;; the lexer
-
-             ;; the parser         
-             (void)))))]))
+                     (THE-GRAMMAR tokenizer)))))))))]))
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (generate-rules rules)
+  '())
 
 
 

@@ -34,4 +34,4 @@
 
 
 
-(grammar "hello.py" tokenize/1)
+(parse "hello.py" tokenize/1)
