@@ -52,40 +52,56 @@
 
 
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; collect-token-types: (listof rule-syntax) -> (values (listof identifier) (listof identifier))
 ;;
-;; Given a rule, automatically derive the list of implicit and explicit rules
-;; we need to generate.
+;; Given a rule, automatically derive the list of implicit and
+;; explicit token types we need to generate.
+;; 
 (define (rules-collect-token-types rules)
-  (for/fold ([implicit '()]
-             [explicit '()])
-      ([r (in-list rules)])
-    (rule-collect-token-types r implicit explicit)))
-
+  (define-values (implicit explicit)
+    (for/fold ([implicit '()]
+               [explicit '()])
+        ([r (in-list rules)])
+      (rule-collect-token-types r implicit explicit)))
+  (values (reverse implicit) (reverse explicit)))
+  
 (define (rule-collect-token-types a-rule implicit explicit)
   (syntax-case a-rule (rule)
     [(rule id a-pattern)
-     (values (pattern-collect-implicit-token-types #'a-pattern implicit)
-             (cons #'id explicit))]))
+     (pattern-collect-implicit-token-types #'a-pattern implicit explicit)]))
 
-(define (pattern-collect-implicit-token-types a-pattern acc)
+(define (pattern-collect-implicit-token-types a-pattern implicit explicit)
   (let loop ([a-pattern a-pattern]
-             [acc acc])
+             [implicit implicit]
+             [explicit explicit])
     (syntax-case a-pattern (id lit token choice repeat maybe seq)
       [(id val)
-       acc]
+       (values implicit explicit)]
       [(lit val)
-       (cons #'val acc)]
+       (values (cons #'val implicit) explicit)]
       [(token val)
-       acc]
+       (values implicit (cons #'val explicit))]
       [(choice vals ...)
-       (foldl loop acc (syntax->list #'(vals ...)))]
+       (for/fold ([implicit implicit]
+                  [explicit explicit])
+                 ([v (in-list (syntax->list #'(vals ...)))])
+         (loop v implicit explicit))]
       [(repeat min val)
-       (loop #'val acc)]
+       (loop #'val implicit explicit)]
       [(maybe val)
-       (loop #'val acc)]
+       (loop #'val implicit explicit)]
       [(seq vals ...)
-       (foldl loop acc (syntax->list #'(vals ...)))])))
+       (for/fold ([implicit implicit]
+                  [explicit explicit])
+                 ([v (in-list (syntax->list #'(vals ...)))])
+         (loop v implicit explicit))])))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 
 
 (define (rules->grammar-defn rules)
