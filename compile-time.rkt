@@ -63,8 +63,7 @@
 
                      [(explicit-token-types ...) explicit-token-types]
                      [(implicit-token-types ...) implicit-token-types]
-
-                     [(generated-rule ...) (generate-rules rules)])
+                     )
 
          (syntax/loc stx
            (begin
@@ -125,54 +124,58 @@
                                             #f))))))))
 
              (define parse
-               (let ([THE-GRAMMAR
-                      (parser
-                       (tokens tokens)
-                       (src-pos)
-                       (start start-id)
-                       (end EOF)
-                       (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
-                                ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos)))
-                       (grammar
-                        generated-rule  ...))])
+               (let (
+                     ;; [THE-GRAMMAR
+                     ;;  (parser
+                     ;;   (tokens tokens)
+                     ;;   (src-pos)
+                     ;;   (start start-id)
+                     ;;   (end EOF)
+                     ;;   (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
+                     ;;            ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos)))
+                     ;;   (grammar
+                     ;;    generated-rule  ...))]
+                     )
                  (lambda (source tokenizer)
                    (parameterize ([current-source source])
-                     (THE-GRAMMAR tokenizer)))))))))]))
+                     'fixme
+                     ;(THE-GRAMMAR tokenizer)
+                     ))))))))]))
 
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Genereate all the rules, both the explicit rules and the implicit rules.
-;; Implicit rules come from the use of 'choice, 'repeat, and 'maybe
-;; pattern types.
-;; generate-rules: (listof stx) -> (listof stx)
-(define (generate-rules rules)
-  (define implicit-ht (make-hasheq))
+;; ;; Genereate all the rules, both the explicit rules and the implicit rules.
+;; ;; Implicit rules come from the use of 'choice, 'repeat, and 'maybe
+;; ;; pattern types.
+;; ;; generate-rules: (listof stx) -> (listof stx)
+;; (define (generate-rules rules)
+;;   (define implicit-ht (make-hasheq))
 
-  (define (generate-rule a-rule)
-    (syntax-case a-rule (rule)
-      [(rule id pattern)
-       (with-syntax ([generated-pattern-code (generate-pattern-code #'pattern)])
-         (syntax/loc a-rule
-           [id generated-pattern-code]]))
+;;   (define (generate-rule a-rule)
+;;     (syntax-case a-rule (rule)
+;;       [(rule id pattern)
+;;        (with-syntax ([generated-pattern-code (generate-pattern-code #'pattern)])
+;;          (syntax/loc a-rule
+;;            [id generated-pattern-code]]))
 
-  (define (generate-pattern-code a-pattern)
-    (syntax-case a-pattern (id lit token choice repeat maybe seq)
-      [(id val)
-       ...]
-      [(lit val)
-       ...]
-      [(token val)
-       ...]
-      [(choice vals)
-       ...]
-      [(repeat min val)
-       ...]
-      [(maybe val)
-       ...]
-      [(seq vals)
-       ...])))
+;;   (define (generate-pattern-code a-pattern)
+;;     (syntax-case a-pattern (id lit token choice repeat maybe seq)
+;;       [(id val)
+;;        ...]
+;;       [(lit val)
+;;        ...]
+;;       [(token val)
+;;        ...]
+;;       [(choice vals)
+;;        ...]
+;;       [(repeat min val)
+;;        ...]
+;;       [(maybe val)
+;;        ...]
+;;       [(seq vals)
+;;        ...])))
 
 
 
@@ -229,6 +232,7 @@
 ;; These are just here to provide bindings for Check Syntax.
 ;; Otherwise, we should never hit these, as the toplevel rules-codegen
 ;; should eliminate all uses of these if it does the right thing.
+(define (rules stx) (raise-syntax-error #f "Used out of context of rules" stx))
 (define (rule stx) (raise-syntax-error #f "Used out of context of rules" stx))
 (define (id stx) (raise-syntax-error #f "Used out of context of rules" stx))
 (define (lit stx) (raise-syntax-error #f "Used out of context of rules" stx))
