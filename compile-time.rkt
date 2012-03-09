@@ -65,11 +65,15 @@
              (provide grammar
                       default-lex/1
                       tokens
-                      token-names
-                      token-EOF explicit-token-type-constructor ...)
 
-             (define token-names '(EOF explicit-token-types ...
-                                       implicit-token-types ...))
+                      all-token-names
+
+                      token-EOF
+                      explicit-token-type-constructor ...
+                      implicit-token-type-constructor ...)
+
+             (define all-token-names '(EOF explicit-token-types ...
+                                           implicit-token-types ...))
              (define-tokens tokens (EOF token-types ...))
 
              (define default-lex/1
