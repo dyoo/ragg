@@ -1,7 +1,7 @@
 #lang racket/base
 
-(require (for-template racket/base
-                       "runtime.rkt"))
+(require (for-template racket/base "runtime.rkt")
+         racket/set)
 
 (provide rules-codegen
          rule
@@ -16,30 +16,75 @@
 
 (define (rules-codegen stx)
   (syntax-case stx ()
+    [(_)
+     (raise-syntax-error #f "The set of grammatical rules can't be empty." stx)]
+
     [(_ r ...)
      (begin
        (define rules (syntax->list #'(r ...)))
        
-       (define-values (implicit-tokens explicit-tokens)
+       (define-values (implicit-tokens   ;; (listof string-stx)
+                       explicit-tokens)  ;; (listof identifier-stx)
          (rules-collect-token-types rules))
 
-       (for ([token (append implicit-tokens explicit-tokens)])
-         (displayln token))
+       ;; (listof string)
+       (define implicit-token-types
+         (set->list (list->set (map syntax-e implicit-tokens))))
+
+       ;; (listof symbol)
+       (define explicit-token-types
+         (set->list (list->set (map syntax-e explicit-tokens))))
+
        
-       (with-syntax ([(toplevel-token-constructors ...)
-                      '()]
-                     [grammar-defn
-                      (rules->grammar-defn rules)])
+       (define token-types
+         (set->list (list->set (append (map (lambda (x) (string->symbol (syntax-e x)))
+                                            implicit-tokens)
+                                       (map syntax-e explicit-tokens)))))
+       
+       (with-syntax ([(token-types ...)
+                      token-types]
+                     [(token-type-constructor ...)
+                      (map (lambda (x) (string->symbol (format "token-~a" x)))
+                           token-types)]
+
+                     [(explicit-token-type-constructor ...)
+                      (map (lambda (x) (string->symbol (format "token-~a" x)))
+                           explicit-token-types)]
+                     [(implicit-token-type-constructor ...)
+                      (map (lambda (x) (string->symbol (format "token-~a" x)))
+                           implicit-token-types)]
+
+                     [(explicit-token-types ...) explicit-token-types]
+                     [(implicit-token-types ...) implicit-token-types])
+
          (syntax/loc stx
            (begin
              (require parser-tools/lex
                       parser-tools/yacc)
 
              (provide grammar
-                      toplevel-token-constructors ...)
+                      default-lex/1
+                      tokens
+                      token-names
+                      token-EOF explicit-token-type-constructor ...)
+
+             (define token-names '(EOF explicit-token-types ...
+                                       implicit-token-types ...))
+             (define-tokens tokens (EOF token-types ...))
+
+             (define default-lex/1
+               (lexer [implicit-token-types
+                       (implicit-token-type-constructor lexeme)]
+                      ...
+                      [(eof) (token-EOF eof)]))
              
              (define grammar
-               grammar-defn)
+               (let ([THE-GRAMMAR
+                      (lambda (tokenizer)
+                        'the-grammar)])
+                 (lambda (source tokenizer)
+                   (parameterize ([current-source source])
+                     (THE-GRAMMAR tokenizer)))))
              
              ;; the token types
              
@@ -49,6 +94,7 @@
 
              ;; the parser         
              (void)))))]))
+
 
 
 
@@ -98,20 +144,6 @@
                   [explicit explicit])
                  ([v (in-list (syntax->list #'(vals ...)))])
          (loop v implicit explicit))])))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-
-
-(define (rules->grammar-defn rules)
-  #'(let ([THE-GRAMMAR
-           (lambda (tokenizer)
-             'the-grammar)])
-      (lambda (source tokenizer)
-        (parameterize ([current-source source])
-          (THE-GRAMMAR tokenizer)))))
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

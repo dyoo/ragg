@@ -113,7 +113,8 @@
 
     [atomic-pattern
      [(LIT)
-      (pattern-lit $1-start-pos $1-end-pos $1)]
+      (pattern-lit $1-start-pos $1-end-pos
+                   (substring $1 1 (sub1 (string-length $1))))]
      
      [(ID)
       (if (token-id? $1)

@@ -15,9 +15,12 @@
 (struct pattern-id pattern (val)
         #:transparent)
 
+
+;; Token structure to be defined by the user
 (struct pattern-token pattern (val)
         #:transparent)
 
+;; Token structure defined as the literal string to be matched.
 (struct pattern-lit pattern (val)
         #:transparent)
 
