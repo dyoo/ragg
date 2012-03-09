@@ -83,7 +83,7 @@
 
                       current-source
                       current-parser-error-handler
-                      [struct-out exn:fail-parse-grammar])
+                      [struct-out exn:fail:parse-grammar])
 
              (define all-token-names '(EOF explicit-token-types ...
                                            implicit-token-types ...))
@@ -142,8 +142,39 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Genereate all the rules, both the explicit rules and the implicit rules.
+;; Implicit rules come from the use of 'choice, 'repeat, and 'maybe
+;; pattern types.
+;; generate-rules: (listof stx) -> (listof stx)
 (define (generate-rules rules)
-  '())
+  (define implicit-ht (make-hasheq))
+
+  (define (generate-rule a-rule)
+    (syntax-case a-rule (rule)
+      [(rule id pattern)
+       (with-syntax ([generated-pattern-code (generate-pattern-code #'pattern)])
+         (syntax/loc a-rule
+           [id generated-pattern-code]]))
+
+  (define (generate-pattern-code a-pattern)
+    (syntax-case a-pattern (id lit token choice repeat maybe seq)
+      [(id val)
+       ...]
+      [(lit val)
+       ...]
+      [(token val)
+       ...]
+      [(choice vals)
+       ...]
+      [(repeat min val)
+       ...]
+      [(maybe val)
+       ...]
+      [(seq vals)
+       ...])))
+
+
 
 
 
