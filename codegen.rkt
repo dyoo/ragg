@@ -3,10 +3,11 @@
 (require (for-template racket/base)
          racket/list
          racket/set
-         "stx-types.rkt")
+         "stx-types.rkt"
+         "flatten.rkt")
 
-(provide rules-codegen
-         (all-from-out "stx-types.rkt"))
+(provide rules-codegen)
+
 
 
 (define (rules-codegen stx)
@@ -19,6 +20,11 @@
        ;; (listof stx)
        (define rules (syntax->list #'(r ...)))
 
+       (define flattened-rules (foldl (lambda (x acc)
+                                        (append (flatten-rule x) acc))
+                                      '()
+                                      rules))
+       
        ;; The first rule, by default, is the start rule.
        (define start-id (syntax-case (first rules) (rule)
                           [(rule id pattern)

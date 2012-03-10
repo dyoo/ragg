@@ -90,11 +90,8 @@
 ;; TODO: handle precedence
 ;;
 
-(require (for-syntax racket/base)
-         (for-syntax "compile-time.rkt"))
+(require (for-syntax racket/base
+                     "codegen.rkt"))
 
-(provide rules
-         (for-syntax id lit token choice repeat maybe seq)
-         (rename-out [#%plain-module-begin #%module-begin]))
-
+(provide rules (rename-out [#%plain-module-begin #%module-begin]))
 (define-syntax rules rules-codegen)
