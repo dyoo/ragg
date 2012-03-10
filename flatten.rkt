@@ -55,7 +55,7 @@
           (values (cons new-rules inferred-ruless)
                   (cons new-ps patternss))))
       (values (apply append (reverse rules))
-              (reverse patterns)))
+              (apply append (reverse patterns))))
           
     (with-syntax ([head (if inferred? #'inferred-prim-rule #'prim-rule)])
       (syntax-case a-rule (rule)
@@ -76,11 +76,15 @@
            ;; Everything else might need lifting:
            [(choice sub-pat ...)
             (begin
-              (define-values (inferred-rules new-sub-pats)
-                (lift-nonprimitive-patterns (syntax->list #'(sub-pat ...))))
-              (with-syntax ([(sub-pat ...) new-sub-pats])
-                (append (list #'(head name sub-pat ...))
-                        inferred-rules)))]
+              (define-values (inferred-ruless/rev new-sub-patss/rev)
+                (for/fold ([rs '()] [ps '()])
+                          ([p (syntax->list #'(sub-pat ...))])
+                  (let-values ([(new-r new-p)
+                                (lift-nonprimitive-pattern p)])
+                    (values (cons new-r rs) (cons new-p ps)))))
+              (with-syntax ([((sub-pat ...) ...) (reverse new-sub-patss/rev)])
+                (append (list #'(head name [sub-pat ...] ...))
+                        (apply append (reverse inferred-ruless/rev)))))]
 
            [(repeat min sub-pat)
             (begin
@@ -110,7 +114,7 @@
            [(seq sub-pat ...)
             (begin
               (define-values (inferred-rules new-sub-pats)
-                (lift-nonprimitive-pattern #'pat))
+                (lift-nonprimitive-patterns (syntax->list #'(sub-pat ...))))
               (with-syntax ([(sub-pat ...) new-sub-pats])
                 (cons #'(head name [sub-pat ...])
                       inferred-rules)))])]))))

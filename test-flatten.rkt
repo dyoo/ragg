@@ -170,7 +170,15 @@
                                     [(lit "z") (lit "w")])))
 
 
+;; seq, repeat
 (check-equal? (map syntax->datum
+                   (flatten-rule #'(rule expr (seq (id term) (repeat 0 (seq (lit "+") (id term)))))
+                                 #:fresh-name (make-fresh-name)))
+              '((prim-rule expr [(id term) (inferred-id r1)])
+                (inferred-prim-rule r1 [(inferred-id r1) (lit "+") (id term)] [])))
+
+
+#;(check-equal? (map syntax->datum
                    (flatten-rules (syntax->list
                                    #'((rule expr (seq (id term) (repeat 0 (seq (lit "+") (id term)))))
                                       (rule term (seq (id factor) (repeat 0 (seq (lit "*") (id factor)))))
