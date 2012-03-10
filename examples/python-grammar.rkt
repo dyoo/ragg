@@ -1,4 +1,4 @@
-#lang planet dyoo/autogrammar
+#lang planet dyoo/autogrammar/lalr
 
 # Grammar for Python
 

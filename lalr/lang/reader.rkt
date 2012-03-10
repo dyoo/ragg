@@ -5,9 +5,9 @@
 #:info my-get-info
 #:whole-body-readers? #t
 
-(require "../parser.rkt"
-         "../lexer.rkt"
-         "../stx.rkt")
+(require "../../parser.rkt"
+         "../../lexer.rkt"
+         "../../stx.rkt")
 
 (define (my-read in)
   (syntax->datum (my-read-syntax #f in)))

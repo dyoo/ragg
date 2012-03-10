@@ -108,7 +108,7 @@
                (make-parameter
                 (lambda (tok-ok? tok-name tok-value start-pos end-pos)
                   (raise (exn:fail:parsing
-                          (format "Error while parsing grammar, near: ~e [line=~a, column~a, position=~a]"
+                          (format "Encountered error while parsing, near: ~e [line=~a, column~a, position=~a]"
                                   tok-value
                                   (position-line start-pos)
                                   (position-col start-pos)
@@ -123,6 +123,17 @@
                                             (- (position-offset end-pos)
                                                (position-offset start-pos))
                                             #f))))))))
+
+             ;; If someone feeds us a token that has no positional information,
+             ;; just force it into the right shape.
+             (define (coerse-to-position-token t)
+               (cond
+                [(position-token? t)
+                 t]
+                [else
+                 (position-token t
+                                 (position #f #f #f)
+                                 (position #f #f #f))]))
 
              (define parse
                (let (
@@ -139,7 +150,8 @@
                      )
                  (lambda (source tokenizer)
                    (parameterize ([current-source source])
-                     (THE-GRAMMAR tokenizer)))))))))]))
+                     (THE-GRAMMAR (lambda ()
+                                    (coerse-to-position-token (tokenizer))))))))))))]))
 
 
 ;; Given a flattened rule, returns a syntax for the code
