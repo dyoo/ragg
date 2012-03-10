@@ -40,7 +40,7 @@
         (values '() (list (hash-ref ht (pattern->hash-key a-pat))))]
        [else
         (define new-name (datum->syntax #f (fresh-name) a-pat))
-        (define new-inferred-id #`(inferred-id  #,new-name))
+        (define new-inferred-id (datum->syntax #f `(inferred-id  ,new-name) a-pat))
         (hash-set! ht (pattern->hash-key a-pat) new-inferred-id)
         (values (recur #`(rule #,new-name #,a-pat) #t)
                 (list new-inferred-id))]))

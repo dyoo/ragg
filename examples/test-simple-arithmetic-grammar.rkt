@@ -4,25 +4,29 @@
          racket/list
          rackunit)
 
-(define (lex ip)
+(define (tokenize ip)
+  (define lex/1
+    (lexer-src-pos
+     [(repetition 1 +inf.0 numeric)
+      (token-INT (string->number lexeme))]
+     [whitespace
+      (lex/1 ip)]
+     ["+"
+      (token-+ "+")]
+     ["*"
+      (token-+ "*")]
+     [(eof)
+      (token-EOF eof)]))
   (lambda ()
-    (cond [(regexp-match #px"^\\d+" ip)
-           =>
-           (lambda (a-match)
-             (printf "here: ~a\n" (peek-byte ip))
-             (token-INT (string->number (bytes->string/utf-8 (first a-match)))))]
-          [else
-           (printf "there: ~a\n" (peek-byte ip))
-           (default-lex/1 ip)])))
+    (lex/1 ip)))
 
-(define t (lex (open-input-string "17 plus 4")))
-(t)
-(position-token-token (t))
-(position-token-token (t))
+(check-equal? (syntax->datum (parse #f (tokenize (open-input-string "42"))))
+              '(expr (term (factor 42) ()) ()))
+(check-equal? (syntax->datum (parse #f (tokenize (open-input-string "3+4"))))
+              '(expr (term (factor 3) ()) (('+' (term (factor 3) ())))))
+
+;; (parse #f (tokenize (open-input-string "4*5+6")))
 
 
-
-;(parse #f (lex (open-input-string "42")))
-;(parse #f (lex (open-input-string "3+4")))
-;(parse #f (lex (open-input-string "4*5+6")))
-;(check-exn exn:fail:parsing? (lambda () (parse #f (lex (open-input-string "7+")))))
+(check-exn exn:fail:parsing?
+           (lambda () (parse #f (tokenize (open-input-string "7+")))))

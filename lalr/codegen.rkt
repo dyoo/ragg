@@ -171,11 +171,13 @@
      #`[name translated-clause ...])]))
 
 
+  
+
 ;; translates a single primitive rule clause.
 ;; A clause is a simple list of ids, lit, vals, and inferred-id elements.
 ;; The action taken depends on the pattern type.
 (define (translate-clause rule-name/false a-clause)
-  (define translated-pattern
+  (define translated-patterns
     (let loop ([primitive-patterns (syntax->list a-clause)])
       (cond
        [(empty? primitive-patterns)
@@ -192,11 +194,46 @@
                  #'val])
               (loop (rest primitive-patterns)))])))
   
-  (define translated-action
-    #'(void))
-  (with-syntax ([(translated-pattern ...) translated-pattern]
-                [translated-action translated-action])
-    #'[(translated-pattern ...) translated-action]))
+  (define translated-actions
+    (for/list ([primitive-pattern (syntax->list a-clause)]
+               [pos (in-naturals 1)])
+      (with-syntax ([line #f]
+                    [column #f]
+                    [position #f]
+                    [span #f]
+                    [$X (datum->syntax primitive-pattern
+                                       (string->symbol (format "$~a" pos)))])
+        (syntax-case primitive-pattern (id lit token inferred-id)
+          [(id val)
+           #`(begin (datum->syntax #f
+                                   $X
+                                   (list (current-source) line column position span)))]
+          [(inferred-id val)
+           #`(begin (datum->syntax #f
+                                   $X
+                                   (list (current-source) line column position span)))]
+          [(lit val)
+           #`(begin (datum->syntax #f
+                                   $X
+                                   (list (current-source) line column position span)))]
+          [(token val)
+           #`(begin (datum->syntax #f
+                                   $X
+                                   (list (current-source) line column position span)))]))))
+  
+  (with-syntax ([(translated-pattern ...) translated-patterns]
+                [(translated-action ...) translated-actions])
+    (cond
+     [rule-name/false
+      #'[(translated-pattern ...)
+         (datum->syntax #f
+                        (list translated-action ...)
+                        )]]
+     [else
+      #'[(translated-pattern ...)
+         (datum->syntax #f
+                        (list translated-action ...)
+                        )]])))
 
 
 
