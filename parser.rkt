@@ -125,9 +125,7 @@
       (pattern-maybe $1-start-pos $3-end-pos $2)]
      
      [(LPAREN pattern RPAREN)
-      (if (pattern-seq? $2)
-          (pattern-seq $1-start-pos $3-end-pos (pattern-seq-vals $2))
-          (pattern-seq $1-start-pos $3-end-pos (list $2)))]])
+      $2]])
 
    
    (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)

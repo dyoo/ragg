@@ -90,16 +90,3 @@
                            [(lit "y")])))
 
 
-
-
-
-
-
-
-;(flatten-rule #'(rule expr (lit "hello") (lit "world")))
-
-
-;(flatten-rule #'(rule expr (choice (lit "hello")
-;                                   (lit "world"))))
-
-;; I want to get back

@@ -20,10 +20,8 @@
        ;; (listof stx)
        (define rules (syntax->list #'(r ...)))
 
-       (define flattened-rules (foldl (lambda (x acc)
-                                        (append (flatten-rule x) acc))
-                                      '()
-                                      rules))
+       (define flattened-rules (flatten-rules rules))
+       (for [(r flattened-rules)] (write (syntax->datum r)) (newline) (newline))
        
        ;; The first rule, by default, is the start rule.
        (define start-id (syntax-case (first rules) (rule)
