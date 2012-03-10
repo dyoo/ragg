@@ -178,7 +178,8 @@
                 (inferred-prim-rule r1 [(inferred-id r1) (lit "+") (id term)] [])))
 
 
-#;(check-equal? (map syntax->datum
+;; larger example: simple arithmetic
+(check-equal? (map syntax->datum
                    (flatten-rules (syntax->list
                                    #'((rule expr (seq (id term) (repeat 0 (seq (lit "+") (id term)))))
                                       (rule term (seq (id factor) (repeat 0 (seq (lit "*") (id factor)))))
@@ -188,5 +189,5 @@
               '((prim-rule expr [(id term) (inferred-id r1)])
                 (inferred-prim-rule r1 [(inferred-id r1) (lit "+") (id term)] [])
                 (prim-rule term [(id factor) (inferred-id r2)])
-                (inferred-prim-rule r2 [(inferred-id r2) (lit "*") (inferred-id r2)] [])
+                (inferred-prim-rule r2 [(inferred-id r2) (lit "*") (id factor)] [])
                 (prim-rule factor [(token INT)])))
