@@ -1,5 +1,5 @@
 #lang racket/base
-(require "stx-types.rkt"
+(require "../stx-types.rkt"
          (for-syntax racket/base))
 
 (provide flatten-rule

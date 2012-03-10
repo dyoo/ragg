@@ -4,7 +4,7 @@
          racket/list
          racket/set
          "../stx-types.rkt"
-         "../flatten.rkt")
+         "flatten.rkt")
 
 (provide rules-codegen)
 
@@ -108,7 +108,7 @@
                (make-parameter
                 (lambda (tok-ok? tok-name tok-value start-pos end-pos)
                   (raise (exn:fail:parsing
-                          (format "Encountered error while parsing, near: ~e [line=~a, column~a, position=~a]"
+                          (format "Encountered error while parsing, near: ~e [line=~a, column=~a, position=~a]"
                                   tok-value
                                   (position-line start-pos)
                                   (position-col start-pos)
@@ -187,7 +187,7 @@
                 [(id val)
                  #'val]
                 [(lit val)
-                 (string->symbol (syntax-e #'val))]
+                 (datum->syntax #f (string->symbol (syntax-e #'val)) #'val)]
                 [(token val)
                  #'val]
                 [(inferred-id val)
@@ -195,31 +195,32 @@
               (loop (rest primitive-patterns)))])))
   
   (define translated-actions
-    (for/list ([primitive-pattern (syntax->list a-clause)]
+    (for/list ([translated-pattern (in-list translated-patterns)]
+               [primitive-pattern (syntax->list a-clause)]
                [pos (in-naturals 1)])
+      (define (make-$X)
+        (datum->syntax translated-pattern (string->symbol (format "$~a" pos))))
       (with-syntax ([line #f]
                     [column #f]
                     [position #f]
-                    [span #f]
-                    [$X (datum->syntax primitive-pattern
-                                       (string->symbol (format "$~a" pos)))])
+                    [span #f])
         (syntax-case primitive-pattern (id lit token inferred-id)
           [(id val)
-           #`(begin (datum->syntax #f
-                                   $X
-                                   (list (current-source) line column position span)))]
+           #`(datum->syntax #f
+                            #,(make-$X)
+                            (list (current-source) line column position span))]
           [(inferred-id val)
-           #`(begin (datum->syntax #f
-                                   $X
-                                   (list (current-source) line column position span)))]
+           #`(datum->syntax #f
+                            #,(make-$X)
+                            (list (current-source) line column position span))]
           [(lit val)
-           #`(begin (datum->syntax #f
-                                   $X
-                                   (list (current-source) line column position span)))]
+           #`(datum->syntax #f
+                            #,(make-$X)
+                            (list (current-source) line column position span))]
           [(token val)
-           #`(begin (datum->syntax #f
-                                   $X
-                                   (list (current-source) line column position span)))]))))
+           #`(datum->syntax #f
+                            #,(make-$X)
+                            (list (current-source) line column position span))]))))
   
   (with-syntax ([(translated-pattern ...) translated-patterns]
                 [(translated-action ...) translated-actions])
