@@ -63,12 +63,12 @@
                            [(lit "(") (lit ")")] [])))
 
 (check-equal? (map syntax->datum
-                   (flatten-rule #'(rule sexp (choice (seq (seq (lit "(") (id BLAH))
+                   (flatten-rule #'(rule sexp (choice (seq (seq (lit "(") (token BLAH))
                                                            (lit ")"))
                                                       (seq)))
                                  #:fresh-name (make-fresh-name)))
               '((prim-rule sexp
-                           [(lit "(") (id BLAH) (lit ")")] [])))
+                           [(lit "(") (token BLAH) (lit ")")] [])))
 
 
 
@@ -79,6 +79,18 @@
               '((prim-rule expr
                            [(id rule-2)]
                            [])))
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule expr (maybe (token HUH)))))
+              '((prim-rule expr
+                           [(token HUH)]
+                           [])))
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule expr (maybe (seq (lit "hello") (lit "world"))))))
+              '((prim-rule expr
+                           [(lit "hello") (lit "world")]
+                           [])))
+
+
 
 
 ;; repeat
@@ -87,18 +99,31 @@
               '((prim-rule rule-2+
                            [(id rule-2+) (id rule-2)]
                            [])))
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule rule-2+ (repeat 0 (seq (lit "+") (id rule-2))))))
+              '((prim-rule rule-2+
+                           [(id rule-2+) (lit "+") (id rule-2)]
+                           [])))
 
 (check-equal? (map syntax->datum
                    (flatten-rule #'(rule rule-2+ (repeat 1 (id rule-2)))))
               '((prim-rule rule-2+
                            [(id rule-2+) (id rule-2)]
                            [(id rule-2)])))
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule rule-2+ (repeat 1 (seq (lit "-") (id rule-2))))))
+              '((prim-rule rule-2+
+                           [(id rule-2+) (lit "-") (id rule-2)]
+                           [(lit "-") (id rule-2)])))
 
 
 
 
 
 
+;; Mixtures
+
+;; choice and maybe
 (check-equal? (map syntax->datum
                    (flatten-rule #'(rule sexp (choice (lit "x")
                                                       (maybe (lit "y"))))
@@ -109,7 +134,7 @@
                 (inferred-prim-rule r1
                            [(lit "y")]
                            [])))
-
+;; choice, maybe, repeat
 (check-equal? (map syntax->datum
                    (flatten-rule #'(rule sexp (choice (lit "x")
                                                       (maybe (repeat 1 (lit "y")))))
@@ -123,7 +148,7 @@
                 (inferred-prim-rule r2
                            [(inferred-id r2) (lit "y")]
                            [(lit "y")])))
-
+;; choice, seq
 (check-equal? (map syntax->datum
                    (flatten-rule #'(rule sexp (choice (seq (lit "x") (lit "y"))
                                                       (seq (lit "z") (lit "w"))))
@@ -131,3 +156,15 @@
               '((prim-rule sexp
                            [(lit "x") (lit "y")]
                            [(lit "z") (lit "w")])))
+
+;; maybe, choice
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule sexp (maybe (choice (seq (lit "x") (lit "y"))
+                                                             (seq (lit "z") (lit "w")))))
+                                 #:fresh-name (make-fresh-name)))
+              '((prim-rule sexp
+                           [(inferred-id r1)]
+                           [])
+                (inferred-prim-rule r1
+                                    [(lit "x") (lit "y")]
+                                    [(lit "z") (lit "w")])))
