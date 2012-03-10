@@ -58,15 +58,11 @@
 
          
          [(choice sub-pat ...)
-          (cond
-           [(andmap primitive-pattern? (syntax->list #'(sub-pat ...)))
-            (list #'(prim-rule name [sub-pat] ...))]
-           [else
-            (define-values (inferred-rules new-sub-pats)
-              (lift-nonprimitive-patterns (syntax->list #'(sub-pat ...))))
-            (with-syntax ([(sub-pat ...) new-sub-pats])
-              (append (list #'(prim-rule name [sub-pat] ...))
-                      inferred-rules))])]
+          (define-values (inferred-rules new-sub-pats)
+            (lift-nonprimitive-patterns (syntax->list #'(sub-pat ...))))
+          (with-syntax ([(sub-pat ...) new-sub-pats])
+            (append (list #'(prim-rule name [sub-pat] ...))
+                      inferred-rules))]
 
          [(repeat min sub-pat)
           (cond [(primitive-pattern? #'sub-pat)
