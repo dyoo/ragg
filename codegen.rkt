@@ -20,8 +20,11 @@
        ;; (listof stx)
        (define rules (syntax->list #'(r ...)))
 
+       ;; We flatten the rules so we can use the yacc-style ruleset that parser-tools
+       ;; supports.
        (define flattened-rules (flatten-rules rules))
-       (for [(r flattened-rules)] (write (syntax->datum r)) (newline) (newline))
+
+       (define generated-rule-codes (map flat-rule->yacc-rule flattened-rules))
        
        ;; The first rule, by default, is the start rule.
        (define start-id (syntax-case (first rules) (rule)
@@ -60,7 +63,8 @@
 
                      [(explicit-token-types ...) explicit-token-types]
                      [(implicit-token-types ...) implicit-token-types]
-                     )
+
+                     [(generated-rule-code ...) generated-rule-codes])
 
          (syntax/loc stx
            (begin
@@ -86,11 +90,11 @@
              (define-tokens tokens (EOF token-types ...))
 
              (define default-lex/1
-               (lexer [implicit-token-types
-                       (implicit-token-type-constructor lexeme)]
-                      ...
-                      [(eof) (token-EOF eof)]))
-
+               (lexer-src-pos [implicit-token-types
+                               (implicit-token-type-constructor lexeme)]
+                              ...
+                              [(eof) (token-EOF eof)]))
+             
              ;; During parsing, we should define the source of the input.
              (define current-source (make-parameter #f))
 
@@ -122,16 +126,16 @@
 
              (define parse
                (let (
-                     ;; [THE-GRAMMAR
-                     ;;  (parser
-                     ;;   (tokens tokens)
-                     ;;   (src-pos)
-                     ;;   (start start-id)
-                     ;;   (end EOF)
-                     ;;   (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
-                     ;;            ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos)))
-                     ;;   (grammar
-                     ;;    generated-rule  ...))]
+                      [THE-GRAMMAR
+                       (parser
+                        (tokens tokens)
+                        (src-pos)
+                        (start start-id)
+                        (end EOF)
+                        (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
+                                 ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos)))
+                        (grammar
+                         generated-rule-code ...))]
                      )
                  (lambda (source tokenizer)
                    (parameterize ([current-source source])
@@ -140,40 +144,49 @@
                      ))))))))]))
 
 
+;; Given a flattened rule, returns a syntax for the code
+;; that preserves as much as possible.
+(define (flat-rule->yacc-rule a-flat-rule)
+  (syntax-case a-flat-rule (prim-rule inferred-prim-rule)
+    [(prim-rule name clauses ...)
+     (with-syntax ([(translated-clause ...)
+                    (map (lambda (c) (translate-clause #'name c))
+                         (syntax->list #'(clauses ...)))])
+       #`[name translated-clause ...])]
+    
+    [(inferred-prim-rule name clauses ...)
+     (with-syntax ([(translated-clause ...)
+                    (map (lambda (c) (translate-clause #f c))
+                         (syntax->list #'(clauses ...)))])
+     #`[name translated-clause ...])]))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; ;; Genereate all the rules, both the explicit rules and the implicit rules.
-;; ;; Implicit rules come from the use of 'choice, 'repeat, and 'maybe
-;; ;; pattern types.
-;; ;; generate-rules: (listof stx) -> (listof stx)
-;; (define (generate-rules rules)
-;;   (define implicit-ht (make-hasheq))
-
-;;   (define (generate-rule a-rule)
-;;     (syntax-case a-rule (rule)
-;;       [(rule id pattern)
-;;        (with-syntax ([generated-pattern-code (generate-pattern-code #'pattern)])
-;;          (syntax/loc a-rule
-;;            [id generated-pattern-code]]))
-
-;;   (define (generate-pattern-code a-pattern)
-;;     (syntax-case a-pattern (id lit token choice repeat maybe seq)
-;;       [(id val)
-;;        ...]
-;;       [(lit val)
-;;        ...]
-;;       [(token val)
-;;        ...]
-;;       [(choice vals)
-;;        ...]
-;;       [(repeat min val)
-;;        ...]
-;;       [(maybe val)
-;;        ...]
-;;       [(seq vals)
-;;        ...])))
-
+;; translates a single primitive rule clause.
+;; A clause is a simple list of ids, lit, vals, and inferred-id elements.
+;; The action taken depends on the pattern type.
+(define (translate-clause rule-name/false a-clause)
+  (define translated-pattern
+    (let loop ([primitive-patterns (syntax->list a-clause)])
+      (cond
+       [(empty? primitive-patterns)
+        '()]
+       [else
+        (cons (syntax-case (first primitive-patterns) (id lit token inferred-id)
+                [(id val)
+                 #'val]
+                [(lit val)
+                 (string->symbol (syntax-e #'val))]
+                [(token val)
+                 #'val]
+                [(inferred-id val)
+                 #'val])
+              (loop (rest primitive-patterns)))])))
+  
+  (define translated-action
+    #'(void))
+  (with-syntax ([(translated-pattern ...) translated-pattern]
+                [translated-action translated-action])
+    #'[(translated-pattern ...) translated-action]))
 
 
 
