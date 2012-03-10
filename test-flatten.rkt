@@ -57,11 +57,40 @@
                                                       (seq)))
                                  #:fresh-name (make-fresh-name)))
               '((prim-rule sexp
-                           [(id r1)] [(id r2)])
-                (prim-rule r1
+                           [(inferred-id r1)] [(inferred-id r2)])
+                (inferred-prim-rule r1
                            [(lit "(") (lit ")")])
-                (prim-rule r2
+                (inferred-prim-rule r2
                            [])))
+
+
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule sexp (choice (lit "x")
+                                                      (maybe (lit "y"))))
+                                 #:fresh-name (make-fresh-name)))
+              '((prim-rule sexp
+                           [(lit "x")]
+                           [(inferred-id r1)])
+                (inferred-prim-rule r1
+                           [(lit "y")]
+                           [])))
+
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule sexp (choice (lit "x")
+                                                      (maybe (repeat 1 (lit "y")))))
+                                 #:fresh-name (make-fresh-name)))
+              '((prim-rule sexp
+                           [(lit "x")]
+                           [(inferred-id r1)])
+                (inferred-prim-rule r1
+                           [(inferred-id r2)]
+                           [])
+                (inferred-prim-rule r2
+                           [(lit "y") (inferred-id r2)]
+                           [(lit "y")])))
+
+
+
 
 
 
