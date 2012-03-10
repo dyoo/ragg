@@ -164,9 +164,10 @@
                          (syntax->list #'(clauses ...)))])
        #`[name translated-clause ...])]
     
-    [(inferred-prim-rule name clauses ...)
+    [(inferred-prim-rule info name clauses ...)
      (with-syntax ([(translated-clause ...)
-                    (map (lambda (c) (translate-clause #f c))
+                    (map (lambda (c) (translate-clause #f c
+                                                       #:inferred-pattern-type #'info))
                          (syntax->list #'(clauses ...)))])
      #`[name translated-clause ...])]))
 
@@ -176,7 +177,8 @@
 ;; translates a single primitive rule clause.
 ;; A clause is a simple list of ids, lit, vals, and inferred-id elements.
 ;; The action taken depends on the pattern type.
-(define (translate-clause rule-name/false a-clause)
+(define (translate-clause rule-name/false a-clause
+                          #:inferred-pattern-type (inferred-pattern-type #f))
   (define translated-patterns
     (let loop ([primitive-patterns (syntax->list a-clause)])
       (cond
@@ -199,27 +201,37 @@
                [primitive-pattern (syntax->list a-clause)]
                [pos (in-naturals 1)])
       (with-syntax ([$X (datum->syntax translated-pattern (string->symbol (format "$~a" pos)))]
-                    [line #f]
-                    [column #f]
-                    [position #f]
-                    [span #f])
-        (syntax-case primitive-pattern (id lit token inferred-id)
-          [(id val)
-           #`(datum->syntax #f
-                            $X
-                            (list (current-source) line column position span))]
-          [(inferred-id val reason)
-           #`(datum->syntax #f
-                            $X
-                            (list (current-source) line column position span))]
-          [(lit val)
-           #`(datum->syntax #f
-                            $X
-                            (list (current-source) line column position span))]
-          [(token val)
-           #`(datum->syntax #f
-                            $X
-                            (list (current-source) line column position span))]))))
+                    [$X-start-pos (datum->syntax translated-pattern (string->symbol (format "$~a-start-pos" pos)))]
+                    [$X-end-pos (datum->syntax translated-pattern (string->symbol (format "$~a-end-pos" pos)))])
+        (with-syntax ([primitive-loc
+                       #'(list (current-source)
+                               (position-line $X-start-pos)
+                               (position-col $X-start-pos)
+                               (position-offset $X-start-pos)
+                               (if (and (number? (position-offset $X-start-pos))
+                                        (number? (position-offset $X-end-pos)))
+                                   (- (position-offset $X-end-pos)
+                                      (position-offset $X-start-pos))
+                                   #f))])
+          (syntax-case primitive-pattern (id lit token inferred-id)
+            [(id val)
+             #`(list (datum->syntax #f $X primitive-loc))]
+            [(inferred-id val reason)
+             (syntax-case #'reason (choice repeat maybe seq)
+               [choice
+                #'(list $X)]
+               [repeat
+                #'(list $X)]
+               [maybe
+                #'(if (null? (syntax-e $X))
+                      (list #f)
+                      (list (datum->syntax #f $X primitive-loc)))]
+               [seq
+                #'$X])]
+            [(lit val)
+             #`(list (datum->syntax #f $X primitive-loc))]
+            [(token val)
+             #`(list (datum->syntax #f $X primitive-loc))])))))
   
   (with-syntax ([(translated-pattern ...) translated-patterns]
                 [(translated-action ...) translated-actions])
@@ -227,12 +239,24 @@
      [rule-name/false
       #`[(translated-pattern ...)
          (datum->syntax #f
-                        (list '#,rule-name/false translated-action ...)
+                        (append (list '#,rule-name/false) translated-action ...)
                         (list (current-source) #f #f #f #f))]]
      [else
-      #'[(translated-pattern ...)
-         (datum->syntax #f
-                        (list translated-action ...))]])))
+      (syntax-case inferred-pattern-type (choice repeat maybe seq)
+        [choice
+         #`[(translated-pattern ...)
+            (datum->syntax #f (append translated-action ...))]]
+        [repeat
+         #`[(translated-pattern ...)
+            (datum->syntax #f (append translated-action ...))]]
+
+        [maybe
+         #`[(translated-pattern ...)
+            (datum->syntax #f (append translated-action ...))]]
+
+        [seq
+         #`[(translated-pattern ...)
+            (datum->syntax #f (append translated-action ...))]])])))
 
 
 

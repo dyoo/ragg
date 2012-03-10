@@ -4,6 +4,7 @@
 
 
 (define (lex ip)
+  (port-count-lines! ip)
   (lambda ()
     (default-lex/1 ip)))
 
