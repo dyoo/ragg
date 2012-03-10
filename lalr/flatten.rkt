@@ -39,8 +39,9 @@
        [(hash-has-key? ht (pattern->hash-key a-pat))
         (values '() (list (hash-ref ht (pattern->hash-key a-pat))))]
        [else
+        (define head (syntax-case a-pat () [(head rest ...) #'head]))
         (define new-name (datum->syntax #f (fresh-name) a-pat))
-        (define new-inferred-id (datum->syntax #f `(inferred-id  ,new-name) a-pat))
+        (define new-inferred-id (datum->syntax #f `(inferred-id  ,new-name ,head) a-pat))
         (hash-set! ht (pattern->hash-key a-pat) new-inferred-id)
         (values (recur #`(rule #,new-name #,a-pat) #t)
                 (list new-inferred-id))]))
@@ -65,7 +66,7 @@
            ;; The primitive types stay as they are:
            [(id val)
             (list #'(head name [pat]))]
-           [(inferred-id val)
+           [(inferred-id val reason)
             (list #'(head name [pat]))]
            [(lit val)
             (list #'(head name [pat]))]
@@ -93,11 +94,11 @@
               (with-syntax ([(sub-pat ...) new-sub-pats])
                 (cons (cond [(= (syntax-e #'min) 0)
                              #`(head name
-                                          [#,(if inferred? #'(inferred-id name) #'(id name)) sub-pat ...]
+                                          [#,(if inferred? #'(inferred-id name #'repeat) #'(id name)) sub-pat ...]
                                           [])]
                             [(= (syntax-e #'min) 1)
                              #`(head name
-                                          [#,(if inferred? #'(inferred-id name) #'(id name)) sub-pat ...]
+                                          [#,(if inferred? #'(inferred-id name #'repeat) #'(id name)) sub-pat ...]
                                           [sub-pat ...])])
                       inferred-rules)))]
 
@@ -152,7 +153,7 @@
     (syntax-case a-pat (id inferred-id lit token seq)
       [(id val)
        (cons a-pat acc)]
-      [(inferred-id val)
+      [(inferred-id val reason)
        (cons a-pat acc)]
       [(lit val)
        (cons a-pat acc)]
