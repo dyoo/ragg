@@ -83,11 +83,11 @@
               (with-syntax ([sub-pat new-sub-pat])
                 (cons (cond [(= (syntax-e #'min) 0)
                              #`(head name
-                                          [sub-pat #,(if inferred? #'(inferred-id name) #'(id name))]
+                                          [#,(if inferred? #'(inferred-id name) #'(id name)) sub-pat]
                                           [])]
                             [(= (syntax-e #'min) 1)
                              #`(head name
-                                          [sub-pat #,(if inferred? #'(inferred-id name) #'(id name))]
+                                          [#,(if inferred? #'(inferred-id name) #'(id name)) sub-pat]
                                           [sub-pat])])
                       inferred-rules)))]
 
@@ -97,8 +97,8 @@
                 (lift-nonprimitive-pattern #'sub-pat))
               (with-syntax ([sub-pat new-sub-pat])
                 (cons #'(head name
-                                   [sub-pat]
-                                   [])
+                              [sub-pat]
+                              [])
                       inferred-rules)))]
 
            [(seq sub-pat ...)
