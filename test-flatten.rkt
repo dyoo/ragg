@@ -56,7 +56,7 @@
                    (flatten-rule #'(rule sexp (choice (seq (lit "(") (lit ")"))
                                                       (seq)))
                                  #:fresh-name (make-fresh-name)))
-              '((prim-rule rule-2+
+              '((prim-rule sexp
                            [(id r1)] [(id r2)])
                 (prim-rule r1
                            [(lit "(") (lit ")")])
