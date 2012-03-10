@@ -139,9 +139,7 @@
                      )
                  (lambda (source tokenizer)
                    (parameterize ([current-source source])
-                     'fixme
-                     ;(THE-GRAMMAR tokenizer)
-                     ))))))))]))
+                     (THE-GRAMMAR tokenizer)))))))))]))
 
 
 ;; Given a flattened rule, returns a syntax for the code

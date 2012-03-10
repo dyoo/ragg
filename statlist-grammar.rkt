@@ -1,4 +1,5 @@
 #lang planet dyoo/autogrammar
+
 ## Statlist grammar
 
 statlist : stat+
@@ -10,4 +11,4 @@ multExpr: primary (('*'|'.') primary)*
 primary : 
          INT
        | ID
-       | '[' expr ('.' expr)* ']'
+       | '[' expr ("," expr)* ']'

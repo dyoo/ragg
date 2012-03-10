@@ -46,7 +46,7 @@
     (return-without-pos (lex/1 input-port))]
    [(:: "#"
         (complement (:: (:* any-char) NL (:* any-char)))
-        NL)
+        (:or NL ""))
     ;; Skip comments up to end of line.
     (return-without-pos (lex/1 input-port))]
    [(eof)
