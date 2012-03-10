@@ -32,26 +32,27 @@
     (define (lift-nonprimitive-pattern a-pat)
       (cond
        [(primitive-pattern? a-pat)
-        (values '() a-pat)]
+        (values '() (linearize-primitive-pattern a-pat))]
        [(hash-has-key? ht (pattern->hash-key a-pat))
-        (values '() (hash-ref ht (pattern->hash-key a-pat)))]
+        (values '() (list (hash-ref ht (pattern->hash-key a-pat))))]
        [else
         (define new-name (datum->syntax #f (fresh-name) a-pat))
         (define new-inferred-id #`(inferred-id  #,new-name))
         (hash-set! ht (pattern->hash-key a-pat) new-inferred-id)
         (values (recur #`(rule #,new-name #,a-pat) #t)
-                new-inferred-id)]))
+                (list new-inferred-id))]))
 
     (define (lift-nonprimitive-patterns pats)
       (define-values (rules patterns)
-        (for/fold ([inferred-rules '()]
-                   [patterns '()])
+        (for/fold ([inferred-ruless '()]
+                   [patternss '()])
                   ([p (in-list pats)])
-          (define-values (new-rules new-p)
+          (define-values (new-rules new-ps)
             (lift-nonprimitive-pattern p))
-          (values (append new-rules inferred-rules)
-                  (cons new-p patterns))))
-      (values (reverse rules) (reverse patterns)))
+          (values (cons new-rules inferred-ruless)
+                  (cons new-ps patternss))))
+      (values (apply append (reverse rules))
+              (reverse patterns)))
           
     (with-syntax ([head (if inferred? #'inferred-prim-rule #'prim-rule)])
       (syntax-case a-rule (rule)
@@ -73,31 +74,31 @@
               (define-values (inferred-rules new-sub-pats)
                 (lift-nonprimitive-patterns (syntax->list #'(sub-pat ...))))
               (with-syntax ([(sub-pat ...) new-sub-pats])
-                (append (list #'(head name [sub-pat] ...))
+                (append (list #'(head name sub-pat ...))
                         inferred-rules)))]
 
            [(repeat min sub-pat)
             (begin
-              (define-values (inferred-rules new-sub-pat)
+              (define-values (inferred-rules new-sub-pats)
                 (lift-nonprimitive-pattern #'sub-pat))
-              (with-syntax ([sub-pat new-sub-pat])
+              (with-syntax ([(sub-pat ...) new-sub-pats])
                 (cons (cond [(= (syntax-e #'min) 0)
                              #`(head name
-                                          [#,(if inferred? #'(inferred-id name) #'(id name)) sub-pat]
+                                          [#,(if inferred? #'(inferred-id name) #'(id name)) sub-pat ...]
                                           [])]
                             [(= (syntax-e #'min) 1)
                              #`(head name
-                                          [#,(if inferred? #'(inferred-id name) #'(id name)) sub-pat]
-                                          [sub-pat])])
+                                          [#,(if inferred? #'(inferred-id name) #'(id name)) sub-pat ...]
+                                          [sub-pat ...])])
                       inferred-rules)))]
 
            [(maybe sub-pat)
             (begin
-              (define-values (inferred-rules new-sub-pat)
+              (define-values (inferred-rules new-sub-pats)
                 (lift-nonprimitive-pattern #'sub-pat))
-              (with-syntax ([sub-pat new-sub-pat])
+              (with-syntax ([(sub-pat ...) new-sub-pats])
                 (cons #'(head name
-                              [sub-pat]
+                              [sub-pat ...]
                               [])
                       inferred-rules)))]
 
@@ -106,7 +107,7 @@
               (define-values (inferred-rules new-sub-pats)
                 (lift-nonprimitive-patterns (syntax->list #'(sub-pat ...))))
               (with-syntax ([(sub-pat ...) new-sub-pats])
-                (cons #'(head name [sub-pat ...])
+                (cons #'(head name sub-pat ...)
                       inferred-rules)))])]))))
 
 
@@ -131,7 +132,27 @@
     [(maybe sub-pat)
      #f]
     [(seq sub-pat ...)
-     #f]))
+     (andmap primitive-pattern? (syntax->list #'(sub-pat ...)))]))
+
+
+;; Given a primitive pattern (id, lit, token, and seqs only containing
+;; primitive patterns), returns a linear sequence of just id, lits,
+;; and tokens.
+(define (linearize-primitive-pattern a-pat)
+  (define (traverse a-pat acc)
+    (syntax-case a-pat (id inferred-id lit token seq)
+      [(id val)
+       (cons a-pat acc)]
+      [(inferred-id val)
+       (cons a-pat acc)]
+      [(lit val)
+       (cons a-pat acc)]
+      [(token val)
+       (cons a-pat acc)]
+      [(seq vals ...)
+       (foldl traverse acc (syntax->list #'(vals ...)))]))
+  (reverse (traverse a-pat '())))
+
 
 
 (define-syntax (prim-rule stx)
