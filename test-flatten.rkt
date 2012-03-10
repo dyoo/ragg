@@ -168,3 +168,17 @@
                 (inferred-prim-rule r1
                                     [(lit "x") (lit "y")]
                                     [(lit "z") (lit "w")])))
+
+
+(check-equal? (map syntax->datum
+                   (flatten-rules (syntax->list
+                                   #'((rule expr (seq (id term) (repeat 0 (seq (lit "+") (id term)))))
+                                      (rule term (seq (id factor) (repeat 0 (seq (lit "*") (id factor)))))
+                                      (rule factor (token INT))))
+                                  #:fresh-name (make-fresh-name)))
+              
+              '((prim-rule expr [(id term) (inferred-id r1)])
+                (inferred-prim-rule r1 [(inferred-id r1) (lit "+") (id term)] [])
+                (prim-rule term [(id factor) (inferred-id r2)])
+                (inferred-prim-rule r2 [(inferred-id r2) (lit "*") (inferred-id r2)] [])
+                (prim-rule factor [(token INT)])))

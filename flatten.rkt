@@ -11,9 +11,12 @@
 ;; Translates rules to lists of primitive rules.
 
 
-(define (flatten-rules rules)
+(define (flatten-rules rules #:fresh-name [fresh-name (lambda () (gensym 'rule))])
   (define ht (make-hash))
-  (apply append (map (lambda (a-rule) (flatten-rule a-rule #:ht ht)) rules)))
+  (apply append (map (lambda (a-rule) (flatten-rule a-rule
+                                                    #:ht ht
+                                                    #:fresh-name fresh-name))
+                     rules)))
 
 
 ;; flatten-rule: rule -> (listof primitive-rule)
