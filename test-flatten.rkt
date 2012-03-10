@@ -35,13 +35,13 @@
 (check-equal? (map syntax->datum
                    (flatten-rule #'(rule rule-2+ (repeat 0 (id rule-2)))))
               '((prim-rule rule-2+
-                           [(id rule-2) (id rule-2+)]
+                           [(id rule-2+) (id rule-2)]
                            [])))
 
 (check-equal? (map syntax->datum
                    (flatten-rule #'(rule rule-2+ (repeat 1 (id rule-2)))))
               '((prim-rule rule-2+
-                           [(id rule-2) (id rule-2+)]
+                           [(id rule-2+) (id rule-2)]
                            [(id rule-2)])))
 
 
@@ -82,11 +82,9 @@
               '((prim-rule sexp
                            [(lit "x")]
                            [(inferred-id r1)])
+                (inferred-prim-rule r2
+                           [(inferred-id r2) (lit "y")]
+                           [(lit "y")])
                 (inferred-prim-rule r1
                            [(inferred-id r2)]
-                           [])
-                (inferred-prim-rule r2
-                           [(lit "y") (inferred-id r2)]
-                           [(lit "y")])))
-
-
+                           [])))
