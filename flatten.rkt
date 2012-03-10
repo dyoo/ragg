@@ -12,7 +12,7 @@
 
 
 ;; flatten-rule: rule -> (listof primitive-rule)
-(define (flatten-rule a-rule)
+(define (flatten-rule a-rule #:fresh-name [fresh-name (lambda () (gensym 'rule))])
   (syntax-case a-rule (rule)
     [(rule name pat)
      (syntax-case #'pat (id lit token choice repeat maybe seq)
@@ -53,6 +53,14 @@
           (list #'(prim-rule name [sub-pat ...]))]
          [else
           (error 'seq-unfinished)])])]))
+
+
+
+
+;; Given a pattern, return a key appropriate for a hash.
+(define (pattern->hash-key a-pat)
+  (syntax->datum a-pat))
+
 
 
 ;(define (flatten-pattern a-pat)

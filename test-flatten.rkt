@@ -45,6 +45,23 @@
                            [(id rule-2)])))
 
 
+(define (make-fresh-name)
+  (let ([n 0])
+    (lambda ()
+      (set! n (add1 n))
+      (string->symbol (format "r~a" n)))))
+
+
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule sexp (choice (seq (lit "(") (lit ")"))
+                                                      (seq)))
+                                 #:fresh-name (make-fresh-name)))
+              '((prim-rule rule-2+
+                           [(id r1)] [(id r2)])
+                (prim-rule r1
+                           [(lit "(") (lit ")")])
+                (prim-rule r2
+                           [])))
 
 
 
