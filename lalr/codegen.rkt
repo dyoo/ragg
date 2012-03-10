@@ -3,8 +3,8 @@
 (require (for-template racket/base)
          racket/list
          racket/set
-         "stx-types.rkt"
-         "flatten.rkt")
+         "../stx-types.rkt"
+         "../flatten.rkt")
 
 (provide rules-codegen)
 

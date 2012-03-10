@@ -1,5 +1,5 @@
 #lang s-exp syntax/module-reader
-(planet dyoo/autogrammar/autogrammar)
+(planet dyoo/autogrammar/lalr/autogrammar)
 #:read my-read
 #:read-syntax my-read-syntax
 #:info my-get-info
