@@ -27,19 +27,32 @@
          [(andmap primitive-pattern? (syntax->list #'(sub-pat ...)))
           (list #'(prim-rule name [sub-pat] ...))]
          [else
-          (error 'not-yet)])]
-       [(repeat min val)
-        (error 'not-yet)]
+          (error 'choice-unfinished)])]
+       [(repeat min sub-pat)
+        (cond [(primitive-pattern? #'sub-pat)
+               (cond [(= (syntax-e #'min) 0)
+                      (list #'(prim-rule name
+                                         [sub-pat (id name)]
+                                         []))]
+                     [(= (syntax-e #'min) 1)
+                      (list #'(prim-rule name
+                                         [sub-pat (id name)]
+                                         [sub-pat]))])]
+              [else
+               (error 'repeat-unfinished)])]
        [(maybe sub-pat)
-        (error 'not-yet)
-        ]
+        (cond [(primitive-pattern? #'sub-pat)
+               (list #'(prim-rule name
+                                  [sub-pat]
+                                  []))]
+              [else
+               (error 'maybe-unfinished)])]
        [(seq sub-pat ...)
         (cond
          [(andmap primitive-pattern? (syntax->list #'(sub-pat ...)))
-          (list #'(prim-rule name [sub-pat ...]))
-          ]
+          (list #'(prim-rule name [sub-pat ...]))]
          [else
-          (error 'not-yet)])])]))
+          (error 'seq-unfinished)])])]))
 
 
 ;(define (flatten-pattern a-pat)

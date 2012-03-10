@@ -26,6 +26,28 @@
                            [(id rule-3)])))
 
 
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule expr (maybe (id rule-2)))))
+              '((prim-rule expr
+                           [(id rule-2)]
+                           [])))
+
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule rule-2+ (repeat 0 (id rule-2)))))
+              '((prim-rule rule-2+
+                           [(id rule-2) (id rule-2+)]
+                           [])))
+
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule rule-2+ (repeat 1 (id rule-2)))))
+              '((prim-rule rule-2+
+                           [(id rule-2) (id rule-2+)]
+                           [(id rule-2)])))
+
+
+
+
+
 
 
 ;(flatten-rule #'(rule expr (lit "hello") (lit "world")))
