@@ -88,3 +88,11 @@
                 (inferred-prim-rule r1
                            [(inferred-id r2)]
                            [])))
+
+(check-equal? (map syntax->datum
+                   (flatten-rule #'(rule sexp (choice (seq (lit "x") (lit "y"))
+                                                      (seq (lit "z") (lit "w"))))
+                                 #:fresh-name (make-fresh-name)))
+              '((prim-rule sexp
+                           [(lit "x") (lit "y")]
+                           [(lit "z") (lit "w")])))
