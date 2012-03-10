@@ -83,7 +83,7 @@
 
                       current-source
                       current-parser-error-handler
-                      [struct-out exn:fail:parse-grammar])
+                      [struct-out exn:fail:parsing])
 
              (define all-token-names '(EOF explicit-token-types ...
                                            implicit-token-types ...))
@@ -99,16 +99,16 @@
              (define current-source (make-parameter #f))
 
              ;; When bad things happen, we need to emit errors with source location.
-             (struct exn:fail:parse-grammar exn:fail (srclocs)
+             (struct exn:fail:parsing exn:fail (srclocs)
                      #:transparent
                      #:property prop:exn:srclocs (lambda (instance)
-                                                   (exn:fail:parse-grammar-srclocs instance)))
+                                                   (exn:fail:parsing-srclocs instance)))
 
              (define current-parser-error-handler
                (make-parameter
                 (lambda (tok-ok? tok-name tok-value start-pos end-pos)
-                  (raise (exn:fail:parse-grammar
-                          (format "Error while parsing grammar near: ~e [line=~a, column~a, position=~a]"
+                  (raise (exn:fail:parsing
+                          (format "Error while parsing grammar, near: ~e [line=~a, column~a, position=~a]"
                                   tok-value
                                   (position-line start-pos)
                                   (position-col start-pos)
