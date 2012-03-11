@@ -158,40 +158,23 @@
 ;; that preserves as much as possible.
 (define (flat-rule->yacc-rule a-flat-rule)
   (syntax-case a-flat-rule (prim-rule inferred-prim-rule)
-    [(prim-rule info name clauses ...)
-
+    [(prim-rule origin name clauses ...)
      (with-syntax ([(translated-clause ...)
                     (map (lambda (c) (translate-clause #'name c))
                          (syntax->list #'(clauses ...)))])
        #`[name translated-clause ...])]
-    
-    [(inferred-prim-rule info name clauses ...)         
-     (begin
-
-       (define translated-clauses (map (lambda (c) (translate-clause #f c
-                                                       #:inferred-pattern-type #'info))
-                         (syntax->list #'(clauses ...))))
-       (with-syntax ([(translated-clause ...) translated-clauses])
-         (syntax-case #'info (choice repeat maybe seq)
-           [choice
-            #`[name translated-clause ...]]
-           [repeat
-            #`[name translated-clause ...]]
-           [maybe
-            #`[name #,(first translated-clauses)
-                      [() #f]]]
-           [seq
-            #`[name translated-clause ...]])))]))
-
-
+    [(inferred-prim-rule origin name clauses ...)         
+     (with-syntax ([(translated-clause ...)
+                    (map (lambda (c) (translate-clause #f c))
+                         (syntax->list #'(clauses ...)))])
+       #`[name translated-clause ...])]))
 
   
 
 ;; translates a single primitive rule clause.
 ;; A clause is a simple list of ids, lit, vals, and inferred-id elements.
 ;; The action taken depends on the pattern type.
-(define (translate-clause rule-name/false a-clause
-                          #:inferred-pattern-type (inferred-pattern-type #f))
+(define (translate-clause rule-name/false a-clause)
   (define translated-patterns
     (let loop ([primitive-patterns (syntax->list a-clause)])
       (cond
