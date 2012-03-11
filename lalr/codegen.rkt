@@ -240,18 +240,18 @@
                                       (position-offset $X-start-pos))
                                    #f))])
           (syntax-case primitive-pattern (id lit token inferred-id)
-            [(id val)
-             #`(list (datum->syntax #f $X primitive-loc))]
             [(inferred-id val reason)
              (syntax-case #'reason (choice repeat maybe seq)
                [choice
                 #'(list $X)]
                [repeat
-                #'(list $X)]
+                #'$X]
                [maybe
                 #'(list $X)]
                [seq
                 #'$X])]
+            [(id val)
+             #`(list (datum->syntax #f $X primitive-loc))]
             [(lit val)
              #`(list (datum->syntax #f $X primitive-loc))]
             [(token val)
