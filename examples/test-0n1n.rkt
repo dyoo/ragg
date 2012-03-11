@@ -8,6 +8,16 @@
   (lambda ()
     (default-lex/1 ip)))
 
+;; The only rule in the grammar is:
+;;
+;;      rule-0n1n: ["0" rule-0n1n "1"]
+;;
+;; It makes use of the "maybe" pattern.  The result type of the
+;; grammar rule is:
+;;
+;; rule-0n1n: (U #f
+;;               (list "0" rule-0n1n "1"))
+
 (check-equal? (syntax->datum (parse #f (lex (open-input-string "0011"))))
               '(rule-0n1n "0" (rule-0n1n "0" #f "1") "1"))
 
