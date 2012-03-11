@@ -158,18 +158,31 @@
 ;; that preserves as much as possible.
 (define (flat-rule->yacc-rule a-flat-rule)
   (syntax-case a-flat-rule (prim-rule inferred-prim-rule)
-    [(prim-rule name clauses ...)
+    [(prim-rule info name clauses ...)
+
      (with-syntax ([(translated-clause ...)
                     (map (lambda (c) (translate-clause #'name c))
                          (syntax->list #'(clauses ...)))])
        #`[name translated-clause ...])]
     
-    [(inferred-prim-rule info name clauses ...)
-     (with-syntax ([(translated-clause ...)
-                    (map (lambda (c) (translate-clause #f c
+    [(inferred-prim-rule info name clauses ...)         
+     (begin
+
+       (define translated-clauses (map (lambda (c) (translate-clause #f c
                                                        #:inferred-pattern-type #'info))
-                         (syntax->list #'(clauses ...)))])
-     #`[name translated-clause ...])]))
+                         (syntax->list #'(clauses ...))))
+       (with-syntax ([(translated-clause ...) translated-clauses])
+         (syntax-case #'info (choice repeat maybe seq)
+           [choice
+            #`[name translated-clause ...]]
+           [repeat
+            #`[name translated-clause ...]]
+           [maybe
+            #`[name #,(first translated-clauses)
+                      [() #f]]]
+           [seq
+            #`[name translated-clause ...]])))]))
+
 
 
   
@@ -223,9 +236,7 @@
                [repeat
                 #'(list $X)]
                [maybe
-                #'(if (null? (syntax-e $X))
-                      (list #f)
-                      (list (datum->syntax #f $X primitive-loc)))]
+                #'(list $X)]
                [seq
                 #'$X])]
             [(lit val)
@@ -242,21 +253,8 @@
                         (append (list '#,rule-name/false) translated-action ...)
                         (list (current-source) #f #f #f #f))]]
      [else
-      (syntax-case inferred-pattern-type (choice repeat maybe seq)
-        [choice
-         #`[(translated-pattern ...)
-            (datum->syntax #f (append translated-action ...))]]
-        [repeat
-         #`[(translated-pattern ...)
-            (datum->syntax #f (append translated-action ...))]]
-
-        [maybe
-         #`[(translated-pattern ...)
-            (datum->syntax #f (append translated-action ...))]]
-
-        [seq
-         #`[(translated-pattern ...)
-            (datum->syntax #f (append translated-action ...))]])])))
+      #`[(translated-pattern ...)
+         (datum->syntax #f (append translated-action ...))]])))
 
 
 
