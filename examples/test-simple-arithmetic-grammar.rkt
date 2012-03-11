@@ -30,7 +30,14 @@
 (check-equal? (syntax->datum (parse #f (tokenize (open-input-string "3+4"))))
               '(expr (term (factor 3))
                      "+"
-                     (term (factor 3))))
+                     (term (factor 4))))
+(check-equal? (syntax->datum (parse #f (tokenize (open-input-string "3+4+5"))))
+              '(expr (term (factor 3))
+                     "+"
+                     (term (factor 4))
+                     "+"
+                     (term (factor 5))))
+
 
 ;; (parse #f (tokenize (open-input-string "4*5+6")))
 

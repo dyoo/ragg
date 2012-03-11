@@ -157,8 +157,6 @@
 ;; Given a flattened rule, returns a syntax for the code
 ;; that preserves as much as possible.
 (define (flat-rule->yacc-rule a-flat-rule)
-  (printf "~s\n" (syntax->datum a-flat-rule))
-
   (syntax-case a-flat-rule ()
     [(rule-type origin name clauses ...)
      (begin
