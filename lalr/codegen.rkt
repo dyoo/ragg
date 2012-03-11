@@ -157,11 +157,16 @@
 ;; Given a flattened rule, returns a syntax for the code
 ;; that preserves as much as possible.
 (define (flat-rule->yacc-rule a-flat-rule)
+  (printf "~s\n" (syntax->datum a-flat-rule))
+
   (syntax-case a-flat-rule ()
     [(rule-type origin name clauses ...)
      (begin
+       (define inferred? (syntax-case #'rule-type (prim-rule inferred-prim-rule)
+                           [prim-rule #f]
+                           [inferred-prim-rule #t]))
        (define translated-clauses
-         (map (lambda (clause) (translate-clause clause #'name #'origin))
+         (map (lambda (clause) (translate-clause clause (if inferred? #f #'name) #'origin))
               (syntax->list #'(clauses ...))))
        (with-syntax ([(translated-clause ...) translated-clauses])
          (syntax-case #'origin (id inferred-id lit token choice repeat maybe seq)

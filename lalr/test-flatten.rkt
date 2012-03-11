@@ -146,7 +146,7 @@
                            [(inferred-id r2 repeat)]
                            [])
                 (inferred-prim-rule repeat r2
-                           [(inferred-id r2 repeat) (lit "y")]
+                           [(id r2) (lit "y")]
                            [(lit "y")])))
 ;; choice, seq
 (check-equal? (map syntax->datum
@@ -175,7 +175,7 @@
                    (flatten-rule #'(rule expr (seq (id term) (repeat 0 (seq (lit "+") (id term)))))
                                  #:fresh-name (make-fresh-name)))
               '((prim-rule seq expr [(id term) (inferred-id r1 repeat)])
-                (inferred-prim-rule repeat r1 [(inferred-id r1 repeat) (lit "+") (id term)] [])))
+                (inferred-prim-rule repeat r1 [(id r1) (lit "+") (id term)] [])))
 
 
 ;; larger example: simple arithmetic
@@ -187,7 +187,7 @@
                                   #:fresh-name (make-fresh-name)))
               
               '((prim-rule seq expr [(id term) (inferred-id r1 repeat)])
-                (inferred-prim-rule repeat r1 [(inferred-id r1 repeat) (lit "+") (id term)] [])
+                (inferred-prim-rule repeat r1 [(id r1) (lit "+") (id term)] [])
                 (prim-rule seq term [(id factor) (inferred-id r2 repeat)])
-                (inferred-prim-rule repeat r2 [(inferred-id r2 repeat) (lit "*") (id factor)] [])
+                (inferred-prim-rule repeat r2 [(id r2) (lit "*") (id factor)] [])
                 (prim-rule token factor [(token INT)])))
