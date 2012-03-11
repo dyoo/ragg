@@ -22,7 +22,7 @@
               '(rule-0n1n "0" (rule-0n1n "0" #f "1") "1"))
 
 (check-equal? (syntax->datum (parse #f (lex (open-input-string "01"))))
-              '(rule-0n1n "0" #f rule-0n1n "1"))
+              '(rule-0n1n "0" #f "1"))
 
 (check-equal? (syntax->datum (parse #f (lex (open-input-string ""))))
               #f)

@@ -159,44 +159,46 @@
 (define (flat-rule->yacc-rule a-flat-rule)
   (syntax-case a-flat-rule ()
     [(rule-type origin name clauses ...)
-     (with-syntax ([(translated-clause ...)
-                    (map (lambda (clause) (translate-clause clause #'name #'origin))
-                         (syntax->list #'(clauses ...)))])
-       (syntax-case #'origin (id inferred-id lit token choice repeat maybe seq)
+     (begin
+       (define translated-clauses
+         (map (lambda (clause) (translate-clause clause #'name #'origin))
+              (syntax->list #'(clauses ...))))
+       (with-syntax ([(translated-clause ...) translated-clauses])
+         (syntax-case #'origin (id inferred-id lit token choice repeat maybe seq)
 
-         ;; should return what the named rule returns.
-         [id
-          #`[name translated-clause ...]]
+           ;; should return what the named rule returns.
+           [id
+            #`[name translated-clause ...]]
 
-         ;; should return what the named rule returns.
-         [inferred-id
-          #`[name translated-clause ...]]
+           ;; should return what the named rule returns.
+           [inferred-id
+            #`[name translated-clause ...]]
+           
+           ;; should return the token value
+           [lit
+            #`[name translated-clause ...]]
+
+           ;; should return the token value
+           [token
+            #`[name translated-clause ...]]
+
+           ;; should return one of the values
+           [choice
+            #`[name translated-clause ...]]
+
+           ;; should return a flattened list of elements
+           [repeat
+            #`[name translated-clause ...]]
+
+           ;; should return the value, or #f
+           [maybe
+            #`[name #,(first translated-clauses)
+                    [() #'#f]]]
+           
+           ;; should return a flattened list of elements
+           [seq
+            #`[name translated-clause ...]])))]))
          
-         ;; should return the token value
-         [lit
-          #`[name translated-clause ...]]
-
-         ;; should return the token value
-         [token
-          #`[name translated-clause ...]]
-
-         ;; should return one of the values
-         [choice
-          #`[name translated-clause ...]]
-
-         ;; should return a flattened list of elements
-         [repeat
-          #`[name translated-clause ...]]
-
-         ;; should return the value, or #f
-         [maybe
-          #`[name translated-clause ...]]
-         
-         ;; should return a flattened list of elements
-         [seq
-          #`[name translated-clause ...]]))]))
-         
-
   
 
 ;; translates a single primitive rule clause.

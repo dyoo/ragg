@@ -20,10 +20,17 @@
   (lambda ()
     (lex/1 ip)))
 
+
+;; expr : term ('+' term)*
+;; term : factor (('*') factor)*
+;; factor : INT
+
 (check-equal? (syntax->datum (parse #f (tokenize (open-input-string "42"))))
-              '(expr (term (factor 42) ()) ()))
+              '(expr (term (factor 42))))
 (check-equal? (syntax->datum (parse #f (tokenize (open-input-string "3+4"))))
-              '(expr (term (factor 3) ()) (("+" (term (factor 3) ())))))
+              '(expr (term (factor 3))
+                     "+"
+                     (term (factor 3))))
 
 ;; (parse #f (tokenize (open-input-string "4*5+6")))
 
