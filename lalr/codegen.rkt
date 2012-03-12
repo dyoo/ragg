@@ -135,7 +135,25 @@
                  (position-token t
                                  (position #f #f #f)
                                  (position #f #f #f))]))
-
+             
+             ;; positions->srcloc: position position -> (list source line column offset span)
+             (define (positions->srcloc start-pos end-pos)
+               (list (current-source)
+                     (position-line start-pos)
+                     (position-col start-pos)
+                     (position-offset start-pos)
+                     (if (and (number? (position-offset end-pos))
+                              (number? (position-offset start-pos)))
+                         (- (position-offset end-pos)
+                            (position-offset start-pos))
+                         #f)))
+             
+             ;; d->s: datum position position
+             ;; Helper that does the ugly work in wrapping a datum into a syntax
+             ;; with source location.
+             (define (d->s d start-pos end-pos)
+               (datum->syntax #f d (positions->srcloc start-pos end-pos)))
+             
              (define parse
                (let (
                       [THE-GRAMMAR
@@ -201,31 +219,21 @@
                [pos (in-naturals 1)])
       (with-syntax ([$X (datum->syntax translated-pattern (string->symbol (format "$~a" pos)))]
                     [$X-start-pos (datum->syntax translated-pattern (string->symbol (format "$~a-start-pos" pos)))]
-                    [$X-end-pos (datum->syntax translated-pattern (string->symbol (format "$~a-end-pos" pos)))])
-        (with-syntax ([primitive-loc
-                       #'(list (current-source)
-                               (position-line $X-start-pos)
-                               (position-col $X-start-pos)
-                               (position-offset $X-start-pos)
-                               (if (and (number? (position-offset $X-start-pos))
-                                        (number? (position-offset $X-end-pos)))
-                                   (- (position-offset $X-end-pos)
-                                      (position-offset $X-start-pos))
-                                   #f))])
-          (syntax-case primitive-pattern (id lit token inferred-id)
-            ;; When a rule usage is inferred, the value of $X is a syntax object
-            ;; whose head is the name of the inferred rule . We strip that out,
-            ;; leaving the residue to be absorbed.
-            [(inferred-id val reason)
-             #'(syntax-case $X ()
-                   [(inferred-rule-name rest (... ...))
-                    (syntax->list #'(rest (... ...)))])]
-            [(id val)
-             #`(list $X)]
-            [(lit val)
-             #`(list (datum->syntax #f $X primitive-loc))]
-            [(token val)
-             #`(list (datum->syntax #f $X primitive-loc))])))))
+                    [$X-end-pos (datum->syntax translated-pattern (string->symbol (format "$~a-end-pos" pos)))])        
+        (syntax-case primitive-pattern (id lit token inferred-id)
+          ;; When a rule usage is inferred, the value of $X is a syntax object
+          ;; whose head is the name of the inferred rule . We strip that out,
+          ;; leaving the residue to be absorbed.
+          [(inferred-id val reason)
+           #'(syntax-case $X ()
+               [(inferred-rule-name rest (... ...))
+                (syntax->list #'(rest (... ...)))])]
+          [(id val)
+           #`(list $X)]
+          [(lit val)
+           #`(list (d->s #f $X $X-start-pos $X-end-pos))]
+          [(token val)
+           #`(list (d->s #f $X $X-start-pos $X-end-pos))]))))
 
   (define whole-rule-loc
     (if (> (length translated-patterns) 0)
@@ -236,15 +244,7 @@
                        (datum->syntax (last translated-patterns)
                                       (string->symbol (format "$~a-end-pos"
                                                               (length translated-patterns))))])
-          #`(list (current-source)
-                  (position-line $1-start-pos)
-                  (position-col $1-start-pos)
-                  (position-offset $1-start-pos)
-                  (if (and (number? (position-offset $1-start-pos))
-                           (number? (position-offset $n-end-pos)))
-                      (- (position-offset $n-end-pos)
-                         (position-offset $1-start-pos))
-                      #f)))
+          #`(positions->srcloc $1-start-pos $n-end-pos))
         #'(list (current-source) #f #f #f #f)))
   
   (with-syntax ([(translated-pattern ...) translated-patterns]
