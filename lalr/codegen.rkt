@@ -51,19 +51,18 @@
        
        (with-syntax ([start-id start-id]
 
-                     [(token-types ...)
+                     [(token-type ...)
                       token-types]
 
-                     [(explicit-token-type-constructor ...)
+                     [(token-type-constructor ...)
                       (map (lambda (x) (string->symbol (format "token-~a" x)))
-                           explicit-token-types)]
-                     [(implicit-token-type-constructor ...)
-                      (map (lambda (x) (string->symbol (format "token-~a" x)))
-                           implicit-token-types)]
+                           token-types)]
 
                      [(explicit-token-types ...) explicit-token-types]
                      [(implicit-token-types ...) implicit-token-types]
-
+                     [(implicit-token-type-constructor ...)
+                      (map (lambda (x) (string->symbol (format "token-~a" x)))
+                           implicit-token-types)]
                      [(generated-rule-code ...) generated-rule-codes])
 
          (syntax/loc stx
@@ -75,20 +74,22 @@
                       default-lex/1
                       tokens
 
-                      all-token-names
+                      all-tokens-hash
 
                       token-EOF
-                      explicit-token-type-constructor ...
-                      implicit-token-type-constructor ...
+                      token-type-constructor ...
 
                       current-source
                       current-parser-error-handler
                       [struct-out exn:fail:parsing])
 
-             (define all-token-names '(EOF explicit-token-types ...
-                                           implicit-token-types ...))
-             (define-tokens tokens (EOF token-types ...))
+             (define-tokens tokens (EOF token-type ...))
 
+             (define all-tokens-hash 
+               (make-hash (list (cons 'EOF token-EOF)
+                                (cons 'token-type token-type-constructor) ...)))
+
+             
              (define default-lex/1
                (lexer-src-pos [implicit-token-types
                                (implicit-token-type-constructor lexeme)]
