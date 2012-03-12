@@ -225,13 +225,35 @@
              #`(list (datum->syntax #f $X primitive-loc))]
             [(token val)
              #`(list (datum->syntax #f $X primitive-loc))])))))
+
+  (define whole-rule-loc
+    (if (> (length translated-patterns) 0)
+        (with-syntax ([$1-start-pos
+                       (datum->syntax (first translated-patterns)
+                                      (string->symbol "$1-start-pos"))]
+                      [$n-end-pos
+                       (datum->syntax (last translated-patterns)
+                                      (string->symbol (format "$~a-end-pos"
+                                                              (length translated-patterns))))])
+          #`(list (current-source)
+                  (position-line $1-start-pos)
+                  (position-col $1-start-pos)
+                  (position-offset $1-start-pos)
+                  (if (and (number? (position-offset $1-start-pos))
+                           (number? (position-offset $n-end-pos)))
+                      (- (position-offset $n-end-pos)
+                         (position-offset $1-start-pos))
+                      #f)))
+        #'(list (current-source) #f #f #f #f)))
   
   (with-syntax ([(translated-pattern ...) translated-patterns]
                 [(translated-action ...) translated-actions])
     #`[(translated-pattern ...)
-       (datum->syntax #f
-                      (append (list '#,rule-name/false) translated-action ...)
-                      (list (current-source) #f #f #f #f))]))
+       (let ()
+         (datum->syntax #f
+                        (append (list (datum->syntax #f '#,rule-name/false #,whole-rule-loc))
+                                translated-action ...)
+                        #,whole-rule-loc))]))
 
 
 
