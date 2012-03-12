@@ -27,53 +27,53 @@
                       (string<? (format "~s" x) (format "~s" y)))))
 
 
-(check-equal? (tokenize/1 (open-input-string "exec"))
+(check-equal? (position-token-token (tokenize/1 (open-input-string "exec")))
               (token-exec "exec"))
-(check-equal? (tokenize/1 (open-input-string ">="))
+(check-equal? (position-token-token (tokenize/1 (open-input-string ">=")))
               (|token->=| ">="))
-(check-equal? (tokenize/1 (open-input-string "%"))
+(check-equal? (position-token-token (tokenize/1 (open-input-string "%")))
               (|token-%| "%"))
-(check-equal? (tokenize/1 (open-input-string ""))
+(check-equal? (position-token-token (tokenize/1 (open-input-string "")))
               (token-EOF eof))
 
 
 
 (define (adapt-python-tokenizer ip)
   (define tokens (sequence->generator (generate-tokens ip)))
-  (define endmarker-seen? #f)
   (lambda ()
     (let loop ()
       (define next-token (tokens))
       (match next-token
         [(list type text (list start-line start-col) (list end-line end-col) rest-string)
-         (case type
-           [(NAME) 
-            (cond [(hash-has-key? all-tokens-hash (string->symbol text))
-                   ((hash-ref all-tokens-hash (string->symbol text)) text)]
-                  [else
-                   (token-NAME text)])]
-           [(OP)
-            ((hash-ref all-tokens-hash (string->symbol text)) text)]
-           [(NUMBER) 
-            (token-NUMBER text)]
-           [(STRING) 
-            (token-STRING text)]
-           [(COMMENT) 
-            (loop)]
-           [(NL NEWLINE)
-            (token-NEWLINE text)]
-           [(DEDENT) 
-            (token-DEDENT text)]
-           [(INDENT)
-            (token-INDENT text)]
-           [(ERRORTOKEN)
-            (error 'uh-oh)]
-           [(ENDMARKER) 
-            (cond [endmarker-seen?
-                   (token-EOF eof)]
-                  [else
-                   (set! endmarker-seen? #t)
-                   (token-ENDMARKER text)])])]
+         ;; FIXME: improve the Python tokenizer to hold offsets too.
+         (define start-pos (position #f start-line start-col))
+         (define end-pos (position #f end-line end-col))
+         (position-token (case type
+                           [(NAME) 
+                            (cond [(hash-has-key? all-tokens-hash (string->symbol text))
+                                   ((hash-ref all-tokens-hash (string->symbol text)) text)]
+                                  [else
+                                   (token-NAME text)])]
+                           [(OP)
+                            ((hash-ref all-tokens-hash (string->symbol text)) text)]
+                           [(NUMBER) 
+                            (token-NUMBER text)]
+                           [(STRING) 
+                            (token-STRING text)]
+                           [(COMMENT) 
+                            (loop)]
+                           [(NL NEWLINE)
+                            (token-NEWLINE text)]
+                           [(DEDENT) 
+                            (token-DEDENT text)]
+                           [(INDENT)
+                            (token-INDENT text)]
+                           [(ERRORTOKEN)
+                            (error 'uh-oh)]
+                           [(ENDMARKER) 
+                            (token-ENDMARKER text)])
+                         start-pos
+                         end-pos)]
         [(? void)
          (token-EOF eof)]))))
   
@@ -81,9 +81,10 @@
 (define sample-tokens (adapt-python-tokenizer
                           (open-input-string #<<EOF
 def hello(x):
-    print "hello", x
+    print "hello", repr(x)
+
 EOF
                                              )))
 
 
-;(parse "hello.py" sample-tokens)
+(parse "hello.py" sample-tokens)
