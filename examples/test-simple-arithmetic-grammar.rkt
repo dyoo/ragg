@@ -5,12 +5,13 @@
          rackunit)
 
 (define (tokenize ip)
+  (port-count-lines! ip)
   (define lex/1
     (lexer-src-pos
      [(repetition 1 +inf.0 numeric)
       (token-INT (string->number lexeme))]
      [whitespace
-      (lex/1 ip)]
+      (return-without-pos (lex/1 ip))]
      ["+"
       (token-+ "+")]
      ["*"
@@ -38,6 +39,11 @@
                      "+"
                      (term (factor 5))))
 
+
+(check-equal? (syntax->datum (parse #f (tokenize (open-input-string "3*4 + 5*6"))))
+              '(expr (term (factor 3) "*" (factor 4))
+                     "+" 
+                     (term (factor 5) "*" (factor 6))))
 
 ;; (parse #f (tokenize (open-input-string "4*5+6")))
 
