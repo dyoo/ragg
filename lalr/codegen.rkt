@@ -231,9 +231,9 @@
           [(id val)
            #`(list $X)]
           [(lit val)
-           #`(list (d->s #f $X $X-start-pos $X-end-pos))]
+           #`(list (d->s $X $X-start-pos $X-end-pos))]
           [(token val)
-           #`(list (d->s #f $X $X-start-pos $X-end-pos))]))))
+           #`(list (d->s $X $X-start-pos $X-end-pos))]))))
 
   (define whole-rule-loc
     (if (> (length translated-patterns) 0)
