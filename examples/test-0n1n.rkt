@@ -19,16 +19,16 @@
 ;;               (list "0" rule-0n1n "1"))
 
 (check-equal? (syntax->datum (parse #f (lex (open-input-string "0011"))))
-              '(rule-0n1n "0" (rule-0n1n "0" #f "1") "1"))
+              '(rule-0n1n "0" (rule-0n1n "0" (rule-0n1n) "1") "1"))
 
 (check-equal? (syntax->datum (parse #f (lex (open-input-string "01"))))
-              '(rule-0n1n "0" #f "1"))
+              '(rule-0n1n "0" (rule-0n1n) "1"))
 
 (check-equal? (syntax->datum (parse #f (lex (open-input-string ""))))
-              #f)
+              '(rule-0n1n))
 
 (check-equal? (syntax->datum (parse #f (lex (open-input-string "000111"))))
-              '(rule-0n1n "0" (rule-0n1n "0" (rule-0n1n "0" #f "1") "1") "1"))
+              '(rule-0n1n "0" (rule-0n1n "0" (rule-0n1n "0" (rule-0n1n) "1") "1") "1"))
 
 
 

@@ -154,54 +154,23 @@
                                     (coerse-to-position-token (tokenizer))))))))))))]))
 
 
-;; Given a flattened rule, returns a syntax for the code
-;; that preserves as much as possible.
+;; Given a flattened rule, returns a syntax for the code that
+;; preserves as much source location as possible.
+;;
+;; Each rule is defined to return a list with the following structure:
+;;
+;;     stx :== (name (U tokens rule-stx) ...)
+;;
 (define (flat-rule->yacc-rule a-flat-rule)
   (syntax-case a-flat-rule ()
     [(rule-type origin name clauses ...)
      (begin
-       (define inferred? (syntax-case #'rule-type (prim-rule inferred-prim-rule)
-                           [prim-rule #f]
-                           [inferred-prim-rule #t]))
        (define translated-clauses
-         (map (lambda (clause) (translate-clause clause (if inferred? #f #'name) #'origin))
+         (map (lambda (clause) (translate-clause clause #'name #'origin))
               (syntax->list #'(clauses ...))))
        (with-syntax ([(translated-clause ...) translated-clauses])
-         (syntax-case #'origin (id inferred-id lit token choice repeat maybe seq)
+         #`[name translated-clause ...]))]))
 
-           ;; should return what the named rule returns.
-           [id
-            #`[name translated-clause ...]]
-
-           ;; should return what the named rule returns.
-           [inferred-id
-            #`[name translated-clause ...]]
-           
-           ;; should return the token value
-           [lit
-            #`[name translated-clause ...]]
-
-           ;; should return the token value
-           [token
-            #`[name translated-clause ...]]
-
-           ;; should return one of the values
-           [choice
-            #`[name translated-clause ...]]
-
-           ;; should return a flattened list of elements
-           [repeat
-            #`[name translated-clause ...]]
-
-           ;; should return the value, or #f
-           [maybe
-            #`[name #,(first translated-clauses)
-                    [() #'#f]]]
-           
-           ;; should return a flattened list of elements
-           [seq
-            #`[name translated-clause ...]])))]))
-         
   
 
 ;; translates a single primitive rule clause.
@@ -243,16 +212,13 @@
                                       (position-offset $X-start-pos))
                                    #f))])
           (syntax-case primitive-pattern (id lit token inferred-id)
+            ;; When a rule usage is inferred, the value of $X is a syntax object
+            ;; whose head is the name of the inferred rule . We strip that out,
+            ;; leaving the residue to be absorbed.
             [(inferred-id val reason)
-             (syntax-case #'reason (choice repeat maybe seq)
-               [choice
-                #'(list $X)]
-               [repeat
-                #'$X]
-               [maybe
-                #'(list $X)]
-               [seq
-                #'$X])]
+             #'(syntax-case $X ()
+                   [(inferred-rule-name rest (... ...))
+                    (syntax->list #'(rest (... ...)))])]
             [(id val)
              #`(list (datum->syntax #f $X primitive-loc))]
             [(lit val)
@@ -262,19 +228,10 @@
   
   (with-syntax ([(translated-pattern ...) translated-patterns]
                 [(translated-action ...) translated-actions])
-    (cond
-     [rule-name/false
-      ;; FIXME!  The location should span across the individual elements
-      #`[(translated-pattern ...)
-         (datum->syntax #f
-                        (append (list '#,rule-name/false) translated-action ...)
-                        (list (current-source) #f #f #f #f))]]
-
-     [else
-      #`[(translated-pattern ...)
-         (datum->syntax #f (append translated-action ...))]])))
-
-
+    #`[(translated-pattern ...)
+       (datum->syntax #f
+                      (append (list '#,rule-name/false) translated-action ...)
+                      (list (current-source) #f #f #f #f))]))
 
 
 

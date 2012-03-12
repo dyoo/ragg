@@ -95,11 +95,11 @@
               (with-syntax ([(sub-pat ...) new-sub-pats])
                 (cons (cond [(= (syntax-e #'min) 0)
                              #`(head origin name
-                                          [(id name) sub-pat ...]
+                                          [(inferred-id name #'repeat) sub-pat ...]
                                           [])]
                             [(= (syntax-e #'min) 1)
                              #`(head origin name
-                                          [(id name) sub-pat ...]
+                                          [(inferred-id name #'repeat) sub-pat ...]
                                           [sub-pat ...])])
                       inferred-rules)))]
 
