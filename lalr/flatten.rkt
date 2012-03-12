@@ -8,10 +8,20 @@
 
 
 
+(define (make-fresh-name)
+  (let ([n 0])
+    (lambda ()
+      (set! n (add1 n))
+      (string->symbol (format "%rule~a" n)))))
+
+(define default-fresh-name
+  (make-fresh-name))
+
+
 ;; Translates rules to lists of primitive rules.
 
 
-(define (flatten-rules rules #:fresh-name [fresh-name (lambda () (gensym 'rule))])
+(define (flatten-rules rules #:fresh-name [fresh-name default-fresh-name])
   (define ht (make-hash))
   (apply append (map (lambda (a-rule) (flatten-rule a-rule
                                                     #:ht ht
@@ -21,7 +31,7 @@
 
 ;; flatten-rule: rule -> (listof primitive-rule)
 (define (flatten-rule a-rule
-                      #:fresh-name [fresh-name (lambda () (gensym 'rule))]
+                      #:fresh-name [fresh-name default-fresh-name]
 
                       ;; ht: (hashtableof pattern-hash-key pat)
                       #:ht [ht (make-hash)])
