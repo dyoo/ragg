@@ -249,11 +249,10 @@
   (with-syntax ([(translated-pattern ...) translated-patterns]
                 [(translated-action ...) translated-actions])
     #`[(translated-pattern ...)
-       (let ()
-         (datum->syntax #f
-                        (append (list (datum->syntax #f '#,rule-name/false #,whole-rule-loc))
-                                translated-action ...)
-                        #,whole-rule-loc))]))
+       (datum->syntax #f
+                      (append (list (datum->syntax #f '#,rule-name/false #,whole-rule-loc))
+                              translated-action ...)
+                      #,whole-rule-loc)]))
 
 
 

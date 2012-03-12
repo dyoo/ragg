@@ -15,7 +15,7 @@
      ["+"
       (token-+ "+")]
      ["*"
-      (token-+ "*")]
+      (token-* "*")]
      [(eof)
       (token-EOF eof)]))
   (lambda ()
