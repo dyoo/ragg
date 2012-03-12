@@ -220,7 +220,7 @@
                    [(inferred-rule-name rest (... ...))
                     (syntax->list #'(rest (... ...)))])]
             [(id val)
-             #`(list (datum->syntax #f $X primitive-loc))]
+             #`(list $X)]
             [(lit val)
              #`(list (datum->syntax #f $X primitive-loc))]
             [(token val)

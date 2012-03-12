@@ -40,6 +40,10 @@
                      (term (factor 5))))
 
 
+(check-equal? (syntax->datum (parse #f (tokenize (open-input-string "3*4*5"))))
+              '(expr (term (factor 3) "*" (factor 4) "*" (factor 5))))
+
+
 (check-equal? (syntax->datum (parse #f (tokenize (open-input-string "3*4 + 5*6"))))
               '(expr (term (factor 3) "*" (factor 4))
                      "+" 
