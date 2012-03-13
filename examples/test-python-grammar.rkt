@@ -1,4 +1,4 @@
-#lang racket/base
+#lang racket
 (require "python-grammar.rkt"
          (planet dyoo/python-tokenizer)
          racket/generator
@@ -80,11 +80,13 @@
 
 (define sample-tokens (adapt-python-tokenizer
                           (open-input-string #<<EOF
+import blah
 def hello(x):
     print "hello", repr(x)
+    blah.baz()
 
 EOF
                                              )))
 
 
-(parse "hello.py" sample-tokens)
+(pretty-write (syntax->datum (parse "hello.py" sample-tokens)))

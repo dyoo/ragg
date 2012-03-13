@@ -58,6 +58,8 @@
 
 
 ;; tokenize: input-port -> (-> token)
-(define (tokenize ip)
+(define (tokenize ip
+                  #:source [source (object-name ip)])
   (lambda ()
-    (lex/1 ip)))
+    (parameterize ([file-path source])
+      (lex/1 ip))))
