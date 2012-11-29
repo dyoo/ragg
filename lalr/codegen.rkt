@@ -167,10 +167,14 @@
                         (grammar
                          generated-rule-code ...))]
                      )
-                 (lambda (source tokenizer)
-                   (parameterize ([current-source source])
-                     (THE-GRAMMAR (lambda ()
-                                    (coerse-to-position-token (tokenizer))))))))))))]))
+                 (case-lambda [(tokenizer)
+                               (parameterize ([current-source #f])
+                                 (THE-GRAMMAR (lambda ()
+                                                (coerse-to-position-token (tokenizer)))))]
+                              [(source tokenizer)
+                               (parameterize ([current-source source])
+                                 (THE-GRAMMAR (lambda ()
+                                                (coerse-to-position-token (tokenizer)))))])))))))]))
 
 
 ;; Given a flattened rule, returns a syntax for the code that
