@@ -7,5 +7,5 @@
            "examples/test-simple-arithmetic-grammar.rkt"
            "lalr/test-flatten.rkt"
            "test-lexer.rkt"
-           ;; "test-parser.rkt"
+           "test-parser.rkt"
            ))
