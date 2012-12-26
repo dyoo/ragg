@@ -1,17 +1,24 @@
 #lang racket/base
 
+
 (require rackunit
          parser-tools/lex
          "parser.rkt"
          "lexer.rkt"
          "rule-structs.rkt")
 
-;; FIXME: fix the test cases so they work on locations rather than just offsets.
 
+;; quick-and-dirty helper for pos construction.
+(define (p x)
+  (pos x #f #f))
+
+
+
+;; FIXME: fix the test cases so they work on locations rather than just offsets.
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : 'hello'")))
-              (list (rule 1 15
-                          (lhs-id 1 5 "expr" )
-                          (pattern-lit 8 15 "'hello'"))))
+              (list (rule (p 1) (p 15)
+                          (lhs-id (p 1) (p 5) "expr" )
+                          (pattern-lit (p 8) (p 15) "hello"))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : COLON")))
               (list (rule 1 13
@@ -120,10 +127,3 @@ EOF
                                                   (pattern-seq 42 54 (list (pattern-lit 42 49 "'print'")
                                                                        (pattern-id 50 54 "expr"))))))))
 
-
-(let ([parsed
-       (call-with-input-file "examples/python-grammar.rkt"
-         (lambda (ip)
-           (port-count-lines! ip)
-           (grammar-parser (tokenize ip))))])
-  (void))
