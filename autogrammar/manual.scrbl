@@ -10,7 +10,7 @@
 @section{Informal Quickstart}
 
 @(define informal-eval (make-base-eval))
-@(informal-eval '(require (planet dyoo/autogrammar/examples/nested-word-list)))
+@(informal-eval '(require autogrammar/examples/nested-word-list))
 @(informal-eval '(require racket/list))
 Let's consider: if we're given a string like the following:
 @racketblock["(hello (world (this is a (test))))"]
@@ -50,7 +50,7 @@ Let's fix this problem:
 
 @filebox["nested-word-list.rkt"]{
 @verbatim{
-#lang planet dyoo/autogrammar
+#lang autogrammar
 nested-word-list: LEFT-PAREN nested-word-list* RIGHT-PAREN
                 | WORD
 }}
@@ -64,7 +64,7 @@ parse
 It gives us a @racket[parse] function.  What else is in there?
 @interaction[#:eval informal-eval
 @eval:alts[(module->exports "nested-word-list.rkt")
-           (module->exports '(planet dyoo/autogrammar/examples/nested-word-list))]]
+           (module->exports 'autogrammar/examples/nested-word-list)]]
 
 Hmmm... It appears to have quite a few things for us, such as
 @racket[parse], @racket[token-LEFT-PAREN], @racket[token-RIGHT-PAREN],

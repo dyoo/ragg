@@ -12,7 +12,7 @@
 ;; The intended use of this language is as follows:
 ;;
 ;;;;; s-exp-grammar.rkt ;;;;;;;;;
-;; #lang planet dyoo/autogrammar
+;; #lang autogrammar
 ;; s-exp : "(" s-exp* ")" | ATOM
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -31,8 +31,8 @@
 
 (require parser-tools/yacc
          parser-tools/lex
-         (for-syntax racket/base)
-         mzlib/etc)
+         (for-syntax racket/base))
+
 (require (for-syntax syntax/boundmap
                      parser-tools/private-lex/token-syntax))
 
@@ -215,7 +215,7 @@
 
 ;; Starts a thread
 (define queue-task
-  (opt-lambda (tasks t [progress? #t])
+  (lambda (tasks t [progress? #t])
     (make-tasks (tasks-active tasks)
                 (cons t (tasks-active-back tasks))
                 (tasks-waits tasks)

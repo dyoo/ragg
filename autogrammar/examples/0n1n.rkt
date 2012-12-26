@@ -1,4 +1,3 @@
-#lang planet dyoo/autogrammar/lalr
-
+#lang autogrammar
 
 rule-0n1n: ["0" rule-0n1n "1"]
