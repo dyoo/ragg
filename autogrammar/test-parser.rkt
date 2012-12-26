@@ -21,93 +21,93 @@
                           (pattern-lit (p 8) (p 15) "hello"))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : COLON")))
-              (list (rule 1 13
-                          (lhs-id 1 5 "expr")
-                          (pattern-token 8 13 "COLON"))))
+              (list (rule (p 1) (p 13)
+                          (lhs-id (p 1) (p 5) "expr")
+                          (pattern-token (p 8) (p 13) "COLON"))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : COLON COLON")))
-              (list (rule 1 19
-                          (lhs-id 1 5 "expr")
-                          (pattern-seq 8 19
+              (list (rule (p 1) (p 19)
+                          (lhs-id (p 1) (p 5) "expr")
+                          (pattern-seq (p 8) (p 19)
                                    (list
-                                    (pattern-token 8 13 "COLON")
-                                    (pattern-token 14 19 "COLON"))))))
+                                    (pattern-token (p 8) (p 13) "COLON")
+                                    (pattern-token (p 14) (p 19) "COLON"))))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : 'hello'*")))
-              (list (rule 1 16
-                          (lhs-id 1 5 "expr" )
-                          (pattern-repeat 8 16
+              (list (rule (p 1) (p 16)
+                          (lhs-id (p 1) (p 5) "expr" )
+                          (pattern-repeat (p 8) (p 16)
                                       0
-                                      (pattern-lit 8 15 "'hello'")))))
+                                      (pattern-lit (p 8) (p 15) "hello")))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : 'hello'+")))
-              (list (rule 1 16
-                          (lhs-id 1 5 "expr" )
-                          (pattern-repeat 8 16
+              (list (rule (p 1) (p 16)
+                          (lhs-id (p 1) (p 5) "expr" )
+                          (pattern-repeat (p 8) (p 16)
                                       1
-                                      (pattern-lit 8 15 "'hello'")))))
+                                      (pattern-lit (p 8) (p 15) "hello")))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : ['hello']")))
-              (list (rule 1 17
-                          (lhs-id 1 5 "expr" )
-                          (pattern-maybe 8 17
-                                     (pattern-lit 9 16 "'hello'")))))
+              (list (rule (p 1) (p 17)
+                          (lhs-id (p 1) (p 5) "expr" )
+                          (pattern-maybe (p 8) (p 17)
+                                     (pattern-lit (p 9) (p 16) "hello")))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : COLON | BLAH")))
-              (list (rule 1 20
-                          (lhs-id 1 5 "expr")
-                          (pattern-choice 8 20
-                                      (list (pattern-token 8 13 "COLON")
-                                            (pattern-token 16 20 "BLAH"))))))
+              (list (rule (p 1) (p 20)
+                          (lhs-id (p 1) (p 5) "expr")
+                          (pattern-choice (p 8) (p 20)
+                                      (list (pattern-token (p 8) (p 13) "COLON")
+                                            (pattern-token (p 16) (p 20) "BLAH"))))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : COLON | BLAH | BAZ expr")))
-              (list (rule 1 31
-                          (lhs-id 1 5 "expr")
-                          (pattern-choice 8 31
-                                      (list (pattern-token 8 13 "COLON")
-                                            (pattern-token 16 20 "BLAH")
-                                            (pattern-seq 23 31
-                                                     (list (pattern-token 23 26 "BAZ")
-                                                           (pattern-id 27 31 "expr"))))))))
+              (list (rule (p 1) (p 31)
+                          (lhs-id (p 1) (p 5) "expr")
+                          (pattern-choice (p 8) (p 31)
+                                      (list (pattern-token (p 8) (p 13) "COLON")
+                                            (pattern-token (p 16) (p 20) "BLAH")
+                                            (pattern-seq (p 23) (p 31)
+                                                     (list (pattern-token (p 23) (p 26) "BAZ")
+                                                           (pattern-id (p 27) (p 31) "expr"))))))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : one two three")))
-              (list (rule 1 21
-                          (lhs-id 1 5 "expr")
-                          (pattern-seq 8 21 (list (pattern-id 8 11 "one")
-                                              (pattern-id 12 15 "two")
-                                              (pattern-id 16 21 "three"))))))
+              (list (rule (p 1) (p 21)
+                          (lhs-id (p 1) (p 5) "expr")
+                          (pattern-seq (p 8) (p 21) (list (pattern-id (p 8) (p 11) "one")
+                                              (pattern-id (p 12) (p 15) "two")
+                                              (pattern-id (p 16) (p 21) "three"))))))
 
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : (one two three)")))
-              (list (rule 1 23
-                          (lhs-id 1 5 "expr")
-                          (pattern-seq 8 23 (list (pattern-id 9 12 "one")
-                                              (pattern-id 13 16 "two")
-                                              (pattern-id 17 22 "three"))))))
+              (list (rule (p 1) (p 23)
+                          (lhs-id (p 1) (p 5) "expr")
+                          (pattern-seq (p 8) (p 23) (list (pattern-id (p 9) (p 12) "one")
+                                              (pattern-id (p 13) (p 16) "two")
+                                              (pattern-id (p 17) (p 22) "three"))))))
 
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : one two* three")))
-              (list (rule 1 22
-                          (lhs-id 1 5 "expr")
-                          (pattern-seq 8 22 (list (pattern-id 8 11 "one")
-                                              (pattern-repeat 12 16 0 (pattern-id 12 15 "two"))
-                                              (pattern-id 17 22 "three"))))))
+              (list (rule (p 1) (p 22)
+                          (lhs-id (p 1) (p 5) "expr")
+                          (pattern-seq (p 8) (p 22) (list (pattern-id (p 8) (p 11) "one")
+                                              (pattern-repeat (p 12) (p 16) 0 (pattern-id (p 12) (p 15) "two"))
+                                              (pattern-id (p 17) (p 22) "three"))))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : one two+ three")))
-              (list (rule 1 22
-                          (lhs-id 1 5 "expr")
-                          (pattern-seq 8 22 (list (pattern-id 8 11 "one")
-                                              (pattern-repeat 12 16 1 (pattern-id 12 15 "two"))
-                                              (pattern-id 17 22 "three"))))))
+              (list (rule (p 1) (p 22)
+                          (lhs-id (p 1) (p 5) "expr")
+                          (pattern-seq (p 8) (p 22) (list (pattern-id (p 8) (p 11) "one")
+                                              (pattern-repeat (p 12) (p 16) 1 (pattern-id (p 12) (p 15) "two"))
+                                              (pattern-id (p 17) (p 22) "three"))))))
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : (one two)+ three")))
-              (list (rule 1 24
-                          (lhs-id 1 5 "expr")
-                          (pattern-seq 8 24 (list (pattern-repeat 8 18 1
-                                                          (pattern-seq 8 17
-                                                                   (list (pattern-id 9 12 "one")
-                                                                         (pattern-id 13 16 "two"))))
-                                              (pattern-id 19 24 "three"))))))
+              (list (rule (p 1) (p 24)
+                          (lhs-id (p 1) (p 5) "expr")
+                          (pattern-seq (p 8) (p 24) (list (pattern-repeat (p 8) (p 18) 1
+                                                          (pattern-seq (p 8) (p 17)
+                                                                   (list (pattern-id (p 9) (p 12) "one")
+                                                                         (pattern-id (p 13) (p 16) "two"))))
+                                              (pattern-id (p 19) (p 24) "three"))))))
 
 
 (check-equal? (grammar-parser (tokenize (open-input-string #<<EOF
@@ -116,14 +116,14 @@ stat: ID '=' expr
     | 'print' expr
 EOF
 )))
-              (list (rule 1 17
-                          (lhs-id 1 9 "statlist")
-                          (pattern-repeat 12 17 1 (pattern-id 12 16 "stat")))
-                    (rule 18 54
-                          (lhs-id 18 22 "stat")
-                          (pattern-choice 24 54 (list (pattern-seq 24 35 (list (pattern-token 24 26 "ID")
-                                                                       (pattern-lit 27 30 "'='")
-                                                                       (pattern-id 31 35 "expr")))
-                                                  (pattern-seq 42 54 (list (pattern-lit 42 49 "'print'")
-                                                                       (pattern-id 50 54 "expr"))))))))
+              (list (rule (p 1) (p 17)
+                          (lhs-id (p 1) (p 9) "statlist")
+                          (pattern-repeat (p 12) (p 17) 1 (pattern-id (p 12) (p 16) "stat")))
+                    (rule (p 18) (p 54)
+                          (lhs-id (p 18) (p 22) "stat")
+                          (pattern-choice (p 24) (p 54) (list (pattern-seq (p 24) (p 35) (list (pattern-token (p 24) (p 26) "ID")
+                                                                       (pattern-lit (p 27) (p 30) "=")
+                                                                       (pattern-id (p 31) (p 35) "expr")))
+                                                  (pattern-seq (p 42) (p 54) (list (pattern-lit (p 42) (p 49) "print")
+                                                                       (pattern-id (p 50) (p 54) "expr"))))))))
 
