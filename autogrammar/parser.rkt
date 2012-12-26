@@ -2,6 +2,7 @@
 (require parser-tools/yacc
          parser-tools/lex
          racket/list
+         racket/match
          "rule-structs.rkt")
 
 ;; A parser for grammars.
@@ -140,13 +141,33 @@
                      $2)]
      
      [(LPAREN pattern RPAREN)
-      $2]])
+      (relocate-pattern $2 (position->pos $1-start-pos) (position->pos $3-end-pos))]])
 
    
    (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
             ((current-parser-error-handler) tok-ok? tok-name tok-value (position->pos start-pos) (position->pos end-pos))))))
 
 
+;; relocate-pattern: pattern -> pattern
+;; Rewrites the pattern's start and end pos accordingly.
+(define (relocate-pattern a-pat start-pos end-pos)
+  (match a-pat
+   [(pattern-id _ _ v)
+    (pattern-id start-pos end-pos v)]
+   [(pattern-token _ _ v)
+    (pattern-token start-pos end-pos v)]
+   [(pattern-lit _ _ v)
+    (pattern-lit start-pos end-pos v)]
+   [(pattern-choice _ _ vs)
+    (pattern-choice start-pos end-pos vs)]
+   [(pattern-repeat _ _ m v)
+    (pattern-repeat start-pos end-pos m v)]
+   [(pattern-maybe _ _ v)
+    (pattern-maybe start-pos end-pos v)]
+   [(pattern-seq _ _ vs)
+    (pattern-seq start-pos end-pos vs)]
+   [else
+    (error 'relocate-pattern "Internal error when relocating ~s\n" a-pat)]))
 
 
 ; token-id: string -> boolean

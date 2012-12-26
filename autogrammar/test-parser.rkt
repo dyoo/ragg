@@ -82,8 +82,8 @@
               (list (rule (p 1) (p 23)
                           (lhs-id (p 1) (p 5) "expr")
                           (pattern-seq (p 8) (p 23) (list (pattern-id (p 9) (p 12) "one")
-                                              (pattern-id (p 13) (p 16) "two")
-                                              (pattern-id (p 17) (p 22) "three"))))))
+                                                          (pattern-id (p 13) (p 16) "two")
+                                                          (pattern-id (p 17) (p 22) "three"))))))
 
 
 (check-equal? (grammar-parser (tokenize (open-input-string "expr : one two* three")))
@@ -104,10 +104,10 @@
               (list (rule (p 1) (p 24)
                           (lhs-id (p 1) (p 5) "expr")
                           (pattern-seq (p 8) (p 24) (list (pattern-repeat (p 8) (p 18) 1
-                                                          (pattern-seq (p 8) (p 17)
-                                                                   (list (pattern-id (p 9) (p 12) "one")
-                                                                         (pattern-id (p 13) (p 16) "two"))))
-                                              (pattern-id (p 19) (p 24) "three"))))))
+                                                                          (pattern-seq (p 8) (p 17)
+                                                                                       (list (pattern-id (p 9) (p 12) "one")
+                                                                                             (pattern-id (p 13) (p 16) "two"))))
+                                                          (pattern-id (p 19) (p 24) "three"))))))
 
 
 (check-equal? (grammar-parser (tokenize (open-input-string #<<EOF
