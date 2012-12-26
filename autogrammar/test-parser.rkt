@@ -122,7 +122,7 @@ EOF
 
 
 (let ([parsed
-       (call-with-input-file "python-grammar.rkt"
+       (call-with-input-file "examples/python-grammar.rkt"
          (lambda (ip)
            (port-count-lines! ip)
            (grammar-parser (tokenize ip))))])
