@@ -27,9 +27,12 @@
        (define generated-rule-codes (map flat-rule->yacc-rule flattened-rules))
        
        ;; The first rule, by default, is the start rule.
-       (define start-id (syntax-case (first rules) (rule)
-                          [(rule id pattern)
-                           #'id]))
+       (define rule-ids (for/list ([a-rule (in-list rules)])
+                          (syntax-case a-rule (rule)
+                            [(rule id pattern)
+                             #'id])))
+       (define start-id (first rule-ids))
+       
        
        (define-values (implicit-tokens    ;; (listof string-stx)
                        explicit-tokens)   ;; (listof identifier-stx)
@@ -67,9 +70,12 @@
 
          (syntax/loc stx
            (begin
+             
              (require parser-tools/lex
-                      parser-tools/yacc)
+                      parser-tools/yacc
+                      autogrammar/lalr/runtime)
 
+             
              (provide parse
                       default-lex/1
                       tokens
@@ -95,68 +101,9 @@
                                (implicit-token-type-constructor lexeme)]
                               ...
                               [(eof) (token-EOF eof)]))
-             
-             ;; During parsing, we should define the source of the input.
-             (define current-source (make-parameter #f))
-
-             ;; When bad things happen, we need to emit errors with source location.
-             (struct exn:fail:parsing exn:fail (srclocs)
-                     #:transparent
-                     #:property prop:exn:srclocs (lambda (instance)
-                                                   (exn:fail:parsing-srclocs instance)))
-
-             (define current-parser-error-handler
-               (make-parameter
-                (lambda (tok-ok? tok-name tok-value start-pos end-pos)
-                  (raise (exn:fail:parsing
-                          (format "Encountered error while parsing, near: ~e [line=~a, column=~a, position=~a]"
-                                  tok-value
-                                  (position-line start-pos)
-                                  (position-col start-pos)
-                                  (position-offset start-pos))
-                          (current-continuation-marks)
-                          (list (srcloc (current-source)
-                                        (position-line start-pos)
-                                        (position-col start-pos)
-                                        (position-offset start-pos)
-                                        (if (and (number? (position-offset end-pos))
-                                                 (number? (position-offset start-pos)))
-                                            (- (position-offset end-pos)
-                                               (position-offset start-pos))
-                                            #f))))))))
-
-             ;; If someone feeds us a token that has no positional information,
-             ;; just force it into the right shape.
-             (define (coerse-to-position-token t)
-               (cond
-                [(position-token? t)
-                 t]
-                [else
-                 (position-token t
-                                 (position #f #f #f)
-                                 (position #f #f #f))]))
-             
-             ;; positions->srcloc: position position -> (list source line column offset span)
-             (define (positions->srcloc start-pos end-pos)
-               (list (current-source)
-                     (position-line start-pos)
-                     (position-col start-pos)
-                     (position-offset start-pos)
-                     (if (and (number? (position-offset end-pos))
-                              (number? (position-offset start-pos)))
-                         (- (position-offset end-pos)
-                            (position-offset start-pos))
-                         #f)))
-             
-             ;; d->s: datum position position
-             ;; Helper that does the ugly work in wrapping a datum into a syntax
-             ;; with source location.
-             (define (d->s d start-pos end-pos)
-               (datum->syntax #f d (positions->srcloc start-pos end-pos)))
-             
+                          
              (define parse
-               (let (
-                      [THE-GRAMMAR
+               (let ([THE-GRAMMAR
                        (parser
                         (tokens tokens)
                         (src-pos)
@@ -165,8 +112,7 @@
                         (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
                                  ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos)))
                         (grammar
-                         generated-rule-code ...))]
-                     )
+                         generated-rule-code ...))])
                  (case-lambda [(tokenizer)
                                (parameterize ([current-source #f])
                                  (THE-GRAMMAR (lambda ()
