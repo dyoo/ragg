@@ -79,36 +79,56 @@
 
 ;; make-permissive-tokenizer: (-> (U token tok-struct eof)) hash -> (-> position-token)
 (define (make-permissive-tokenizer tokenizer token-type-hash)
-  (define permissive-tokenizer
-    (lambda ()
-      (define next-token (tokenizer))
-      (match next-token
-        [(? eof-object?)
-         (lex:position-token ((hash-ref token-type-hash 'EOF) eof)
-                             (lex:position #f #f #f)
-                             (lex:position #f #f #f))]
-
-        [(tok-struct type val offset line column span whitespace?)
-         (cond [whitespace?
-                ;; skip whitespace, and just tokenize again.
-                (permissive-tokenizer)]
-               
-               [(hash-has-key? token-type-hash type)
-                (lex:position-token ((hash-ref token-type-hash type) val)
-                                    (lex:position offset line column)
-                                    ;; try to synthesize a consistent end position.
-                                    (lex:position (if (and (number? offset) (number? span))
-                                                      (+ offset span)
-                                                      offset)
-                                                  line
-                                                  (if (and (number? column) (number? span))
-                                                      (+ column span)
-                                                      column)))]
-               [else
-                ;; We ran into a token of unrecognized type.  Let's raise an appropriate error.
-                ((current-tokenizer-error-handler) (current-source) offset line column span)])]
-        [else
-         (coerse-to-position-token next-token)])))
+  (define (permissive-tokenizer)
+    (define next-token (tokenizer))
+    (match next-token
+      [(? eof-object?)
+       (lex:position-token ((hash-ref token-type-hash 'EOF) eof)
+                           (lex:position #f #f #f)
+                           (lex:position #f #f #f))]
+      
+      [(tok-struct type val offset line column span whitespace?)
+       (cond [whitespace?
+              ;; skip whitespace, and just tokenize again.
+              (permissive-tokenizer)]
+             
+             [(hash-has-key? token-type-hash type)
+              (lex:position-token ((hash-ref token-type-hash type) val)
+                                  (lex:position offset line column)
+                                  ;; try to synthesize a consistent end position.
+                                  (lex:position (if (and (number? offset) (number? span))
+                                                    (+ offset span)
+                                                    offset)
+                                                line
+                                                (if (and (number? column) (number? span))
+                                                    (+ column span)
+                                                    column)))]
+             [else
+              ;; We ran into a token of unrecognized type.  Let's raise an appropriate error.
+              ((current-tokenizer-error-handler) (current-source) offset line column span)])]
+      
+      [(lex:position-token (tok-struct type val offset line column span whitespace?)
+                           (lex:position start-offset start-line start-col)
+                           (lex:position end-offset end-line end-col))
+       (cond [(hash-has-key? token-type-hash type)
+              (lex:position-token ((hash-ref token-type-hash type) val)
+                                  (lex:position (or offset start-offset)
+                                                (or line start-line)
+                                                (or column start-col))
+                                  (if (and (number? offset) (number? span))
+                                      (lex:position (+ offset span) line (+ column span))
+                                      (lex:position end-offset end-line end-col)))]
+             [else
+              ;; We ran into a token of unrecognized type.  Let's raise an appropriate error.
+              ((current-tokenizer-error-handler) (current-source) 
+                                                 start-offset start-line start-col 
+                                                 (if (and (number? start-offset)
+                                                          (number? end-offset))
+                                                     (- end-offset start-offset)
+                                                     #f))])]
+      
+      [else
+       (coerse-to-position-token next-token)]))
   permissive-tokenizer)
 
                       

@@ -28,13 +28,13 @@
 
 
 (check-equal? (position-token-token (tokenize/1 (open-input-string "exec")))
-              (token-exec "exec"))
+              (token 'exec "exec"))
 (check-equal? (position-token-token (tokenize/1 (open-input-string ">=")))
-              (|token->=| ">="))
+              (token '>= ">="))
 (check-equal? (position-token-token (tokenize/1 (open-input-string "%")))
-              (|token-%| "%"))
+              (token '% "%"))
 (check-equal? (position-token-token (tokenize/1 (open-input-string "")))
-              (token-EOF eof))
+              (token eof))
 
 
 
@@ -51,31 +51,31 @@
          (position-token (case type
                            [(NAME) 
                             (cond [(hash-has-key? all-tokens-hash (string->symbol text))
-                                   ((hash-ref all-tokens-hash (string->symbol text)) text)]
+                                   (token (symbol->string text) text)]
                                   [else
-                                   (token-NAME text)])]
+                                   (token 'NAME text)])]
                            [(OP)
-                            ((hash-ref all-tokens-hash (string->symbol text)) text)]
+                            (token (string->symbol text) text)]
                            [(NUMBER) 
-                            (token-NUMBER text)]
+                            (token 'NUMBER text)]
                            [(STRING) 
-                            (token-STRING text)]
+                            (token 'STRING text)]
                            [(COMMENT) 
-                            (loop)]
+                            (token 'WHITESPACE #:whitespace? #t)]
                            [(NL NEWLINE)
-                            (token-NEWLINE text)]
+                            (token 'NEWLINE text)]
                            [(DEDENT) 
-                            (token-DEDENT text)]
+                            (token 'DEDENT text)]
                            [(INDENT)
-                            (token-INDENT text)]
+                            (token 'INDENT text)]
                            [(ERRORTOKEN)
                             (error 'uh-oh)]
                            [(ENDMARKER) 
-                            (token-ENDMARKER text)])
+                            (token 'ENDMARKER text)])
                          start-pos
                          end-pos)]
         [(? void)
-         (token-EOF eof)]))))
+         (token eof)]))))
   
 
 (define sample-tokens (adapt-python-tokenizer
