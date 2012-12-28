@@ -77,12 +77,17 @@
                   offset line column span whitespace?))))
 
 
-;; make-permissive-tokenizer: (-> (U token tok-struct)) hash -> (-> position-token)
+;; make-permissive-tokenizer: (-> (U token tok-struct eof)) hash -> (-> position-token)
 (define (make-permissive-tokenizer tokenizer token-type-hash)
   (define permissive-tokenizer
     (lambda ()
       (define next-token (tokenizer))
       (match next-token
+        [(? eof-object?)
+         (lex:position-token ((hash-ref token-type-hash 'EOF) eof)
+                             (lex:position #f #f #f)
+                             (lex:position #f #f #f))]
+
         [(tok-struct type val offset line column span whitespace?)
          (cond [whitespace?
                 ;; skip whitespace, and just tokenize again.

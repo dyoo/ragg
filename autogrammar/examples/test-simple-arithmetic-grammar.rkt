@@ -9,15 +9,15 @@
   (define lex/1
     (lexer-src-pos
      [(repetition 1 +inf.0 numeric)
-      (token-INT (string->number lexeme))]
+      (token 'INT (string->number lexeme))]
      [whitespace
       (return-without-pos (lex/1 ip))]
      ["+"
-      (token-+ "+")]
+      (token '+ "+")]
      ["*"
-      (token-* "*")]
+      (token '* "*")]
      [(eof)
-      (token-EOF eof)]))
+      (token eof)]))
   (lambda ()
     (lex/1 ip)))
 

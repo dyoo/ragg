@@ -75,15 +75,13 @@
              
              (provide parse
                       default-lex/1
-                      tokens
 
                       all-tokens-hash
-
-                      token-EOF
-                      token-type-constructor ...
+                      [rename-out (tok token)]
 
                       current-source
                       current-parser-error-handler
+                      current-tokenizer-error-handler
                       [struct-out exn:fail:parsing])
 
              (define-tokens tokens (EOF token-type ...))
