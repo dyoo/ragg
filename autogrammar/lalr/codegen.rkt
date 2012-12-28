@@ -46,7 +46,7 @@
        (define explicit-token-types
          (set->list (list->set (map syntax-e explicit-tokens))))
 
-       ;; (listof (U symbol string))
+       ;; (listof symbol)
        (define token-types
          (set->list (list->set (append (map (lambda (x) (string->symbol (syntax-e x)))
                                             implicit-tokens)
@@ -54,8 +54,7 @@
        
        (with-syntax ([start-id start-id]
 
-                     [(token-type ...)
-                      token-types]
+                     [(token-type ...) token-types]
 
                      [(token-type-constructor ...)
                       (map (lambda (x) (string->symbol (format "token-~a" x)))
@@ -69,12 +68,10 @@
                      [generated-grammar #`(grammar #,@generated-rule-codes)])
 
          (syntax/loc stx
-           (begin
-             
+           (begin             
              (require parser-tools/lex
-                      parser-tools/yacc
+                      (prefix-in yacc: parser-tools/yacc)
                       autogrammar/lalr/runtime)
-
              
              (provide parse
                       default-lex/1
@@ -103,19 +100,18 @@
                               [(eof) (token-EOF eof)]))
                           
              (define parse
-               (let ([THE-GRAMMAR (parser
-                                   (tokens tokens)
-                                   (src-pos)
-                                   (start start-id)
-                                   (end EOF)
-                                   (error THE-ERROR-HANDLER)
-                                   generated-grammar)])
+               (let ([THE-GRAMMAR (yacc:parser (tokens tokens)
+                                               (src-pos)
+                                               (start start-id)
+                                               (end EOF)
+                                               (error THE-ERROR-HANDLER)
+                                               generated-grammar)])
                  (case-lambda [(tokenizer)
-                               (parse #f tokenizer)]
+                               (THE-GRAMMAR (lambda ()
+                                              (coerse-to-position-token (tokenizer))))]
                               [(source tokenizer)
                                (parameterize ([current-source source])
-                                 (THE-GRAMMAR (lambda ()
-                                                (coerse-to-position-token (tokenizer)))))])))))))]))
+                                 (parse tokenizer))])))))))]))
 
 
 ;; Given a flattened rule, returns a syntax for the code that
