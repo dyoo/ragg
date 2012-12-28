@@ -17,6 +17,8 @@
   #:property prop:exn:srclocs (lambda (instance)
                                 (exn:fail:parsing-srclocs instance)))
 
+(define (THE-ERROR-HANDLER tok-ok? tok-name tok-value start-pos end-pos)
+  ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos))
 
 (define current-parser-error-handler
   (make-parameter

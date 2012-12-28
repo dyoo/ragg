@@ -66,7 +66,7 @@
                      [(implicit-token-type-constructor ...)
                       (map (lambda (x) (string->symbol (format "token-~a" x)))
                            implicit-token-types)]
-                     [(generated-rule-code ...) generated-rule-codes])
+                     [generated-grammar #`(grammar #,@generated-rule-codes)])
 
          (syntax/loc stx
            (begin
@@ -103,20 +103,15 @@
                               [(eof) (token-EOF eof)]))
                           
              (define parse
-               (let ([THE-GRAMMAR
-                       (parser
-                        (tokens tokens)
-                        (src-pos)
-                        (start start-id)
-                        (end EOF)
-                        (error (lambda (tok-ok? tok-name tok-value start-pos end-pos)
-                                 ((current-parser-error-handler) tok-ok? tok-name tok-value start-pos end-pos)))
-                        (grammar
-                         generated-rule-code ...))])
+               (let ([THE-GRAMMAR (parser
+                                   (tokens tokens)
+                                   (src-pos)
+                                   (start start-id)
+                                   (end EOF)
+                                   (error THE-ERROR-HANDLER)
+                                   generated-grammar)])
                  (case-lambda [(tokenizer)
-                               (parameterize ([current-source #f])
-                                 (THE-GRAMMAR (lambda ()
-                                                (coerse-to-position-token (tokenizer)))))]
+                               (parse #f tokenizer)]
                               [(source tokenizer)
                                (parameterize ([current-source source])
                                  (THE-GRAMMAR (lambda ()
