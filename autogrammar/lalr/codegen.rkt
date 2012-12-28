@@ -107,8 +107,8 @@
                                                (error THE-ERROR-HANDLER)
                                                generated-grammar)])
                  (case-lambda [(tokenizer)
-                               (THE-GRAMMAR (lambda ()
-                                              (coerse-to-position-token (tokenizer))))]
+                               (define next-token (make-permissive-tokenizer tokenizer all-tokens-hash))
+                               (THE-GRAMMAR next-token)]
                               [(source tokenizer)
                                (parameterize ([current-source source])
                                  (parse tokenizer))])))))))]))
