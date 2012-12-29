@@ -36,7 +36,7 @@
 (require (for-syntax syntax/boundmap
                      parser-tools/private-lex/token-syntax))
 
-(provide cfg-parser)
+(provide [rename-out [cfg-parser parser]])
 
 ;; A raw token, wrapped so that we can recognize it:
 (define-struct tok (name orig-name val start end))
@@ -318,7 +318,9 @@
 
 ;; Finds the symbolic representative of a token class
 (define-for-syntax (map-token toks tok)
-  (car (token-identifier-mapping-get toks tok)))
+  (car (token-identifier-mapping-get toks tok
+                                     (lambda ()
+                                       (error 'map-token "Could not find ~e in ~e" tok toks)))))
 
 (define no-pos-val (make-position #f #f #f))
 (define-for-syntax no-pos 
@@ -774,7 +776,7 @@
   
   
   (define parse
-    (cfg-parser
+    (parser
      (tokens non-terminals)
      (start <program>)
      (end EOF)

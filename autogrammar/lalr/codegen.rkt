@@ -71,7 +71,7 @@
          (syntax/loc stx
            (begin             
              (require parser-tools/lex
-                      (prefix-in yacc: parser-module)
+                      parser-module
                       autogrammar/lalr/runtime)
              
              (provide parse
@@ -107,12 +107,12 @@
                               [(eof) (tok eof)]))
                           
              (define parse
-               (let ([THE-GRAMMAR (yacc:parser (tokens tokens)
-                                               (src-pos)
-                                               (start start-id)
-                                               (end EOF)
-                                               (error THE-ERROR-HANDLER)
-                                               generated-grammar)])
+               (let ([THE-GRAMMAR (parser (tokens tokens)
+                                          (src-pos)
+                                          (start start-id)
+                                          (end EOF)
+                                          (error THE-ERROR-HANDLER)
+                                          generated-grammar)])
                  (case-lambda [(tokenizer)
                                (define next-token
                                  (make-permissive-tokenizer tokenizer all-tokens-hash/mutable))

@@ -95,5 +95,5 @@
 
 (provide rules (rename-out [#%plain-module-begin #%module-begin]))
 (define-syntax (rules stx)
-  (rules-codegen #:parser-provider-module 'parser-tools/yacc 
+  (rules-codegen #:parser-provider-module 'autogrammar/cfg-parser/cfg-parser #;'parser-tools/yacc 
                  stx))
