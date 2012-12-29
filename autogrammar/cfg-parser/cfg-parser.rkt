@@ -506,7 +506,8 @@
                                                                   (syntax->list (e-terminals-def-t v)))]
                                                             [else null])))
                                                       (syntax->list #'(t ...))))]
-                                               [_else null]))
+                                               [_else 
+                                                null]))
                                            clauses))]
                            [all-end-toks (apply
                                           append
