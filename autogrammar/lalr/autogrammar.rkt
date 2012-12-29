@@ -94,4 +94,6 @@
                      "codegen.rkt"))
 
 (provide rules (rename-out [#%plain-module-begin #%module-begin]))
-(define-syntax rules rules-codegen)
+(define-syntax (rules stx)
+  (rules-codegen #:parser-provider-module 'parser-tools/yacc 
+                 stx))

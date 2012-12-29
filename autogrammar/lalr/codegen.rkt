@@ -3,6 +3,7 @@
 (require (for-template racket/base)
          racket/list
          racket/set
+         (prefix-in stxparse: syntax/parse)
          "../stx-types.rkt"
          "flatten.rkt")
 
@@ -10,12 +11,9 @@
 
 
 
-(define (rules-codegen stx)
+(define (rules-codegen stx #:parser-provider-module [parser-provider-module 'parser-tools/yacc])
   (syntax-case stx ()
-    [(_)
-     (raise-syntax-error #f "The set of grammatical rules can't be empty." stx)]
-
-    [(_ r ...)
+    [(_  r ...)
      (begin
        ;; (listof stx)
        (define rules (syntax->list #'(r ...)))
@@ -67,12 +65,13 @@
                      [(implicit-token-type-constructor ...)
                       (map (lambda (x) (string->symbol (format "token-~a" x)))
                            implicit-token-types)]
-                     [generated-grammar #`(grammar #,@generated-rule-codes)])
+                     [generated-grammar #`(grammar #,@generated-rule-codes)]
+                     [parser-module parser-provider-module])
 
          (syntax/loc stx
            (begin             
              (require parser-tools/lex
-                      (prefix-in yacc: parser-tools/yacc)
+                      (prefix-in yacc: parser-module)
                       autogrammar/lalr/runtime)
              
              (provide parse
