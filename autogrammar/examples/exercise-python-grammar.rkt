@@ -51,7 +51,7 @@
          (position-token (case type
                            [(NAME) 
                             (cond [(hash-has-key? all-tokens-hash (string->symbol text))
-                                   (token (symbol->string text) text)]
+                                   (token (string->symbol text) text)]
                                   [else
                                    (token 'NAME text)])]
                            [(OP)
@@ -89,4 +89,5 @@ EOF
                                              )))
 
 
-(pretty-write (syntax->datum (parse "hello.py" sample-tokens)))
+(void #;pretty-write 
+ (syntax->datum (parse "hello.py" sample-tokens)))

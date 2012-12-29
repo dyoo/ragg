@@ -37,8 +37,9 @@
   (make-parameter
    (lambda (tok-name tok-value offset line col span)
      (raise (exn:fail:parsing
-                (format "Encountered error while parsing, near: ~e [line=~a, column=~a, offset=~a]"
-                        tok-value
+                (format "Encountered parsing error near token ~e (~e) while parsing ~e [line=~a, column=~a, offset=~a]"
+                        tok-name tok-value
+                        (current-source)
                         line col offset)
                 (current-continuation-marks)
                 (list (srcloc (current-source) line col offset span)))))))
@@ -48,14 +49,17 @@
   (make-parameter
    (lambda (tok-type tok-value offset line column span)
      (raise (exn:fail:parsing
-             (format "Unrecognized token type ~s while tokenizing, near: ~e [line=~a, column=~a, offset=~a]"
+             (format "Encountered unexpected token ~e (~e) while parsing ~e [line=~a, column=~a, offset=~a]"
+                     tok-type
                      tok-value
+                     (current-source)
                      line column offset)
              (current-continuation-marks)
              (list (srcloc (current-source) line column offset span)))))))
 
 
-(struct tok-struct (type val offset line column span whitespace?))
+(struct tok-struct (type val offset line column span whitespace?) 
+        #:transparent)
 
 
 
@@ -105,12 +109,16 @@
                                                     column)))]
              [else
               ;; We ran into a token of unrecognized type.  Let's raise an appropriate error.
-              ((current-tokenizer-error-handler) (current-source) offset line column span)])]
+              ((current-tokenizer-error-handler) type val 
+               offset line column span)])]
       
       [(lex:position-token (tok-struct type val offset line column span whitespace?)
                            (lex:position start-offset start-line start-col)
                            (lex:position end-offset end-line end-col))
-       (cond [(hash-has-key? token-type-hash type)
+       (cond [whitespace?
+              ;; Skip whitespace
+              (permissive-tokenizer)]
+             [(hash-has-key? token-type-hash type)
               (lex:position-token ((hash-ref token-type-hash type) val)
                                   (lex:position (or offset start-offset)
                                                 (or line start-line)
@@ -120,12 +128,13 @@
                                       (lex:position end-offset end-line end-col)))]
              [else
               ;; We ran into a token of unrecognized type.  Let's raise an appropriate error.
-              ((current-tokenizer-error-handler) (current-source) 
-                                                 start-offset start-line start-col 
-                                                 (if (and (number? start-offset)
-                                                          (number? end-offset))
-                                                     (- end-offset start-offset)
-                                                     #f))])]
+              ((current-tokenizer-error-handler)
+               type val
+               start-offset start-line start-col 
+               (if (and (number? start-offset)
+                        (number? end-offset))
+                   (- end-offset start-offset)
+                   #f))])]
       
       [else
        (coerse-to-position-token next-token)]))

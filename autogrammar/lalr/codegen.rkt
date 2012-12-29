@@ -38,9 +38,10 @@
                        explicit-tokens)   ;; (listof identifier-stx)
          (rules-collect-token-types rules))
 
-       ;; (listof string)
+       ;; (listof symbol)
        (define implicit-token-types
-         (set->list (list->set (map syntax-e implicit-tokens))))
+         (map string->symbol
+              (set->list (list->set (map syntax-e implicit-tokens)))))
 
        ;; (listof symbol)
        (define explicit-token-types
@@ -62,6 +63,7 @@
 
                      [(explicit-token-types ...) explicit-token-types]
                      [(implicit-token-types ...) implicit-token-types]
+                     [(implicit-token-types-str ...) (map symbol->string implicit-token-types)]
                      [(implicit-token-type-constructor ...)
                       (map (lambda (x) (string->symbol (format "token-~a" x)))
                            implicit-token-types)]
@@ -87,15 +89,23 @@
              (define-tokens tokens (EOF token-type ...))
 
              (define all-tokens-hash 
+               (make-immutable-hash (list (cons 'EOF token-EOF)
+                                          (cons 'token-type token-type-constructor) ...)))
+
+             ;; For internal use by the permissive tokenizer only:
+             (define all-tokens-hash/mutable
                (make-hash (list (cons 'EOF token-EOF)
+                                ;; Note: we also allow the eof object here, to make
+                                ;; the permissive tokenizer even nicer to work with.
+                                (cons eof token-EOF) 
                                 (cons 'token-type token-type-constructor) ...)))
 
              
              (define default-lex/1
-               (lexer-src-pos [implicit-token-types
-                               (implicit-token-type-constructor lexeme)]
+               (lexer-src-pos [implicit-token-types-str
+                               (tok 'implicit-token-types lexeme)]
                               ...
-                              [(eof) (token-EOF eof)]))
+                              [(eof) (tok eof)]))
                           
              (define parse
                (let ([THE-GRAMMAR (yacc:parser (tokens tokens)
@@ -105,7 +115,8 @@
                                                (error THE-ERROR-HANDLER)
                                                generated-grammar)])
                  (case-lambda [(tokenizer)
-                               (define next-token (make-permissive-tokenizer tokenizer all-tokens-hash))
+                               (define next-token
+                                 (make-permissive-tokenizer tokenizer all-tokens-hash/mutable))
                                (THE-GRAMMAR next-token)]
                               [(source tokenizer)
                                (parameterize ([current-source source])

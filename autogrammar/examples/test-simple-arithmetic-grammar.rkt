@@ -11,7 +11,8 @@
      [(repetition 1 +inf.0 numeric)
       (token 'INT (string->number lexeme))]
      [whitespace
-      (return-without-pos (lex/1 ip))]
+      (token 'WHITESPACE #:whitespace? #t)
+      #;(return-without-pos (lex/1 ip))]
      ["+"
       (token '+ "+")]
      ["*"
@@ -49,8 +50,18 @@
                      "+" 
                      (term (factor 5) "*" (factor 6))))
 
-;; (parse #f (tokenize (open-input-string "4*5+6")))
+(check-equal? (syntax->datum (parse #f (tokenize (open-input-string "4*5+6"))))
+              '(expr (term (factor 4) "*" (factor 5))
+                     "+"
+                     (term (factor 6))))
+
+(check-equal? (syntax->datum (parse #f (tokenize (open-input-string "4+5   *6"))))
+              '(expr (term (factor 4))
+                     "+"
+                     (term (factor 5) "*" (factor 6))))
 
 
 (check-exn exn:fail:parsing?
            (lambda () (parse #f (tokenize (open-input-string "7+")))))
+(check-exn exn:fail:parsing?
+           (lambda () (parse #f (tokenize (open-input-string "7+6+")))))
