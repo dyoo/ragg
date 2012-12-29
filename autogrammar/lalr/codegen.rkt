@@ -85,7 +85,7 @@
                       current-tokenizer-error-handler
                       [struct-out exn:fail:parsing])
 
-             (define-tokens tokens (EOF token-type ...))
+             (define-tokens enumerated-tokens (EOF token-type ...))
 
              (define all-tokens-hash 
                (make-immutable-hash (list (cons 'EOF token-EOF)
@@ -107,7 +107,7 @@
                               [(eof) (tok eof)]))
                           
              (define parse
-               (let ([THE-GRAMMAR (parser (tokens tokens)
+               (let ([THE-GRAMMAR (parser (tokens enumerated-tokens)
                                           (src-pos)
                                           (start start-id)
                                           (end EOF)
