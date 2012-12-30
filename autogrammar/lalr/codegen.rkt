@@ -73,19 +73,20 @@
              (require parser-tools/lex
                       parser-module
                       autogrammar/lalr/runtime
-                      autogrammar/token
+                      autogrammar/support
                       (for-syntax syntax/parse racket/base))
              
              (provide parse
                       make-rule-parser
-                      default-lex/1
+                      ;; default-lex/1
 
                       all-tokens-hash
 
-                      current-source
-                      current-parser-error-handler
-                      current-tokenizer-error-handler
-                      [struct-out exn:fail:parsing])
+                      #;current-source
+                      #;current-parser-error-handler
+                      #;current-tokenizer-error-handler
+                      #;[struct-out exn:fail:parsing]
+                      )
 
              (define-tokens enumerated-tokens (EOF token-type ...))
 
@@ -102,11 +103,11 @@
                                 (cons 'token-type token-type-constructor) ...)))
 
              
-             (define default-lex/1
-               (lexer-src-pos [implicit-token-types-str
-                               (token 'implicit-token-types lexeme)]
-                              ...
-                              [(eof) (token eof)]))
+             #;(define default-lex/1
+                 (lexer-src-pos [implicit-token-types-str
+                                 (token 'implicit-token-types lexeme)]
+                                ...
+                                [(eof) (token eof)]))
 
              (define-syntax (make-rule-parser stx-2)
                (syntax-parse stx-2

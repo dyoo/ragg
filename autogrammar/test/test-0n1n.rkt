@@ -1,12 +1,19 @@
 #lang racket/base
 (require autogrammar/examples/0n1n
+         autogrammar/support
          rackunit)
-
 
 (define (lex ip)
   (port-count-lines! ip)
   (lambda ()
-    (default-lex/1 ip)))
+    (define next-char (read-char ip))
+    (cond [(eof-object? next-char)
+           (token eof)]
+          [(char=? next-char #\0)
+           (token "0")]
+          [(char=? next-char #\1)
+           (token "1")])))
+
 
 ;; The only rule in the grammar is:
 ;;

@@ -1,41 +1,11 @@
 #lang racket
 (require autogrammar/examples/python-grammar
-         autogrammar/token
+         autogrammar/support
          (planet dyoo/python-tokenizer)
          racket/generator
          parser-tools/lex
          racket/match
          rackunit)
-
-
-(define (tokenize/1 ip)
-  (default-lex/1 ip))
-
-
-(check-equal? (sort (for/list ([k (in-hash-keys all-tokens-hash)]) k)
-                    (lambda (x y)
-                      (string<? (format "~s" x) (format "~s" y))))
-              (sort `(EOF NAME NEWLINE INDENT ENDMARKER STRING NUMBER DEDENT
-                          ,@(map string->symbol
-                                 '("%" "&" ")" "(" "+" "*" "-" "," "/" "." ";" ":" "=" "<" ">"
-                                       "@" "[" "^" "]" "`" "{" "~" "|" "}" "**" "//" "<<" "|=" "/="
-                                       "-=" "+=" "*=" ">=" "==" "<=" "^=" "&=" "%=" "!=" ">>" "<>"
-                                       "if" "in" "or" "is" "as" "else" "print" "not" "del" "elif" "lambda"
-                                       "and" "//=" "<<=" "pass" "**=" ">>=" "exec" "raise" "class" "return"
-                                       "while" "yield" "for" "global" "with" "continue" "def" "try" "from"
-                                       "assert" "break" "import" "except" "finally")))
-                    (lambda (x y)
-                      (string<? (format "~s" x) (format "~s" y)))))
-
-
-(check-equal? (position-token-token (tokenize/1 (open-input-string "exec")))
-              (token 'exec "exec"))
-(check-equal? (position-token-token (tokenize/1 (open-input-string ">=")))
-              (token '>= ">="))
-(check-equal? (position-token-token (tokenize/1 (open-input-string "%")))
-              (token '% "%"))
-(check-equal? (position-token-token (tokenize/1 (open-input-string "")))
-              (token eof))
 
 
 

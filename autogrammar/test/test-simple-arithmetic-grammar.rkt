@@ -1,6 +1,6 @@
 #lang racket/base
 (require autogrammar/examples/simple-arithmetic-grammar
-         autogrammar/token
+         autogrammar/support
          parser-tools/lex
          racket/list
          rackunit)
