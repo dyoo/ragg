@@ -1,5 +1,5 @@
 #lang racket
-(require "python-grammar.rkt"
+(require "../examples/python-grammar.rkt"
          (planet dyoo/python-tokenizer)
          racket/generator
          parser-tools/lex
@@ -96,6 +96,25 @@ EOF
 
 
 (define parse-expr (make-rule-parser expr))
-(void #;pretty-write
- (syntax->datum (parse-expr (adapt-python-tokenizer (open-input-string "42")
-                                                    #:end-marker-to-eof? #t))))
+
+
+(check-equal?
+ (syntax->datum (parse-expr 
+                 (adapt-python-tokenizer (open-input-string "42")
+                                         #:end-marker-to-eof? #t)))
+ '(expr (xor_expr (and_expr (shift_expr (arith_expr (term (factor (power (atom "42"))))))))))
+
+
+
+(check-equal?
+ (syntax->datum (parse-expr 
+                 (adapt-python-tokenizer (open-input-string "(lambda x,y: y,x)")
+                                         #:end-marker-to-eof? #t)))
+ '(expr (xor_expr (and_expr (shift_expr (arith_expr (term (factor (power (atom "(" (testlist_comp (test (lambdef "lambda" (varargslist (fpdef "x") "," (fpdef "y")) ":" (test (or_test (and_test (not_test (comparison (expr (xor_expr (and_expr (shift_expr (arith_expr (term (factor (power (atom "y")))))))))))))))) "," (test (or_test (and_test (not_test (comparison (expr (xor_expr (and_expr (shift_expr (arith_expr (term (factor (power (atom "x"))))))))))))))) ")"))))))))))
+
+
+(check-equal?
+ (syntax->datum (parse-expr 
+                 (adapt-python-tokenizer (open-input-string "sqrt(x^2+y^2)")
+                                         #:end-marker-to-eof? #t)))
+ '(expr (xor_expr (and_expr (shift_expr (arith_expr (term (factor (power (atom "sqrt") (trailer "(" (arglist (argument (test (or_test (and_test (not_test (comparison (expr (xor_expr (and_expr (shift_expr (arith_expr (term (factor (power (atom "x"))))))) "^" (and_expr (shift_expr (arith_expr (term (factor (power (atom "2")))) "+" (term (factor (power (atom "y"))))))) "^" (and_expr (shift_expr (arith_expr (term (factor (power (atom "2")))))))))))))))) ")"))))))))))
