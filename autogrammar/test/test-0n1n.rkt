@@ -10,9 +10,9 @@
     (cond [(eof-object? next-char)
            (token eof)]
           [(char=? next-char #\0)
-           (token "0")]
+           (token "0" "0")]
           [(char=? next-char #\1)
-           (token "1")])))
+           (token "1" "1")])))
 
 
 ;; The only rule in the grammar is:

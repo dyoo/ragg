@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require racket/match 
+         racket/generator
          (prefix-in lex: parser-tools/lex) 
          "../support.rkt")
 
@@ -25,12 +26,20 @@
 
 
 
-;; make-permissive-tokenizer: (-> (U token Token eof)) hash -> (-> position-token)
+;; make-permissive-tokenizer: (U (sequenceof (U token token-struct eof void)) (-> (U token token-struct eof void))) hash -> (-> position-token)
+;; Creates a tokenizer from the given value.
+;; FIXME: clean up code.
 (define (make-permissive-tokenizer tokenizer token-type-hash)
+  (define tokenizer-thunk (cond
+                           [(sequence? tokenizer)
+                            (sequence->generator tokenizer)]
+                           [(procedure? tokenizer)
+                            tokenizer]))
+
   (define (permissive-tokenizer)
-    (define next-token (tokenizer))
+    (define next-token (tokenizer-thunk))
     (match next-token
-      [(? eof-object?)
+      [(or (? eof-object?) (? void?))
        (lex:position-token ((hash-ref token-type-hash 'EOF) eof)
                            (lex:position #f #f #f)
                            (lex:position #f #f #f))]

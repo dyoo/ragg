@@ -16,17 +16,16 @@
 ;; to work with.
 ;; It should cooperate with the tokenizers constructed with make-permissive-tokenizer.
 (define token
-  (let ([undefined-val (cons 'undefined 'undefined)])
-    (lambda (type                 ;; (U symbol string)
-             [val undefined-val]  ;; any
-             #:offset [offset #f] ;; (U #f number)
-             #:line [line #f]     ;; (U #f number)
-             #:column [column #f] ;; (U #f number)
-             #:span [span #f]     ;; boolean
-             #:whitespace? [whitespace? #f])
-      (token-struct (if (string? type) (string->symbol type) type)
-                    (if (eq? val undefined-val) type val)
-                    offset line column span whitespace?))))
+  (lambda (type                 ;; (U symbol string)
+           [val #f]  ;; any
+           #:offset [offset #f] ;; (U #f number)
+           #:line [line #f]     ;; (U #f number)
+           #:column [column #f] ;; (U #f number)
+           #:span [span #f]     ;; boolean
+           #:whitespace? [whitespace? #f])
+    (token-struct (if (string? type) (string->symbol type) type)
+                  val
+                  offset line column span whitespace?)))
 
 
 

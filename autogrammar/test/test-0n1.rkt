@@ -11,9 +11,9 @@
     (cond [(eof-object? next-char)
            (token eof)]
           [(char=? next-char #\0)
-           (token "0")]
+           (token "0" "0")]
           [(char=? next-char #\1)
-           (token "1")])))
+           (token "1" "1")])))
 
 
 (check-equal? (syntax->datum (parse #f (lex (open-input-string "1"))))
