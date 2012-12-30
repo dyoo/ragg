@@ -89,5 +89,9 @@ EOF
                                              )))
 
 
-(void #;pretty-write 
+(pretty-write 
  (syntax->datum (parse "hello.py" sample-tokens)))
+
+
+(define parse-expr (make-rule-parser expr))
+(syntax->datum (parse-expr (adapt-python-tokenizer (open-input-string "42"))))

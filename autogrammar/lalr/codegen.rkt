@@ -68,13 +68,15 @@
                      [generated-grammar #`(grammar #,@generated-rule-codes)]
                      [parser-module parser-provider-module])
 
-         (syntax/loc stx
+         (quasisyntax/loc stx
            (begin             
              (require parser-tools/lex
                       parser-module
-                      autogrammar/lalr/runtime)
+                      autogrammar/lalr/runtime
+                      (for-syntax syntax/parse racket/base))
              
              (provide parse
+                      make-rule-parser
                       default-lex/1
 
                       all-tokens-hash
@@ -105,21 +107,31 @@
                                (tok 'implicit-token-types lexeme)]
                               ...
                               [(eof) (tok eof)]))
-                          
-             (define parse
-               (let ([THE-GRAMMAR (parser (tokens enumerated-tokens)
-                                          (src-pos)
-                                          (start start-id)
-                                          (end EOF)
-                                          (error THE-ERROR-HANDLER)
-                                          generated-grammar)])
-                 (case-lambda [(tokenizer)
-                               (define next-token
-                                 (make-permissive-tokenizer tokenizer all-tokens-hash/mutable))
-                               (THE-GRAMMAR next-token)]
-                              [(source tokenizer)
-                               (parameterize ([current-source source])
-                                 (parse tokenizer))])))))))]))
+
+             (define-syntax (make-rule-parser stx-2)
+               (syntax-parse stx-2
+                 [(_ start-rule:id)
+                  (begin
+                    ;; HACK HACK HACK
+                    ;; The cfg-parser depends on the start-rule provided in (start ...) to have the same
+                    ;; context as the rest of this body, so I need to hack this.  I don't like this, but
+                    ;; I don't know what else to do.  Hence recolored-start-rule.
+                    (define recolored-start-rule (datum->syntax (syntax #,stx) (syntax-e #'start-rule)))
+                    #`(let ([THE-GRAMMAR (parser (tokens enumerated-tokens)
+                                                 (src-pos)
+                                                 (start #,recolored-start-rule)
+                                                 (end EOF)
+                                                 (error THE-ERROR-HANDLER)
+                                                 generated-grammar)])
+                        (case-lambda [(tokenizer)
+                                      (define next-token
+                                        (make-permissive-tokenizer tokenizer all-tokens-hash/mutable))
+                                      (THE-GRAMMAR next-token)]
+                                     [(source tokenizer)
+                                      (parameterize ([current-source source])
+                                        (parse tokenizer))])))]))
+             
+             (define parse (make-rule-parser start-id))))))]))
 
 
 ;; Given a flattened rule, returns a syntax for the code that
@@ -175,8 +187,8 @@
           ;; leaving the residue to be absorbed.
           [(inferred-id val reason)
            #'(syntax-case $X ()
-               [(inferred-rule-name rest (... ...))
-                (syntax->list #'(rest (... ...)))])]
+               [(inferred-rule-name . rest)
+                (syntax->list #'rest)])]
           [(id val)
            #`(list $X)]
           [(lit val)

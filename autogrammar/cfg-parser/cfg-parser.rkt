@@ -340,11 +340,11 @@
                      (lambda (success-k fail-k max-depth tasks)
                        (fail-k max-depth tasks)))
         (let ([id (datum->syntax (car pat)
-                                        (string->symbol (format "$~a" pos)))]
+                                 (string->symbol (format "$~a" pos)))]
               [id-start-pos (datum->syntax (car pat)
-                                                  (string->symbol (format "$~a-start-pos" pos)))]
+                                           (string->symbol (format "$~a-start-pos" pos)))]
               [id-end-pos (datum->syntax (car pat)
-                                                (string->symbol (format "$~a-end-pos" pos)))]
+                                         (string->symbol (format "$~a-end-pos" pos)))]
               [n-end-pos (and (null? (cdr pat))
                               (datum->syntax (car pat) '$n-end-pos))])
           (cond
@@ -750,12 +750,12 @@
                                              "failed at ~a" 
                                              (tok-val bad-tok)))))])
                      (#,start tok-list 0 
-                              (length tok-list)
-                              success-k
-                              fail-k
-                              0 (make-tasks null null 
-                                            (make-hasheq) (make-hasheq)
-                                            (make-hash) #t)))))))))]))
+                                  (length tok-list)
+                                  success-k
+                                  fail-k
+                                  0 (make-tasks null null 
+                                                (make-hasheq) (make-hasheq)
+                                                (make-hash) #t)))))))))]))
 
 
 (module* test racket/base
