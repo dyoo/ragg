@@ -1,6 +1,6 @@
 #lang racket/base
 (require "../stx-types.rkt"
-         "flatten.rkt"
+         "../lalr/flatten.rkt"
          rackunit)
 
 
