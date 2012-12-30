@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require "0n1.rkt"
+(require "../examples/0n1.rkt"
          rackunit)
 
 (define (lex ip)

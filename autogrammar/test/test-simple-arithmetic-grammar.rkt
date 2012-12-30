@@ -1,5 +1,5 @@
 #lang racket/base
-(require "simple-arithmetic-grammar.rkt"
+(require "../examples/simple-arithmetic-grammar.rkt"
          parser-tools/lex
          racket/list
          rackunit)
@@ -11,8 +11,7 @@
      [(repetition 1 +inf.0 numeric)
       (token 'INT (string->number lexeme))]
      [whitespace
-      (token 'WHITESPACE #:whitespace? #t)
-      #;(return-without-pos (lex/1 ip))]
+      (token 'WHITESPACE #:whitespace? #t)]
      ["+"
       (token '+ "+")]
      ["*"

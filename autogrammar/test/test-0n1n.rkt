@@ -1,5 +1,5 @@
 #lang racket/base
-(require "0n1n.rkt"
+(require "../examples/0n1n.rkt"
          rackunit)
 
 
