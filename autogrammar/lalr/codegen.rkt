@@ -73,6 +73,7 @@
              (require parser-tools/lex
                       parser-module
                       autogrammar/lalr/runtime
+                      autogrammar/token
                       (for-syntax syntax/parse racket/base))
              
              (provide parse
@@ -80,7 +81,6 @@
                       default-lex/1
 
                       all-tokens-hash
-                      [rename-out (tok token)]
 
                       current-source
                       current-parser-error-handler
@@ -104,9 +104,9 @@
              
              (define default-lex/1
                (lexer-src-pos [implicit-token-types-str
-                               (tok 'implicit-token-types lexeme)]
+                               (token 'implicit-token-types lexeme)]
                               ...
-                              [(eof) (tok eof)]))
+                              [(eof) (token eof)]))
 
              (define-syntax (make-rule-parser stx-2)
                (syntax-parse stx-2

@@ -1,5 +1,6 @@
 #lang racket
-(require "../examples/python-grammar.rkt"
+(require autogrammar/examples/python-grammar
+         autogrammar/token
          (planet dyoo/python-tokenizer)
          racket/generator
          parser-tools/lex

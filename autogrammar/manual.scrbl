@@ -12,47 +12,48 @@
 @(define informal-eval (make-base-eval))
 @(informal-eval '(require autogrammar/examples/nested-word-list))
 @(informal-eval '(require racket/list))
-Let's consider: if we're given a string like the following:
+Let's consider the following scenario: say that we're given the following string:
 @racketblock["(hello (world (this is a (test))))"]
 
 
-@margin-note{(... and pretend that we don't already know about
-the built-in @racket[read] function.)}
-how do we go about turn this string into a structured value?  That is, how
-would we @emph{parse} it?
+@margin-note{(... and pretend that we don't already know about the built-in
+@racket[read] function.)}  How do we go about turn this kind of string into a
+structured value?  That is, how would we @emph{parse} it?  We need to first
+consider the shape of the things we'd like to parse.
 
-
-We first consider the shape of the things we'd like to parse.  The thing above
-looks like a deeply nested list of words.  How might we describe this formally?
-A convenient notation to describe the shape of these things is
+The string above looks like a deeply nested list of words.  How might we
+describe this formally?  A convenient notation to describe the shape of these
+things is
 @link["http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form"]{Backus-Naur
-Form} (BNF).
+Form} (BNF).  So let's try to notate the structure of nested word lists in BNF.
 
 
-Let's try to notate the structure of nested word lists in BNF then:
 @nested[#:style 'code-inset]{
 @verbatim{
-nested-word-list: LEFT-PAREN nested-word-list* RIGHT-PAREN
-                | WORD
+nested-word-list: WORD
+                | LEFT-PAREN nested-word-list* RIGHT-PAREN
 }}
 
-In this notation, we treat @racket[LEFT-PAREN], @racket[RIGHT-PAREN], and
-@racket[WORD] as placeholders for atomic, non-structured things, or
-@emph{tokens}.  We also use @racket[*] to represent zero or more of the
-previous thing.
+What we intend by this notation is this: @racket[nested-word-list] is either an
+atomic @racket[WORD], or a parenthesized list of any number of
+@racket[nested-word-list]s.  In this notation, we treat @racket[LEFT-PAREN],
+@racket[RIGHT-PAREN], and @racket[WORD] as placeholders for atomic,
+non-structured things, or @emph{tokens}.  We also use the notation @racket[*]
+which represents zero or more of the previous thing.
+
+Have we made progress?  At this point, we only have a BNF description in hand,
+but we're still missing a @emph{parser}, something to take that description and
+use it to building structure.
 
 
-At this point, we've got a grammar in hand, but we don't yet have a
-@emph{program} to take that grammar and use it to parse strings.
-
-
-Let's fix this problem:
+Let's fix this problem.  Add @litchar{#lang autogrammar} to the top, and save
+it as a file called @filepath{nested-word-list.rkt}.
 
 @filebox["nested-word-list.rkt"]{
 @verbatim{
 #lang autogrammar
-nested-word-list: LEFT-PAREN nested-word-list* RIGHT-PAREN
-                | WORD
+nested-word-list: WORD
+                | LEFT-PAREN nested-word-list* RIGHT-PAREN
 }}
 
 Ok... now it's a program.  But what does it do?

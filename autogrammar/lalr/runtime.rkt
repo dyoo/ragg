@@ -1,7 +1,8 @@
 #lang racket/base
 
-(require racket/match (prefix-in lex: parser-tools/lex))
-
+(require racket/match 
+         (prefix-in lex: parser-tools/lex) 
+         "../token.rkt")
 
 
 (provide (all-defined-out))
@@ -58,30 +59,9 @@
              (list (srcloc (current-source) line column offset span)))))))
 
 
-(struct tok-struct (type val offset line column span whitespace?) 
-        #:transparent)
 
 
-
-;; Token constructor.
-;; This is intended to be a general token structure constructor that's nice
-;; to work with.
-;; It should cooperate with the tokenizers constructed with make-permissive-tokenizer.
-(define tok
-  (let ([undefined-val (cons 'undefined 'undefined)])
-    (lambda (type 
-             [val undefined-val]
-             #:offset [offset #f]
-             #:line [line #f] 
-             #:column [column #f]
-             #:span [span #f]
-             #:whitespace? [whitespace? #f])
-      (tok-struct type
-                  (if (eq? val undefined-val) type val)
-                  offset line column span whitespace?))))
-
-
-;; make-permissive-tokenizer: (-> (U token tok-struct eof)) hash -> (-> position-token)
+;; make-permissive-tokenizer: (-> (U token Token eof)) hash -> (-> position-token)
 (define (make-permissive-tokenizer tokenizer token-type-hash)
   (define (permissive-tokenizer)
     (define next-token (tokenizer))
@@ -91,7 +71,7 @@
                            (lex:position #f #f #f)
                            (lex:position #f #f #f))]
       
-      [(tok-struct type val offset line column span whitespace?)
+      [(token-struct type val offset line column span whitespace?)
        (cond [whitespace?
               ;; skip whitespace, and just tokenize again.
               (permissive-tokenizer)]
@@ -112,7 +92,7 @@
               ((current-tokenizer-error-handler) type val 
                offset line column span)])]
       
-      [(lex:position-token (tok-struct type val offset line column span whitespace?)
+      [(lex:position-token (token-struct type val offset line column span whitespace?)
                            (lex:position start-offset start-line start-col)
                            (lex:position end-offset end-line end-col))
        (cond [whitespace?
