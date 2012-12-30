@@ -38,7 +38,7 @@
 
 
 
-(define (adapt-python-tokenizer ip)
+(define (adapt-python-tokenizer ip #:end-marker-to-eof? [end-marker-to-eof? #f])
   (define tokens (sequence->generator (generate-tokens ip)))
   (lambda ()
     (let loop ()
@@ -71,7 +71,9 @@
                            [(ERRORTOKEN)
                             (error 'uh-oh)]
                            [(ENDMARKER) 
-                            (token 'ENDMARKER text)])
+                            (if end-marker-to-eof?
+                                (token eof)
+                                (token 'ENDMARKER text))])
                          start-pos
                          end-pos)]
         [(? void)
@@ -89,9 +91,11 @@ EOF
                                              )))
 
 
-(pretty-write 
+(void #;pretty-write 
  (syntax->datum (parse "hello.py" sample-tokens)))
 
 
 (define parse-expr (make-rule-parser expr))
-(syntax->datum (parse-expr (adapt-python-tokenizer (open-input-string "42"))))
+(void #;pretty-write
+ (syntax->datum (parse-expr (adapt-python-tokenizer (open-input-string "42")
+                                                    #:end-marker-to-eof? #t))))
