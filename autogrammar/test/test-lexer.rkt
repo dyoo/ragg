@@ -1,5 +1,5 @@
 #lang racket/base
-(require "lexer.rkt"
+(require "../lexer.rkt"
          rackunit
          parser-tools/lex)
 

@@ -3,9 +3,9 @@
 
 (require rackunit
          parser-tools/lex
-         "parser.rkt"
-         "lexer.rkt"
-         "rule-structs.rkt")
+         "../parser.rkt"
+         "../lexer.rkt"
+         "../rule-structs.rkt")
 
 
 ;; quick-and-dirty helper for pos construction.
