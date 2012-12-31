@@ -44,9 +44,9 @@ for atomic, non-structured things, or @emph{tokens}.
 Here are a few examples of tokens:
 @interaction[#:eval informal-eval
 (require autogrammar/support)
-(token 'LEFT-PAREN "(")
+(token 'LEFT-PAREN)
 (token 'WORD "crunchy")
-(token 'RIGHT-PAREN ")")]
+(token 'RIGHT-PAREN)]
 
 
 Have we made progress?  At this point, we only have a BNF description in hand,
@@ -84,9 +84,9 @@ passing it a source of tokens.
              (define a-parsed-value
                (parse (list (token 'LEFT-PAREN "(")
                             (token 'WORD "some")
-                            (token 'LEFT-PAREN "(") 
+                            (token 'LEFT-PAREN "[") 
                             (token 'WORD "pig")
-                            (token 'RIGHT-PAREN ")") 
+                            (token 'RIGHT-PAREN "]") 
                             (token 'RIGHT-PAREN ")"))))
              a-parsed-value]
 
@@ -95,11 +95,11 @@ Wait... that looks suspiciously like a syntax object!
 (syntax->datum a-parsed-value)
 ]
 
-That's @racket[(some (pig))].  The @racket[parse] function can take a sequence of
-tokens and build structure!
 
+That's @racket[(some [pig])].  So it appears the @racket[parse] function can
+take a sequence of tokens and build structure.  What happens if we pass it a
+more substantial source of tokens?
 
-What happens if we pass it a more substantial source of tokens?
 @interaction[#:eval informal-eval
 @code:comment{Generate tokens from a string:}
 (define (make-tokenizer s)
@@ -120,7 +120,7 @@ What happens if we pass it a more substantial source of tokens?
            next-token]))
   get-next)
 @code:comment{For example:}
-(define token-source (make-tokenizer "(hello (world (this is a (test))))"))
+(define token-source (make-tokenizer "(welcome (to (((autogrammar)) ())))"))
 (define v (parse token-source))
 (syntax->datum v)
 ]
