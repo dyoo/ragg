@@ -1,6 +1,6 @@
 #lang racket
-(require autogrammar/examples/python-grammar
-         autogrammar/support
+(require ragg/examples/python-grammar
+         ragg/support
          (planet dyoo/python-tokenizer)
          racket/generator
          parser-tools/lex

@@ -72,8 +72,8 @@
            (begin             
              (require parser-tools/lex
                       parser-module
-                      autogrammar/lalr/runtime
-                      autogrammar/support
+                      ragg/lalr/runtime
+                      ragg/support
                       (for-syntax syntax/parse racket/base))
              
              (provide parse

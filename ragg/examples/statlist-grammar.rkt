@@ -1,4 +1,4 @@
-#lang autogrammar
+#lang ragg
 
 ## Statlist grammar
 

@@ -1,4 +1,4 @@
-#lang autogrammar
+#lang ragg
 
 expr : term ('+' term)*
 term : factor ('*' factor)*

@@ -3,14 +3,14 @@
           (for-label racket))
 
 
-@title{Autogrammar: generate parsers automatically}
+@title{ragg: a Racket AST Generator Generator}
 @author+email["Danny Yoo" "dyoo@hashcollision.org"]
 
 
 @section{Informal Quickstart}
 
 @(define informal-eval (make-base-eval))
-@(informal-eval '(require autogrammar/examples/nested-word-list))
+@(informal-eval '(require ragg/examples/nested-word-list))
 @(informal-eval '(require racket/list))
 Let's consider the following scenario: say that we're given the following string:
 @racketblock["(radiant (humble))"]
@@ -43,7 +43,7 @@ for atomic things, or @emph{tokens}.
 
 Here are a few examples of tokens:
 @interaction[#:eval informal-eval
-(require autogrammar/support)
+(require ragg/support)
 (token 'LEFT-PAREN)
 (token 'WORD "crunchy")
 (token 'RIGHT-PAREN)]
@@ -55,12 +55,12 @@ use it to building structure.
 
 
 It's clear that we don't yet have a program: there's no @litchar{#lang} line.
-We should add one.  Put @litchar{#lang autogrammar} at the top of the BNF
+We should add one.  Put @litchar{#lang ragg} at the top of the BNF
 description, and save it as a file called @filepath{nested-word-list.rkt}.
 
 @filebox["nested-word-list.rkt"]{
 @verbatim{
-#lang autogrammar
+#lang ragg
 nested-word-list: WORD
                 | LEFT-PAREN nested-word-list* RIGHT-PAREN
 }}
@@ -74,7 +74,7 @@ parse
 It gives us a @racket[parse] function.  What else is in there?
 @interaction[#:eval informal-eval
 @eval:alts[(module->exports "nested-word-list.rkt")
-           (module->exports 'autogrammar/examples/nested-word-list)]]
+           (module->exports 'ragg/examples/nested-word-list)]]
 
 Hmmm... It appears to have a few other things in there.  Let's investigate what
 @racket[parse] does for us.  Let's try using @racket[parse] by
@@ -121,12 +121,12 @@ pass it a more substantial source of tokens?
            next-token]))
   get-next)
 @code:comment{For example:}
-(define token-source (make-tokenizer "(welcome (to (((autogrammar)) ())))"))
+(define token-source (make-tokenizer "(welcome (to (((ragg)) ())))"))
 (define v (parse token-source))
 (syntax->datum v)
 ]
 
-Welcome to @tt{autogrammar}.
+Welcome to @tt{ragg}.
 
 
 @close-eval[informal-eval]
@@ -151,7 +151,7 @@ Welcome to @tt{autogrammar}.
 
 @section{Support API}
 
-@defmodule[autogrammar/support]
+@defmodule[ragg/support]
 @subsection{Token sources}
 
 

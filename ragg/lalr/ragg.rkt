@@ -12,7 +12,7 @@
 ;; The intended use of this language is as follows:
 ;;
 ;;;;; s-exp-grammar.rkt ;;;;;;;;;
-;; #lang autogrammar
+;; #lang ragg
 ;; s-exp : "(" s-exp* ")" | ATOM
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -44,7 +44,7 @@
 ;;
 
 ;; However, that should be all you need.  The output of an
-;; autogrammar-generated grammar is an honest-to-goodness syntax
+;; generated grammar is an honest-to-goodness syntax
 ;; object with source locations, fully-labeled by the rules.
 ;;
 ;; (grammar "some-source" tokenize/1)
@@ -95,5 +95,5 @@
 
 (provide rules (rename-out [#%plain-module-begin #%module-begin]))
 (define-syntax (rules stx)
-  (rules-codegen #:parser-provider-module 'autogrammar/cfg-parser/cfg-parser #;'parser-tools/yacc 
+  (rules-codegen #:parser-provider-module 'ragg/cfg-parser/cfg-parser #;'parser-tools/yacc 
                  stx))

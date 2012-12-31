@@ -1,4 +1,4 @@
-#lang autogrammar
+#lang ragg
 
 # Grammar for Python
 

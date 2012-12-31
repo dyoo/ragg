@@ -1,5 +1,5 @@
 #lang s-exp syntax/module-reader
-autogrammar/lalr/autogrammar
+ragg/lalr/ragg
 #:read my-read
 #:read-syntax my-read-syntax
 #:info my-get-info

@@ -1,6 +1,6 @@
 #lang racket/base
-(require autogrammar/examples/simple-arithmetic-grammar
-         autogrammar/support
+(require ragg/examples/simple-arithmetic-grammar
+         ragg/support
          parser-tools/lex
          racket/list
          rackunit)

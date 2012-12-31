@@ -1,6 +1,6 @@
 #lang racket/base
-(require autogrammar/examples/0n1n
-         autogrammar/support
+(require ragg/examples/0n1n
+         ragg/support
          rackunit)
 
 (define (lex ip)
