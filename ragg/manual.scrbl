@@ -165,5 +165,9 @@ Welcome to @tt{ragg}.
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-@section{Miscellaneous}
+@section{Miscellaneous and thanks}
 
+Thanks to Joe Politz for advice and feedback.  Also, he suggested the name
+``ragg''.  Other alternatives I'd been considering were things like:
+``autogrammar'' or ``chompy''.  Daniel Patterson provided feedback that lead to
+@racket[make-rule-parser].
