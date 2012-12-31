@@ -36,10 +36,10 @@ nested-word-list: WORD
 
 What we intend by this notation is this: @racket[nested-word-list] is either an
 atomic @racket[WORD], or a parenthesized list of any number of
-@racket[nested-word-list]s.  In this notation, we use the notation @litchar{*}
-which represents zero or more of the previous thing, and we treat
+@racket[nested-word-list]s.  We use the character @litchar{*} to represent zero
+or more repetitions of the previous thing, and we treat the uppercased
 @racket[LEFT-PAREN], @racket[RIGHT-PAREN], and @racket[WORD] as placeholders
-for atomic things, or @emph{tokens}.
+for atomic @emph{tokens}.
 
 Here are a few examples of tokens:
 @interaction[#:eval informal-eval
