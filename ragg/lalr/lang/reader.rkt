@@ -13,9 +13,20 @@ ragg/lalr/ragg
   (syntax->datum (my-read-syntax #f in)))
 
 (define (my-read-syntax src in)
+  (define-values (first-line first-column first-position) (port-next-location in))
   (define tokenizer (tokenize in))
   (define rules (grammar-parser tokenizer))
-  (list (rules->stx src rules)))
+  (define-values (last-line last-column last-position) (port-next-location in))
+  (list (rules->stx src rules 
+                    #:original-stx (datum->syntax #f 'original-stx
+                                                  (list src 
+                                                        first-line 
+                                                        first-column 
+                                                        first-position
+                                                        (if (and (number? last-position)
+                                                                 (number? first-position))
+                                                            (- last-position first-position)
+                                                            #f))))))
 
 
 ;; Extension: we'd like to cooperate with DrRacket and tell

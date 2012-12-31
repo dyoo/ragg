@@ -21,10 +21,9 @@
        (define rules (syntax->list #'(r ...)))
 
        (when (empty? rules)
-         (raise (support:exn:fail:parsing-no-rules 
-                 (format "The grammar does not appear to have any rules") 
-                 (current-continuation-marks)
-                 (list (build-source-location stx)))))
+         (raise-syntax-error 'ragg
+                             (format "The grammar does not appear to have any rules")
+                             stx))
 
 
        ;; We flatten the rules so we can use the yacc-style ruleset that parser-tools

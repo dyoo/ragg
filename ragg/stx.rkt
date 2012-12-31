@@ -10,13 +10,14 @@
 ;; Given a sequence of rules, we translate these to syntax objects.
 
 ;; rules->stx: (listof rule) -> syntax
-(define (rules->stx source rules)
+(define (rules->stx source rules #:original-stx [original-stx #f])
   (define rule-stxs
     (map (lambda (stx) (rule->stx source stx))
          rules))
-  (with-syntax ([(rule ...) rule-stxs])
-    (strip-context
-     #'(rules rule ...))))
+  (datum->syntax #f
+                 `(rules ,@rule-stxs)
+                 original-stx))
+
 
 (define (rule->stx source a-rule)
   (define id-stx
