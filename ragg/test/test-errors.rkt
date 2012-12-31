@@ -20,9 +20,12 @@
   (syntax-case stx ()
     [(_ msg prog)
      (syntax/loc stx
-       (check-exn (regexp (regexp-quote msg))
-                  (lambda ()
-                    (c prog))))]))
+       (begin (check-exn (regexp (regexp-quote msg))
+                         (lambda ()
+                           (c prog)))
+              (check-exn exn:fail:syntax?
+                         (lambda ()
+                           (c prog)))))]))
 
 
 (check-compile-error "The grammar does not appear to have any rules"
