@@ -7,4 +7,5 @@
          "test-flatten.rkt"
          "test-lexer.rkt"
          "test-parser.rkt"
-         "exercise-python-grammar.rkt")
+         "exercise-python-grammar.rkt"
+         "test-errors.rkt")
