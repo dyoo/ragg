@@ -90,7 +90,7 @@ passing it a source of tokens.
                             (token 'RIGHT-PAREN ")"))))
              a-parsed-value]
 
-Wait... that looks like a syntax object!
+Wait... that looks suspiciously like a syntax object!
 @interaction[#:eval informal-eval
 (syntax->datum a-parsed-value)
 ]
