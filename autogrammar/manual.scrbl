@@ -39,7 +39,7 @@ atomic @racket[WORD], or a parenthesized list of any number of
 @racket[nested-word-list]s.  In this notation, we use the notation @litchar{*}
 which represents zero or more of the previous thing, and we treat
 @racket[LEFT-PAREN], @racket[RIGHT-PAREN], and @racket[WORD] as placeholders
-for atomic, non-structured things, or @emph{tokens}.
+for atomic things, or @emph{tokens}.
 
 Here are a few examples of tokens:
 @interaction[#:eval informal-eval
@@ -78,7 +78,7 @@ It gives us a @racket[parse] function.  What else is in there?
 
 Hmmm... It appears to have a few other things in there.  Let's investigate what
 @racket[parse] does for us.  Let's try using @racket[parse] by
-passing it a source of tokens.
+passing it a sequence of tokens.
 
 @interaction[#:eval informal-eval
              (define a-parsed-value
@@ -96,17 +96,18 @@ Wait... that looks suspiciously like a syntax object!
 ]
 
 
-That's @racket[(some [pig])].  So it appears the @racket[parse] function can
-take a sequence of tokens and build structure.  What happens if we pass it a
-more substantial source of tokens?
+That's @racket[(some [pig])], essentially.  So it appears the @racket[parse]
+function can take a sequence of tokens and build structure.  What happens if we
+pass it a more substantial source of tokens?
 
 @interaction[#:eval informal-eval
+@code:comment{make-tokenizer: string -> (-> (U token-struct void))}
 @code:comment{Generate tokens from a string:}
 (define (make-tokenizer s)
   (define tokens (regexp-match* #px"\\(|\\)|\\w+" s))
   (define (get-next)
     (cond [(empty? tokens)
-           (token eof)]
+           (void)]
           [else
            (define next-token
              (cond
@@ -136,7 +137,6 @@ Welcome to @tt{autogrammar}.
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 @section{Introduction}
 
 
@@ -144,6 +144,26 @@ Welcome to @tt{autogrammar}.
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+@section{The language}
 
 
-@section{API}
+
+
+@section{Support API}
+
+@defmodule[autogrammar/support]
+@subsection{Token sources}
+
+
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+@section{Bugs and caveats}
+
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+@section{Miscellaneous}
+
