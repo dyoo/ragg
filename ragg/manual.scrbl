@@ -18,12 +18,11 @@ Let's consider the following scenario: say that we're given the following string
 
 @margin-note{(... and pretend that we don't already know about the built-in
 @racket[read] function.)}  How do we go about turn this kind of string into a
-structured value?  That is, how would we @emph{parse} it?  We need to first
-consider the shape of the things we'd like to parse.
+structured value?  That is, how would we @emph{parse} it?
 
-The string above looks like a deeply nested list of words.  How might we
-describe this formally?  A convenient notation to describe the shape of these
-things is
+We need to first consider the shape of the things we'd like to parse.  The
+string above looks like a deeply nested list of words.  How might we describe
+this formally?  A convenient notation to describe the shape of these things is
 @link["http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form"]{Backus-Naur
 Form} (BNF).  So let's try to notate the structure of nested word lists in BNF.
 
@@ -159,7 +158,22 @@ Welcome to @tt{ragg}.
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-@section{Bugs and caveats}
+@section{Bugs and caveats and TODOs}
+
+[Missing test for grammars with undefined rules.]
+
+[Missing test for grammars with repeated rules.]
+
+[Missing explanation for ambiguous parses]
+
+[Larger, more comprehensive test suite]
+
+[Missing convenient syntax for simple lexers]
+
+[Symbols can be tokens?]
+
+[Strings can be tokens?]
+
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
