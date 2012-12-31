@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require rackunit)
+(require rackunit
+         (for-syntax racket/base))
 
 ;; Make sure we produce proper error messages on weird grammars
 
@@ -10,11 +11,22 @@
 (define (c prog)
   (parameterize ([current-namespace ns]
                  [read-accept-reader #t])
-    (compile (read-syntax #f (open-input-string prog)))))
+    (define ip (open-input-string prog))
+    (port-count-lines! ip)
+    (compile (read-syntax #f ip))))
     
 
-(define weird-grammar-no-rules
-  "#lang ragg")
-(check-exn #px"The grammar does not appear to have any rules"
-           (lambda () (c weird-grammar-no-rules)))
-           
+(define-syntax (check-compile-error stx)
+  (syntax-case stx ()
+    [(_ msg prog)
+     (syntax/loc stx
+       (check-exn (regexp (regexp-quote msg))
+                  (lambda ()
+                    (c prog))))]))
+
+
+(check-compile-error "The grammar does not appear to have any rules"
+                     "#lang ragg")
+
+(check-compile-error "Error while parsing grammar near: \"foo\" [line=2, column=0, position=12]"
+                     "#lang ragg\nfoo")

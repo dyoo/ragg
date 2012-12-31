@@ -202,7 +202,7 @@
   (make-parameter
    (lambda (tok-ok? tok-name tok-value start-pos end-pos)
      (raise (exn:fail:parse-grammar
-             (format "Error while parsing grammar near: ~e [line=~a, column~a, position=~a]"
+             (format "Error while parsing grammar near: ~e [line=~a, column=~a, position=~a]"
                      tok-value
                      (pos-line start-pos)
                      (pos-col start-pos)
