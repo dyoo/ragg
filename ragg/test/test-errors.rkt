@@ -3,7 +3,7 @@
 (require rackunit
          (for-syntax racket/base))
 
-;; Make sure we produce proper error messages on weird grammars
+;; Make sure we produce proper error messages on weird grammars.
 
 
 (define-namespace-anchor anchor)
