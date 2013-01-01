@@ -18,9 +18,9 @@
 
 (define-syntax (check-compile-error stx)
   (syntax-case stx ()
-    [(_ msg prog)
+    [(_ prog expected-msg)
      (syntax/loc stx
-       (begin (check-exn (regexp (regexp-quote msg))
+       (begin (check-exn (regexp (regexp-quote expected-msg))
                          (lambda ()
                            (c prog)))
               (check-exn exn:fail:syntax?
@@ -28,19 +28,22 @@
                            (c prog)))))]))
 
 
-(check-compile-error "The grammar does not appear to have any rules"
-                     "#lang ragg")
+(check-compile-error "#lang ragg"
+                     "The grammar does not appear to have any rules")
 
-(check-compile-error "Error while parsing grammar near: foo [line=2, column=0, position=12]"
-                     "#lang ragg\nfoo")
+(check-compile-error "#lang ragg\nfoo"
+                     "Error while parsing grammar near: foo [line=2, column=0, position=12]")
 
-(check-compile-error "Error while parsing grammar near: 42 [line=2, column=9, position=21]"
-                     "#lang ragg\nnumber : 42")
+(check-compile-error "#lang ragg\nnumber : 42"
+                     "Error while parsing grammar near: 42 [line=2, column=9, position=21]")
 
-(check-compile-error "Error while parsing grammar near: 1 [line=2, column=9, position=21]"
-                     "#lang ragg\nnumber : 1")
+(check-compile-error "#lang ragg\nnumber : 1"
+                     "Error while parsing grammar near: 1 [line=2, column=9, position=21]")
 
 ;; Hmmm.  Should the following be an error?  We're being a bit more
 ;; harsh here than we probably should.
-(check-compile-error "Error while parsing grammar near: 1flarbl [line=2, column=9, position=21]"
-                     "#lang ragg\nnumber : 1flarbl")
+(check-compile-error "#lang ragg\nnumber : 1flarbl"
+                     "Error while parsing grammar near: 1flarbl [line=2, column=9, position=21]")
+
+
+
