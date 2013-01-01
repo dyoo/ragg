@@ -36,3 +36,11 @@
 
 (check-compile-error "Error while parsing grammar near: 42 [line=2, column=9, position=21]"
                      "#lang ragg\nnumber : 42")
+
+(check-compile-error "Error while parsing grammar near: 1 [line=2, column=9, position=21]"
+                     "#lang ragg\nnumber : 1")
+
+;; Hmmm.  Should the following be an error?  We're being a bit more
+;; harsh here than we probably should.
+(check-compile-error "Error while parsing grammar near: 1flarbl [line=2, column=9, position=21]"
+                     "#lang ragg\nnumber : 1flarbl")
