@@ -7,7 +7,8 @@ ragg/lalr/ragg
 
 (require "../../parser.rkt"
          "../../lexer.rkt"
-         "../../stx.rkt")
+         "../../stx.rkt"
+         "../../rule-structs.rkt")
 
 (define (my-read in)
   (syntax->datum (my-read-syntax #f in)))
@@ -15,7 +16,28 @@ ragg/lalr/ragg
 (define (my-read-syntax src in)
   (define-values (first-line first-column first-position) (port-next-location in))
   (define tokenizer (tokenize in))
-  (define rules (grammar-parser tokenizer))
+  (define rules 
+    (parameterize ([current-parser-error-handler
+                    (lambda (tok-ok? tok-name tok-value start-pos end-pos)
+                      (raise-syntax-error 
+                       #f
+                       (format "Error while parsing grammar near: ~a [line=~a, column=~a, position=~a]"
+                               tok-value
+                               (pos-line start-pos)
+                               (pos-col start-pos)
+                               (pos-offset start-pos))
+                       (datum->syntax #f
+                                      (string->symbol (format "~a" tok-value))
+                                      (list src
+                                            (pos-line start-pos)
+                                            (pos-col start-pos)
+                                            (pos-offset start-pos)
+                                            (if (and (number? (pos-offset end-pos))
+                                                     (number? (pos-offset start-pos)))
+                                                (- (pos-offset end-pos)
+                                                   (pos-offset start-pos))
+                                                #f)))))])
+      (grammar-parser tokenizer)))
   (define-values (last-line last-column last-position) (port-next-location in))
   (list (rules->stx src rules 
                     #:original-stx (datum->syntax #f 'original-stx

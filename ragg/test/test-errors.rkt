@@ -31,5 +31,8 @@
 (check-compile-error "The grammar does not appear to have any rules"
                      "#lang ragg")
 
-(check-compile-error "Error while parsing grammar near: \"foo\" [line=2, column=0, position=12]"
+(check-compile-error "Error while parsing grammar near: foo [line=2, column=0, position=12]"
                      "#lang ragg\nfoo")
+
+(check-compile-error "Error while parsing grammar near: 42 [line=2, column=0, position=20]"
+                     "#lang ragg\nnumber : 42")
