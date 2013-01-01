@@ -1,6 +1,6 @@
 #lang racket/base
 
-(provide make-and make-or (struct-out node) visit! add-child!)
+(provide make-and make-or node? node-val node-yes? visit! add-child!)
 
 (require racket/match)
 
