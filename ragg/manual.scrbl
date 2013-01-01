@@ -166,6 +166,8 @@ Welcome to @tt{ragg}.
 
 [Missing explanation for ambiguous parses]
 
+[Handle specials with distinguished SPECIAL token name]
+
 [Larger, more comprehensive test suite]
 
 [Missing convenient syntax for simple lexers]

@@ -93,7 +93,9 @@
 (require (for-syntax racket/base
                      "codegen.rkt"))
 
-(provide rules (rename-out [#%plain-module-begin #%module-begin]))
+(provide rules
+         (rename-out [#%plain-module-begin #%module-begin]))
+
 (define-syntax (rules stx)
   (rules-codegen #:parser-provider-module 'ragg/cfg-parser/cfg-parser #;'parser-tools/yacc 
                  stx))

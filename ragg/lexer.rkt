@@ -1,7 +1,8 @@
 #lang racket/base
 (require parser-tools/lex
          (prefix-in : parser-tools/lex-sre)
-         "parser.rkt")
+         "parser.rkt"
+         "rule-structs.rkt")
 
 (provide lex/1 tokenize)
 
@@ -18,6 +19,10 @@
 
 (define-lex-abbrev id
   (:or (:: initial (:* subsequent))))
+
+
+
+
 
 (define lex/1
   (lexer-src-pos
@@ -54,7 +59,39 @@
    [(:: id (:* whitespace) ":")
     (token-RULE_HEAD lexeme)]
    [id
-    (token-ID lexeme)]))
+    (token-ID lexeme)]
+   
+   ;; We call the error handler for everything else:
+   [(:: any-char)
+    (let-values ([(rest-of-text end-pos-2)
+                 (lex-nonwhitespace input-port)])
+      ((current-parser-error-handler)
+       #f
+       'error
+       (string-append lexeme rest-of-text)
+       (position->pos start-pos)
+       (position->pos end-pos-2)))]))
+
+
+;; This is the helper for the error production.
+(define lex-nonwhitespace
+  (lexer
+   [(:+ (char-complement whitespace))
+    (values lexeme end-pos)]
+   [any-char
+    (values lexeme end-pos)]
+   [(eof)
+    (values "" end-pos)]))
+
+
+
+;; position->pos: position -> pos
+;; Coerses position structures from parser-tools/lex to our own pos structures.
+(define (position->pos a-pos)
+  (pos (position-offset a-pos)
+       (position-line a-pos)
+       (position-col a-pos)))
+
 
 
 ;; tokenize: input-port -> (-> token)

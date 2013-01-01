@@ -34,5 +34,5 @@
 (check-compile-error "Error while parsing grammar near: foo [line=2, column=0, position=12]"
                      "#lang ragg\nfoo")
 
-(check-compile-error "Error while parsing grammar near: 42 [line=2, column=0, position=20]"
+(check-compile-error "Error while parsing grammar near: 42 [line=2, column=9, position=21]"
                      "#lang ragg\nnumber : 42")
