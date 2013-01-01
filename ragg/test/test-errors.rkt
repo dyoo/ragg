@@ -47,3 +47,30 @@
 
 
 
+
+
+;; I need to ask on nontermination of:
+;;
+;; #lang ragg
+;; x : x y
+;; y : "y"
+;;
+;; Looks like a bug in cfg-parser.
+
+
+
+
+;; I need to ask about the behavior of:
+;;
+;; #lang ragg
+;; x : x
+;;
+;; which is giving me the weird error message:
+;; 
+;; parser-productions: A production for a non-terminal must be (non-term right-hand-side ...) with at least 1 right hand side in: (atok)
+
+
+;; We need to handle this ourselves before passing to cfg-parser.
+;; What we need is an algorithm to check that a BNF grammar has at least
+;; one finite derivation.  It's a graph algorithm, almost like
+;; topsort...
