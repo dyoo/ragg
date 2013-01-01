@@ -60,6 +60,14 @@
 
 
 
+; This should be illegal too:
+; #lang ragg
+; a : "a" b
+; b : a | b 
+
+
+
+
 ;; I need to ask about the behavior of:
 ;;
 ;; #lang ragg
