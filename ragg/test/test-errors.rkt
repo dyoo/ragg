@@ -19,13 +19,15 @@
 (define-syntax (check-compile-error stx)
   (syntax-case stx ()
     [(_ prog expected-msg)
-     (syntax/loc stx
-       (begin (check-exn (regexp (regexp-quote expected-msg))
-                         (lambda ()
-                           (c prog)))
-              (check-exn exn:fail:syntax?
-                         (lambda ()
-                           (c prog)))))]))
+     (quasisyntax/loc stx
+       (begin #,(syntax/loc stx
+                  (check-exn (regexp (regexp-quote expected-msg))
+                             (lambda ()
+                               (c prog))))
+              #,(syntax/loc stx
+                  (check-exn exn:fail:syntax?
+                             (lambda ()
+                               (c prog))))))]))
 
 
 (check-compile-error "#lang ragg"
@@ -47,6 +49,8 @@
 
 
 
+(check-compile-error "#lang ragg\nx:y"
+                     "Nonterminal y has no definition")
 
 
 ;; I need to ask on nontermination of:

@@ -40,13 +40,13 @@
 
 ;; make-or: X -> node
 ;; Create an or node
-(define (make-or val)
+(define (make-or [val #f])
   (node 'or val #f '() 1))
 
 
 ;; make-and: X -> node
 ;; Create an and node
-(define (make-and val)
+(define (make-and [val #f])
   (node 'and val #f '() 0))
 
 
@@ -164,5 +164,44 @@
    (check-false (node-yes? x))
    (check-true (node-yes? y))
    (check-true (node-yes? lit)))
-  
+
+
+  ;; expr: LPAREN expr RPAREN | ATOM
+  (block
+   (define LPAREN (make-and))
+   (define RPAREN (make-and))
+   (define expr (make-or))
+   (define expr-1 (make-and))
+   (define expr-2 (make-and))
+   (define ATOM (make-and))
+   (add-child! expr expr-1)
+   (add-child! expr expr-2)
+   (add-child! expr-1 LPAREN)
+   (add-child! expr-1 expr)
+   (add-child! expr-1 RPAREN)
+   (add-child! expr-2 ATOM)
+   (visit! LPAREN)
+   (visit! RPAREN)
+   (visit! ATOM)
+   (check-true (node-yes? expr)))
+
+
+
+  ;; expr: LPAREN expr RPAREN
+  (block
+   (define LPAREN (make-and))
+   (define RPAREN (make-and))
+   (define expr (make-or))
+   (define expr-1 (make-and))
+   (define expr-2 (make-and))
+   (define ATOM (make-and))
+   (add-child! expr expr-1)
+   (add-child! expr expr-2)
+   (add-child! expr-1 LPAREN)
+   (add-child! expr-1 expr)
+   (add-child! expr-1 RPAREN)
+   (visit! LPAREN)
+   (visit! RPAREN)
+   (check-false (node-yes? expr)))
+
   )
