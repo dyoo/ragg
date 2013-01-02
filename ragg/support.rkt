@@ -4,7 +4,6 @@
          token
          current-source
          [struct-out exn:fail:parsing]
-         [struct-out exn:fail:parsing-no-rules]
          current-parser-error-handler
          current-tokenizer-error-handler)
 
@@ -41,11 +40,6 @@
   #:transparent
   #:property prop:exn:srclocs (lambda (instance)
                                 (exn:fail:parsing-srclocs instance)))
-
-;; When there are no rules in the program, we need to fail nicely.
-(struct exn:fail:parsing-no-rules
-        exn:fail:parsing
-        ())
 
 
 
