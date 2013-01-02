@@ -7,7 +7,7 @@
 @author+email["Danny Yoo" "dyoo@hashcollision.org"]
 
 
-@section{Informal Quickstart}
+@section{Informal quickstart}
 
 @(define informal-eval (make-base-eval))
 @(informal-eval '(require ragg/examples/nested-word-list))

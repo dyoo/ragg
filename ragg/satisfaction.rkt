@@ -149,5 +149,20 @@
    (check-false (node-yes? a))
    (check-false (node-yes? b))
    (check-true (node-yes? lit)))
+
+
+  ;; x : x y
+  ;; y : LIT
+  (block
+   (define x (make-and "x"))
+   (define y (make-and "y"))
+   (define lit (make-and "LIT"))
+   (add-child! x x)
+   (add-child! x y)
+   (add-child! y lit)
+   (visit! lit)
+   (check-false (node-yes? x))
+   (check-true (node-yes? y))
+   (check-true (node-yes? lit)))
   
   )
