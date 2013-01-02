@@ -26,6 +26,14 @@
 
 
 
+(define no-position (lex:position #f #f #f))
+(define (no-position? p)
+  (not 
+   (or (lex:position-line p)
+       (lex:position-col p)
+       (lex:position-offset p))))
+
+
 ;; make-permissive-tokenizer: (U (sequenceof (U token token-struct eof void)) (-> (U token token-struct eof void))) hash -> (-> position-token)
 ;; Creates a tokenizer from the given value.
 ;; FIXME: clean up code.
@@ -38,11 +46,24 @@
 
   (define (permissive-tokenizer)
     (define next-token (tokenizer-thunk))
+    (let loop ([next-token next-token])
     (match next-token
       [(or (? eof-object?) (? void?))
        (lex:position-token ((hash-ref token-type-hash 'EOF) eof)
-                           (lex:position #f #f #f)
-                           (lex:position #f #f #f))]
+                           no-position 
+                           no-position)]
+
+      [(? symbol?)
+       (lex:position-token ((hash-ref token-type-hash next-token) next-token)
+                           no-position
+                           no-position)]
+
+      [(? string?)
+       (lex:position-token ((hash-ref token-type-hash
+                                      (string->symbol next-token))
+                            next-token)
+                           no-position
+                           no-position)]
       
       [(token-struct type val offset line column span whitespace?)
        (cond [whitespace?
@@ -65,46 +86,23 @@
               ((current-tokenizer-error-handler) type val 
                offset line column span)])]
       
-      [(lex:position-token (token-struct type val offset line column span whitespace?)
-                           (lex:position start-offset start-line start-col)
-                           (lex:position end-offset end-line end-col))
-       (cond [whitespace?
-              ;; Skip whitespace
-              (permissive-tokenizer)]
-             [(hash-has-key? token-type-hash type)
-              (lex:position-token ((hash-ref token-type-hash type) val)
-                                  (lex:position (or offset start-offset)
-                                                (or line start-line)
-                                                (or column start-col))
-                                  (if (and (number? offset) (number? span))
-                                      (lex:position (+ offset span) line (+ column span))
-                                      (lex:position end-offset end-line end-col)))]
-             [else
-              ;; We ran into a token of unrecognized type.  Let's raise an appropriate error.
-              ((current-tokenizer-error-handler)
-               type val
-               start-offset start-line start-col 
-               (if (and (number? start-offset)
-                        (number? end-offset))
-                   (- end-offset start-offset)
-                   #f))])]
+      [(lex:position-token t s e)
+       (define a-position-token (loop t))
+       (lex:position-token (lex:position-token-token a-position-token)
+                           (if (no-position? (lex:position-token-start-pos a-position-token))
+                               s
+                               (lex:position-token-start-pos a-position-token))
+                           (if (no-position? (lex:position-token-end-pos a-position-token))
+                               e
+                               (lex:position-token-end-pos a-position-token)))]
       
       [else
-       (coerse-to-position-token next-token)]))
+       ;; Otherwise, we have no idea how to treat this as a token.
+       ((current-tokenizer-error-handler) 'unknown-type (format "~a" next-token)
+        #f #f #f #f)])))
   permissive-tokenizer)
 
                       
-;; If someone feeds us a token that has no positional information,
-;; just force it into the right shape.
-(define (coerse-to-position-token t)
-  (cond
-    [(lex:position-token? t)
-     t]
-    [else
-     (lex:position-token t
-                         (lex:position #f #f #f)
-                         (lex:position #f #f #f))]))
-
 
 ;; positions->srcloc: position position -> (list source line column offset span)
 ;; Given two positions, returns a srcloc-like structure, where srcloc is the value
