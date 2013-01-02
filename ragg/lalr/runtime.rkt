@@ -64,6 +64,13 @@
                             next-token)
                            no-position
                            no-position)]
+
+      [(? char?)
+       (lex:position-token ((hash-ref token-type-hash
+                                      (string->symbol (string next-token)))
+                            next-token)
+                           no-position
+                           no-position)]
       
       [(token-struct type val offset line column span whitespace?)
        (cond [whitespace?
