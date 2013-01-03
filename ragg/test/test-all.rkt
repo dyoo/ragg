@@ -10,4 +10,4 @@
          "test-parser.rkt"
          "exercise-python-grammar.rkt"
          "test-errors.rkt"
-         (submod ragg/lalr/satisfaction test))
+         (submod ragg/codegen/satisfaction test))

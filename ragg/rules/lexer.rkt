@@ -49,7 +49,8 @@
    [whitespace
     ;; Skip whitespace
     (return-without-pos (lex/1 input-port))]
-   [(:: "#"
+   ;; Skip comments up to end of line
+   [(:: (:or "#" ";")
         (complement (:: (:* any-char) NL (:* any-char)))
         (:or NL ""))
     ;; Skip comments up to end of line.

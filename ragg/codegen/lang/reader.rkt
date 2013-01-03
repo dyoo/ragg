@@ -1,5 +1,5 @@
 #lang s-exp syntax/module-reader
-ragg/lalr/ragg
+ragg/codegen/ragg
 #:read my-read
 #:read-syntax my-read-syntax
 #:info my-get-info

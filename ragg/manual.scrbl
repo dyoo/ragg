@@ -10,9 +10,12 @@
 @section{Informal quickstart}
 
 @(define informal-eval (make-base-eval))
-@(informal-eval '(require ragg/examples/nested-word-list))
-@(informal-eval '(require racket/list))
-Let's consider the following scenario: say that we're given the following string:
+@(informal-eval '(require ragg/examples/nested-word-list 
+                          racket/list
+                          racket/match))
+
+Salutations!  Let's consider the following scenario: say that we're given the
+following string:
 @racketblock["(radiant (humble))"]
 
 
@@ -44,17 +47,17 @@ Here are a few examples of tokens:
 @interaction[#:eval informal-eval
 (require ragg/support)
 (token 'LEFT-PAREN)
-(token 'WORD "crunchy")
+(token 'WORD "crunchy" #:span 7)
 (token 'RIGHT-PAREN)]
 
 
 Have we made progress?  At this point, we only have a BNF description in hand,
 but we're still missing a @emph{parser}, something to take that description and
-use it to building structure.
+use it to make structures out of a sequence of tokens.
 
 
-It's clear that we don't yet have a program: there's no @litchar{#lang} line.
-We should add one.  Put @litchar{#lang ragg} at the top of the BNF
+It's clear that we don't yet have a program because there's no @litchar{#lang}
+line.  We should add one.  Put @litchar{#lang ragg} at the top of the BNF
 description, and save it as a file called @filepath{nested-word-list.rkt}.
 
 @filebox["nested-word-list.rkt"]{
@@ -64,7 +67,7 @@ nested-word-list: WORD
                 | LEFT-PAREN nested-word-list* RIGHT-PAREN
 }}
 
-Ok... now it's a program.  But what does it do?
+Now it is a proper program.  But what does it do?
 
 @interaction[#:eval informal-eval
 @eval:alts[(require "nested-word-list.rkt") (void)]
@@ -75,9 +78,8 @@ It gives us a @racket[parse] function.  What else is in there?
 @eval:alts[(module->exports "nested-word-list.rkt")
            (module->exports 'ragg/examples/nested-word-list)]]
 
-Hmmm... It appears to have a few other things in there.  Let's investigate what
-@racket[parse] does for us.  Let's try using @racket[parse] by
-passing it a sequence of tokens.
+Let's investigate what @racket[parse] does for us.  What happens if we
+pass it a sequence of tokens?
 
 @interaction[#:eval informal-eval
              (define a-parsed-value
@@ -100,27 +102,20 @@ function can take a sequence of tokens and build structure.  What happens if we
 pass it a more substantial source of tokens?
 
 @interaction[#:eval informal-eval
-@code:comment{make-tokenizer: string -> (-> (U token-struct void))}
+@code:comment{tokenize: string -> (sequenceof token-struct)}
 @code:comment{Generate tokens from a string:}
-(define (make-tokenizer s)
-  (define tokens (regexp-match* #px"\\(|\\)|\\w+" s))
-  (define (get-next)
-    (cond [(empty? tokens)
-           (void)]
-          [else
-           (define next-token
-             (cond
-               [(string=? (first tokens) "(")
-                (token 'LEFT-PAREN (first tokens))]
-               [(string=? (first tokens) ")")
-                (token 'RIGHT-PAREN (first tokens))]
-               [else
-                (token 'WORD (first tokens))]))
-           (set! tokens (rest tokens))
-           next-token]))
-  get-next)
+(define (tokenize s)
+  (for/list ([str (regexp-match* #px"\\(|\\)|\\w+" s)])
+    (match str
+      ["("
+       (token 'LEFT-PAREN str)]
+      [")"
+       (token 'RIGHT-PAREN str)]
+      [else
+       (token 'WORD str)])))
+
 @code:comment{For example:}
-(define token-source (make-tokenizer "(welcome (to (((ragg)) ())))"))
+(define token-source (tokenize "(welcome (to (((ragg)) ())))"))
 (define v (parse token-source))
 (syntax->datum v)
 ]

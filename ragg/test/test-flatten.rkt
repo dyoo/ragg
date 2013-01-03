@@ -1,6 +1,6 @@
 #lang racket/base
 (require ragg/rules/stx-types
-         ragg/lalr/flatten
+         ragg/codegen/flatten
          rackunit)
 
 

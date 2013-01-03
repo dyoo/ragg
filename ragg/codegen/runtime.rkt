@@ -3,7 +3,7 @@
 (require racket/match 
          racket/generator
          (prefix-in lex: parser-tools/lex) 
-         "../support.rkt")
+         ragg/support)
 
 
 (provide (all-defined-out))

@@ -80,7 +80,7 @@
            (begin             
              (require parser-tools/lex
                       parser-module
-                      ragg/lalr/runtime
+                      ragg/codegen/runtime
                       ragg/support
                       (for-syntax syntax/parse racket/base))
              
