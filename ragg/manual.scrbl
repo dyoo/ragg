@@ -140,7 +140,34 @@ Welcome to @tt{ragg}.
 
 @section{The language}
 
+A program in the @tt{ragg} language consists of the language line
+@litchar{#lang ragg}, followed by a collection of "rules" and
+"line comments".
 
+A "rule" is a sequence consisting of a: "rule identifier", a colon
+\litchar{":"}, and a "pattern".
+
+A "rule identifier" is an "identifier" that is not in upper case.
+
+A "token identifier" is an "identifier" that is all in upper case.
+
+An "identifier" is a character sequence of letters, numbers, and
+characters in @racket["-.!$%&/<=>?^_~@"].  It must not contain
+@litchar{*} or @litchar{+}, as those characters are used to denote
+quantification.
+
+
+A "pattern" is one of the following:
+@itemize[
+@item{an implicit sequence of patterns separated by whitespace}
+@item{a literal string}
+@item{a rule identifier}
+@item{a quanitifed pattern, either with @litchar{*} or @litchar{+}}
+@item{an optional pattern: a pattern surrounded by @litchar{[} and @litchar{]}}
+@item{an explicit sequence: a pattern surrounded by @litchar{(} and @litchar{)}}]
+
+A "line comment" begins with either @litchar{#} or @litchar{;} and
+continues till the end of the line.
 
 
 @section{Support API}

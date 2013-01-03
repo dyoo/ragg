@@ -14,8 +14,8 @@
 (define-lex-abbrevs
    [letter (:or (:/ "a" "z") (:/ #\A #\Z))]
    [digit (:/ #\0 #\9)]
-   [initial (:or letter (char-set "!$%&/<=>?^_~@"))]
-   [subsequent (:or initial digit (char-set "-.@"))])
+   [initial (:or letter (char-set "-.!$%&/<=>?^_~@"))]
+   [subsequent (:or initial digit)])
 
 (define-lex-abbrev id
   (:or (:: initial (:* subsequent))))
