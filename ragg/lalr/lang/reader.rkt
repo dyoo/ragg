@@ -5,10 +5,10 @@ ragg/lalr/ragg
 #:info my-get-info
 #:whole-body-readers? #t
 
-(require "../../parser.rkt"
-         "../../lexer.rkt"
-         "../../stx.rkt"
-         "../../rule-structs.rkt")
+(require ragg/rules/parser
+         ragg/rules/lexer
+         ragg/rules/stx
+         ragg/rules/rule-structs)
 
 (define (my-read in)
   (syntax->datum (my-read-syntax #f in)))

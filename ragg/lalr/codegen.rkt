@@ -5,7 +5,7 @@
          racket/set
          (prefix-in support: ragg/support)
          syntax/srcloc
-         "../stx-types.rkt"
+         ragg/rules/stx-types
          "flatten.rkt"
          (prefix-in stxparse: syntax/parse))
 
