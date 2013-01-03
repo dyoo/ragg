@@ -97,10 +97,9 @@ Wait... that looks suspiciously like a syntax object!
 ]
 
 
-That's @racket[(some [pig])], essentially.  So it appears the @racket[parse]
-function can take a sequence of tokens and build structure.  What happens if we
-pass it a more substantial source of tokens?
+That's @racket[(some [pig])], essentially.
 
+What happens if we pass it a more substantial source of tokens?
 @interaction[#:eval informal-eval
 @code:comment{tokenize: string -> (sequenceof token-struct)}
 @code:comment{Generate tokens from a string:}
@@ -133,6 +132,30 @@ Welcome to @tt{ragg}.
 
 @section{Introduction}
 
+@tt{ragg} is a parsing framework with the design goal to be easy
+to use.  It includes the following features:
+@itemize[
+
+@item{It provides a @litchar{#lang} for writing extended BNF grammars.
+Modules written in @litchar{#lang ragg} automatically generate a
+parser.  The output of this parser tries to follow
+@link["http://en.wikipedia.org/wiki/How_to_Design_Programs"]{HTDP}
+doctrine; the structure of the grammar informs the structure of the
+Racket syntax objects it generates.}
+
+@item{The language uses a few conventions to simplify the expression
+of grammars.  The first rule in the grammar is automatically assumed
+to be the starting grammar.  Identifiers in uppercase are assumed to
+be terminal tokens, and are otherwise the names of nonterminals.}
+
+@item{Tokenizers can be developed completely independently of parsers.
+@tt{ragg} takes a liberal view on tokens: they can be strings,
+symbols, or instances constructed with @racket[token].  Furthermore,
+tokens can optionally provide location: if tokens provide location, the
+generated syntax objects will as well.}
+
+@item{The parser should be able to handle ambiguity.}
+]
 
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
