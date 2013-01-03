@@ -243,7 +243,12 @@ produces tokens to be parsed.
                 )
          token-struct?]{
 Creates instances of @racket[token-struct]s.
-}
+
+The syntax objects produced by a parse will inject the value @racket[val] in
+place of the token name in the grammar.
+
+If @racket[#:whitespace?] is true, then the parser will skip over it during a
+parse.}
 
 
 @defstruct[token-struct ([type symbol?]
