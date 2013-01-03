@@ -1,6 +1,7 @@
 #lang scribble/manual
 @(require scribble/eval
-          (for-label racket))
+          (for-label racket
+                     ragg/support))
 
 
 @title{ragg: a Racket AST Generator Generator}
@@ -101,7 +102,7 @@ That's @racket[(some [pig])], essentially.
 
 What happens if we pass it a more substantial source of tokens?
 @interaction[#:eval informal-eval
-@code:comment{tokenize: string -> (sequenceof token-struct)}
+@code:comment{tokenize: string -> (sequenceof token-struct?)}
 @code:comment{Generate tokens from a string:}
 (define (tokenize s)
   (for/list ([str (regexp-match* #px"\\(|\\)|\\w+" s)])
@@ -154,7 +155,7 @@ symbols, or instances constructed with @racket[token].  Furthermore,
 tokens can optionally provide location: if tokens provide location, the
 generated syntax objects will as well.}
 
-@item{The parser should be able to handle ambiguity.}
+@item{The underlying parser should be able to handle ambiguous grammars.}
 ]
 
 
@@ -163,12 +164,13 @@ generated syntax objects will as well.}
 
 @section{The language}
 
+@subsection{Syntax}
 A program in the @tt{ragg} language consists of the language line
 @litchar{#lang ragg}, followed by a collection of "rules" and
 "line comments".
 
 A "rule" is a sequence consisting of a: "rule identifier", a colon
-\litchar{":"}, and a "pattern".
+@litchar{":"}, and a "pattern".
 
 A "rule identifier" is an "identifier" that is not in upper case.
 
@@ -193,9 +195,85 @@ A "line comment" begins with either @litchar{#} or @litchar{;} and
 continues till the end of the line.
 
 
+
+Examples:
+
+[Add examples here!]
+
+
+@subsection{Semantics}
+@declare-exporting[ragg/examples/nested-word-list]
+
+A program written in @litchar{#lang ragg} produces a module that provides a few
+bindings.  The most important of these is @racket[parse]:
+
+@defproc[(parse [source any/c #f] 
+                [tokens sequence?])
+         syntax?]{
+Parses the sequence of tokens according to the rules in the grammar.
+}
+
+
+It's often necessary to get a parser for other non-terminal rules in the
+grammar.  Another tool provided by @tt{ragg} programs is the form
+@racket[make-fule-parser]:
+
+@defform[#:id make-rule-parser
+         (make-rule-parser name)]{
+Constructs a parser for the @racket[name] of one of the non-terminals
+in the grammar.
+}
+
+
 @section{Support API}
 
 @defmodule[ragg/support]
+
+The @racketmodname[ragg/support] module provides functions to interact with
+@tt{ragg} programs.  The most useful is the @racket[token] function, which
+produces tokens to be parsed.
+
+@defproc[(token [type (or/c string? symbol?)]
+                [val any/c #f]
+                [#:line line (or/c number? #f) #f]
+                [#:column column (or/c number? #f) #f]
+                [#:offset offset (or/c number? #f) #f]
+                [#:span span (or/c number? #f) #f]
+                [#:whitespace? whitespace boolean? #f]
+                )
+         token-struct?]{
+Creates instances of @racket[token-struct]s.
+}
+
+
+@defstruct[token-struct ([type symbol?]
+                         [val any/c]
+                         [offset (or/c number? #f)]
+                         [line (or/c number? #f)]
+                         [column (or/c number? #f)]
+                         [span (or/c number? #f)]
+                         [whitespace? boolean?])
+                        #:transparent]{
+The token structure type.
+
+Rather than directly using the @racket[token-struct] constructor, please use
+the helper function @racket[token] to construct instances.
+}
+
+
+@defthing[current-source (parameterof any/c)]{
+blah blah}
+
+@defthing[current-parser-error-handler (parameterof any/c)]{
+blah blah blah
+}
+
+@defthing[current-tokenizer-error-handler (parameterof any/c)]{
+blah!
+}
+
+
+
 @subsection{Token sources}
 
 
