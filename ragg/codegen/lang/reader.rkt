@@ -1,5 +1,5 @@
 #lang s-exp syntax/module-reader
-ragg/codegen/ragg
+ragg/codegen/sexp-based-lang
 #:read my-read
 #:read-syntax my-read-syntax
 #:info my-get-info
