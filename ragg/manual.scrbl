@@ -134,16 +134,16 @@ to use.  It includes the following features:
 @itemize[
 
 @item{It provides a @litchar{#lang} for writing extended BNF grammars.
-Modules written in @litchar{#lang ragg} automatically generate a
+A module written in @litchar{#lang ragg} automatically generates a
 parser.  The output of this parser tries to follow
 @link["http://en.wikipedia.org/wiki/How_to_Design_Programs"]{HTDP}
 doctrine; the structure of the grammar informs the structure of the
 Racket syntax objects it generates.}
 
-@item{The language uses a few conventions to simplify the expression
-of grammars.  The first rule in the grammar is automatically assumed
-to be the starting grammar.  Identifiers in uppercase are assumed to
-be terminal tokens, and are otherwise the names of nonterminals.}
+@item{The language uses a few conventions to simplify the expression of
+grammars.  The first rule in the grammar is automatically assumed to be the
+starting production.  Identifiers in uppercase are assumed to represent
+terminal tokens, and are otherwise the names of nonterminals.}
 
 @item{Tokenizers can be developed completely independently of parsers.
 @tt{ragg} takes a liberal view on tokens: they can be strings,
@@ -170,7 +170,7 @@ A @deftech{rule} is a sequence consisting of: a @tech{rule identifier}, a colon
 
 A @deftech{rule identifier} is an @tech{identifier} that is not in upper case.
 
-A @deftech{token identifier} is an @tech{identifier} that is all in upper case.
+A @deftech{token identifier} is an @tech{identifier} that is in upper case.
 
 An @deftech{identifier} is a character sequence of letters, numbers, and
 characters in @racket["-.!$%&/<=>?^_~@"].  It must not contain
