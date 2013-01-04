@@ -1,7 +1,8 @@
 #lang scribble/manual
 @(require scribble/eval
           (for-label racket
-                     ragg/support))
+                     ragg/support
+                     ragg/examples/nested-word-list))
 
 
 @title{ragg: a Racket AST Generator Generator}
@@ -119,7 +120,7 @@ What happens if we pass it a more substantial source of tokens?
 Welcome to @tt{ragg}.
 
 
-@close-eval[informal-eval]
+
 
 
 
@@ -194,14 +195,28 @@ continues till the end of the line.
 Examples:
 @itemize[
 
-@item{We may want to express the
+@item{A
 @link["http://hashcollision.org/ragg/examples/01-equal.rkt"]{BNF} for binary
 strings that contain an equal number of zeros and ones.
 @verbatim|{
 #lang ragg
-equal: [zero one | one zero]
-zero: "0" equal | equal "0"
-one: "1" equal | equal "1"
+equal: [zero one | one zero]   ;; equal number of "0"s and "1"s.
+zero: "0" equal | equal "0"    ;; has an extra "0" in it.
+one: "1" equal | equal "1"     ;; has an extra "1" in it.
+}|
+}
+
+@item{A @link["http://hashcollision.org/ragg/examples/baby-json.rkt"]{BNF} for
+@link["http://www.json.org/"]{JSON}-like structures.
+@verbatim|{
+#lang ragg
+json: number | string
+    | array  | object
+number: NUMBER
+string: STRING
+array: "[" [json ("," json)*] "]"
+object: "{" [kvpair ("," kvpair)*] "}"
+kvpair: ID ":" json
 }|
 }
 ]
@@ -221,14 +236,38 @@ Parses the sequence of tokens according to the rules in the grammar.
 }
 
 
-It's often necessary to get a parser for other non-terminal rules in the
-grammar.  Another tool provided by @tt{ragg} programs is the form
-@racket[make-fule-parser]:
+It's often convenient to extract a parser for other non-terminal rules in the
+grammar, and not just for the first rule.  A @tt{ragg}-generated module also
+provides a form called @racket[make-rule-parser] to extract a parser for the
+other non-terminals:
 
 @defform[#:id make-rule-parser
          (make-rule-parser name)]{
 Constructs a parser for the @racket[name] of one of the non-terminals
 in the grammar.
+
+For example, given the @tt{ragg} program
+@filepath{simple-arithmetic-grammar.rkt}:
+@filebox["simple-arithmetic-grammar.rkt"]{
+@verbatim|{
+#lang ragg
+expr : term ('+' term)*
+term : factor ('*' factor)*
+factor : INT
+}|
+}
+the following interaction shows how to extract a parser for @racket[term]s.
+@interaction[#:eval informal-eval
+@eval:alts[(require "simple-arithmetic-grammar.rkt") 
+                    (require ragg/examples/simple-arithmetic-grammar)]
+(define term-parse (make-rule-parser term))
+(define tokens (list (token 'INT 3) 
+                     "*" 
+                     (token 'INT 4)))
+(syntax->datum (parse tokens))
+(syntax->datum (term-parse tokens))
+]
+
 }
 
 
@@ -322,3 +361,6 @@ Thanks to Joe Politz for advice and feedback.  Also, he suggested the name
 ``ragg''.  Other alternatives I'd been considering were
 ``autogrammar'' or ``chompy''.  Thankfully, he is a better Namer than me.
 Daniel Patterson provided feedback that led to @racket[make-rule-parser].
+
+
+@close-eval[informal-eval]

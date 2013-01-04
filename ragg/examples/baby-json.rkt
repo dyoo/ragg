@@ -1,7 +1,9 @@
 #lang ragg
 
 ;; Simple baby example of JSON structure
-json: number | string | array | object
+json: number | string
+    | array
+    | object
 
 number: NUMBER
 
