@@ -44,8 +44,8 @@
        (define start-id (first rule-ids))
        
        
-       (define-values (implicit-tokens    ;; (listof string-stx)
-                       explicit-tokens)   ;; (listof identifier-stx)
+       (define-values (implicit-tokens    ;; (listof identifier)
+                       explicit-tokens)   ;; (listof identifier)
          (rules-collect-token-types rules))
 
        ;; (listof symbol)
@@ -80,7 +80,6 @@
                      [generated-grammar #`(grammar #,@generated-rule-codes)]
                      [parser-module parser-provider-module]
                      [parser-form parser-provider-form])
-
          (quasisyntax/loc stx
            (begin             
              (require parser-tools/lex
@@ -101,16 +100,14 @@
                       #;[struct-out exn:fail:parsing]
                       )
 
-             (define-tokens enumerated-tokens (EOF token-type ...))
+             (define-tokens enumerated-tokens (token-type ...))
 
              (define all-tokens-hash 
-               (make-immutable-hash (list (cons 'EOF token-EOF)
-                                          (cons 'token-type token-type-constructor) ...)))
+               (make-immutable-hash (list (cons 'token-type token-type-constructor) ...)))
 
              ;; For internal use by the permissive tokenizer only:
              (define all-tokens-hash/mutable
-               (make-hash (list (cons 'EOF token-EOF)
-                                ;; Note: we also allow the eof object here, to make
+               (make-hash (list ;; Note: we also allow the eof object here, to make
                                 ;; the permissive tokenizer even nicer to work with.
                                 (cons eof token-EOF) 
                                 (cons 'token-type token-type-constructor) ...)))
@@ -238,10 +235,11 @@
 ;; Given a rule, automatically derive the list of implicit and
 ;; explicit token types we need to generate.
 ;; 
+;; Note: EOF will always be included in the list of explicit token types.
 (define (rules-collect-token-types rules)
   (define-values (implicit explicit)
     (for/fold ([implicit '()]
-               [explicit '()])
+               [explicit (list (datum->syntax (first rules) 'EOF))])
         ([r (in-list rules)])
       (rule-collect-token-types r implicit explicit)))
   (values (reverse implicit) (reverse explicit)))

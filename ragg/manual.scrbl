@@ -156,6 +156,76 @@ generated syntax objects will as well.}
 ]
 
 
+
+@subsection{Example: a small DSL for ASCII diagrams}
+
+To motivate @tt{ragg}'s design, let's look at the following problem (a
+@link["http://stackoverflow.com/questions/12345647/rewrite-this-script-by-designing-an-interpreter-in-racket"]{restatement
+of a question on Stack Overflow}.)
+
+Let's say that we'd like to define a language for drawing simple ASCII diagrams.
+We'd like to be able write something like this:
+
+@nested[#:style 'inset]{
+@verbatim|{
+3 9 X
+6 3 b 3 X 3 b
+3 9 X
+}|}
+
+whose interpretation should generate the following picture:
+
+@nested[#:style 'inset]{
+@verbatim|{
+XXXXXXXXX
+XXXXXXXXX
+XXXXXXXXX
+   XXX   
+   XXX   
+   XXX   
+   XXX   
+   XXX   
+   XXX   
+XXXXXXXXX
+XXXXXXXXX
+XXXXXXXXX
+}|}
+
+We're being very fast-and-loose with what we mean by the program above, so
+let's try to nail down some meanings.
+
+Each line of the program describes the output of several lines.  Let's look at two examples:
+
+@itemize[
+@item{@litchar{3 9 X}: ``Repeat the following 3 times: print @racket["X"] nine times, followed by
+a newline.''}
+
+@item{@litchar{6 3 b 3 X 3 b}: ``Repeat the following 6 times: print @racket[" "] three times, 
+followed by @racket["X"] three times, followed by @racket[" "] three times, followed by a newline.''}
+]
+
+Let's assume here that the intent of @litchar[b] is to a representation for @racket[" "], and for
+other uppercase letters to represent themselves.
+
+
+Once we have a better idea of the pieces of each line, we have a better chance to capture that
+meaning in a formal notation.  Here's is a first pass at expressing it.
+
+@filebox["simple-line-drawing.rkt"]{
+@verbatim|{
+#lang ragg
+line-drawing: rows-description*
+rows: row-repeat print-chunk*
+row-repeat: INTEGER
+print-chunk: INTEGER STRING
+}|
+}
+
+
+
+@subsubsection{From interpretation to compilation}
+
+
 FILL ME IN: I NEED A LONG-RUNNING EXAMPLE OF A DSL HERE.  THE GOAL
 IS TO SHOW HOW RAGG HELPS US TO MAKE OTHER #LANG'S REALLY QUICKLY.
 
