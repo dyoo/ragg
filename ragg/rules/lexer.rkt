@@ -14,11 +14,12 @@
 (define-lex-abbrevs
    [letter (:or (:/ "a" "z") (:/ #\A #\Z))]
    [digit (:/ #\0 #\9)]
-   [initial (:or letter (char-set "-.!$%&/<=>?^_~@"))]
-   [subsequent (:or initial digit)])
+   [id-char (:or letter digit (char-set "-.!$%&/<=>?^_~@"))]
+ )
 
 (define-lex-abbrev id
-  (:or (:: initial (:* subsequent))))
+  (:& (complement (:+ digit))
+      (:+ id-char)))
 
 
 

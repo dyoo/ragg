@@ -42,15 +42,17 @@
 (check-compile-error "#lang ragg\nnumber : 1"
                      "Error while parsing grammar near: 1 [line=2, column=9, position=21]")
 
-;; Hmmm.  Should the following be an error?  We're being a bit more
-;; harsh here than we probably should.
-(check-compile-error "#lang ragg\nnumber : 1flarbl"
-                     "Error while parsing grammar near: 1flarbl [line=2, column=9, position=21]")
 
 
+;; Check to see that missing definitions for rules also raise good syntax
+;; errors:
 
 (check-compile-error "#lang ragg\nx:y"
                      "Nonterminal y has no definition")
+
+(check-compile-error "#lang ragg\nnumber : 1flarbl"
+                     "Nonterminal 1flarbl has no definition")
+
 
 
 ;; I need to ask on nontermination of:

@@ -74,13 +74,9 @@ Now it is a proper program.  But what does it do?
 @eval:alts[(require "nested-word-list.rkt") (void)]
 parse
 ]
-It gives us a @racket[parse] function.  What else is in there?
-@interaction[#:eval informal-eval
-@eval:alts[(module->exports "nested-word-list.rkt")
-           (module->exports 'ragg/examples/nested-word-list)]]
 
-Let's investigate what @racket[parse] does for us.  What happens if we
-pass it a sequence of tokens?
+It gives us a @racket[parse] function.  Let's investigate what @racket[parse]
+does for us.  What happens if we pass it a sequence of tokens?
 
 @interaction[#:eval informal-eval
              (define a-parsed-value
@@ -166,38 +162,49 @@ generated syntax objects will as well.}
 
 @subsection{Syntax}
 A program in the @tt{ragg} language consists of the language line
-@litchar{#lang ragg}, followed by a collection of "rules" and
-"line comments".
+@litchar{#lang ragg}, followed by a collection of @tech{rule}s and
+@tech{line comment}s.
 
-A "rule" is a sequence consisting of a: "rule identifier", a colon
-@litchar{":"}, and a "pattern".
+A @deftech{rule} is a sequence consisting of: a @tech{rule identifier}, a colon
+@litchar{":"}, and a @tech{pattern}.
 
-A "rule identifier" is an "identifier" that is not in upper case.
+A @deftech{rule identifier} is an @tech{identifier} that is not in upper case.
 
-A "token identifier" is an "identifier" that is all in upper case.
+A @deftech{token identifier} is an @tech{identifier} that is all in upper case.
 
-An "identifier" is a character sequence of letters, numbers, and
+An @deftech{identifier} is a character sequence of letters, numbers, and
 characters in @racket["-.!$%&/<=>?^_~@"].  It must not contain
 @litchar{*} or @litchar{+}, as those characters are used to denote
 quantification.
 
 
-A "pattern" is one of the following:
+A @deftech{pattern} is one of the following:
 @itemize[
-@item{an implicit sequence of patterns separated by whitespace}
-@item{a literal string}
-@item{a rule identifier}
-@item{a quanitifed pattern, either with @litchar{*} or @litchar{+}}
-@item{an optional pattern: a pattern surrounded by @litchar{[} and @litchar{]}}
-@item{an explicit sequence: a pattern surrounded by @litchar{(} and @litchar{)}}]
+@item{an implicit sequence of @tech{pattern}s separated by whitespace}
+@item{a terminal: either a literal string or a @tech{token identifier}}
+@item{a @tech{rule identifier}}
+@item{a quantifed pattern: a @tech{pattern} followed by either @litchar{*} (``zero or more'') or @litchar{+} (``one or more'')}
+@item{an optional pattern: a @tech{pattern} surrounded by @litchar{[} and @litchar{]}}
+@item{an explicit sequence: a @tech{pattern} surrounded by @litchar{(} and @litchar{)}}]
 
-A "line comment" begins with either @litchar{#} or @litchar{;} and
+A @deftech{line comment} begins with either @litchar{#} or @litchar{;} and
 continues till the end of the line.
 
 
-
 Examples:
+@itemize[
 
+@item{We may want to express the
+@link["http://hashcollision.org/ragg/examples/01-equal.rkt"]{BNF} for binary
+strings that contain an equal number of zeros and ones.
+@verbatim|{
+#lang ragg
+equal: [zero one | one zero]
+zero: "0" equal | equal "0"
+one: "1" equal | equal "1"
+}|
+}
+]
 [Add examples here!]
 
 
