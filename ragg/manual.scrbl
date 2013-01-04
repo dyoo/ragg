@@ -156,6 +156,10 @@ generated syntax objects will as well.}
 ]
 
 
+FILL ME IN: I NEED A LONG-RUNNING EXAMPLE OF A DSL HERE.  THE GOAL
+IS TO SHOW HOW RAGG HELPS US TO MAKE OTHER #LANG'S REALLY QUICKLY.
+
+
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -265,10 +269,11 @@ following program:
 @nested[#:style 'code-inset
 @verbatim|{
 #lang ragg
-foo: bar
+foo: [bar]
 }|
 ]
-should raise an error because @tt{bar} has not been defined.}
+should raise an error because @tt{bar} has not been defined, even though
+@tt{foo} refers to it in an @tech{optional pattern}.}
 
 
 @item{contains a rule that has no finite derivation.  e.g. the following
@@ -294,13 +299,16 @@ A program written in @litchar{#lang ragg} produces a module that provides a few
 bindings.  The most important of these is @racket[parse]:
 
 @defproc[(parse [source any/c #f] 
-                [tokens sequence?])
+                [token-source sequence?])
          syntax?]{
 
-Parses the sequence of tokens according to the rules in the grammar.  On a
-successful parse, returns a syntax object.
+Parses the sequence of tokens according to the rules in the grammar, using the
+first rule as the start production.  The parse must completely consume
+@racket[token-source].  See @secref{token-sources} for more details on what
+kind of values are considered to be tokens.
 
-The structure of the syntax object follows the overal structure of the rules in
+If it succeeds, @racket[parse] will return a syntax object.
+The structure of the syntax object follows the overall structure of the rules in
 the BNF.  For each rule @racket[r] and its associated pattern @racket[p],
 @racket[parse] generates a syntax object @racket[#'(r p-value)] where
 @racket[p-value]'s structure follows a case analysis on @racket[p]:
@@ -315,8 +323,9 @@ the BNF.  For each rule @racket[r] and its associated pattern @racket[p],
 @item{For @tech{quantifed pattern}s and @tech{optional pattern}s: the corresponding values, spliced into the structure.}
 ]
 
-Consequently, it's only the presence of rule identifiers in a rule that informs
-the parser to introduces nested structure into the syntax object.
+Consequently, it's only the presence of @tech{rule identifier}s in a rule's
+pattern that informs the parser to introduces nested structure into the syntax
+object.
 
 
 If the parse cannot be performed successfully, an instance of @racket[exn:fail:parsing] is raised.
@@ -354,13 +363,23 @@ the following interaction shows how to extract a parser for @racket[term]s.
                      (token 'INT 4)))
 (syntax->datum (parse tokens))
 (syntax->datum (term-parse tokens))
+
+(define another-token-sequence
+  (list (token 'INT 1) "+" (token 'INT 2)
+        "*" (token 'INT 3)))
+(syntax->datum (parse another-token-sequence))
+@code:comment{Note that term-parse will break on another-token-sequence}
+@code:comment{as it does not know what to do with the "+"}
+(term-parse another-token-sequence)
 ]
 
 }
 
 
 
-@subsection{Token sources}
+@subsection[#:tag "token-sources"]{Token sources}
+
+FILL ME IN PLEASE
 
 
 
