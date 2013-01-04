@@ -161,7 +161,7 @@ generated syntax objects will as well.}
 
 @section{The language}
 
-@subsection{Syntax}
+@subsection{Syntax and terminology}
 A program in the @tt{ragg} language consists of the language line
 @litchar{#lang ragg}, followed by a collection of @tech{rule}s and
 @tech{line comment}s.
@@ -192,7 +192,25 @@ A @deftech{line comment} begins with either @litchar{#} or @litchar{;} and
 continues till the end of the line.
 
 
-Examples:
+For example, in the following program:
+@verbatim|{
+#lang ragg
+;; A parser for a silly language
+sentence: verb optional-adjective object
+verb: greeting
+optional-adjective: ["happy" | "frumpy"]
+greeting: "hello" | "hola" | "aloha"
+object: "world" | WORLD
+}|
+
+the elements @tt{sentence}, @tt{verb}, @tt{greeting}, and @tt{object} are rule
+identifiers.  The third line, @litchar{sentence: verb optional-adjective
+object}, is a rule whose right side is an implicit pattern sequence of three
+sub-patterns.
+
+
+
+More examples:
 @itemize[
 
 @item{A
@@ -220,7 +238,12 @@ kvpair: ID ":" json
 }|
 }
 ]
-[Add examples here!]
+
+The @link["https://github.com/dyoo/ragg"]{ragg github source repository}
+includes
+@link["https://github.com/dyoo/ragg/tree/master/ragg/examples"]{several more
+examples}.
+
 
 
 @subsection{Semantics}
@@ -233,7 +256,26 @@ bindings.  The most important of these is @racket[parse]:
                 [tokens sequence?])
          syntax?]{
 Parses the sequence of tokens according to the rules in the grammar.
+
+The structure of the syntax object follows the overal structure of the rules in
+the BNF.  For each rule @racket[r] and its associated pattern @racket[p],
+@racket[parse] generates a syntax object @racket[#'(r p-value)] where
+@racket[p-value]'s structure follows a case analysis on @racket[p]:
+
+@itemize[
+@item{For implicit and explicit sequences of @tech{pattern}s @racket[p1],
+      @racket[p2], ..., the corresponding values, spliced into the
+      structure.}
+@item{For terminals, the value associated to the token.}
+@item{For rule identifiers: the associated parse value for the rule.}
+@item{For quantifed or optional patterns: the corresponding values, spliced into the structure.}
+]
+
+Consequently, it is the presence of rule identifiers in a grammar that
+introduces nested structure into the syntax object.
+
 }
+
 
 
 It's often convenient to extract a parser for other non-terminal rules in the
