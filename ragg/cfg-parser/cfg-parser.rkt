@@ -36,7 +36,7 @@
 (require (for-syntax syntax/boundmap
                      parser-tools/private-lex/token-syntax))
 
-(provide [rename-out [cfg-parser parser]])
+(provide cfg-parser)
 
 ;; A raw token, wrapped so that we can recognize it:
 (define-struct tok (name orig-name val start end))
@@ -777,7 +777,7 @@
   
   
   (define parse
-    (parser
+    (cfg-parser
      (tokens non-terminals)
      (start <program>)
      (end EOF)

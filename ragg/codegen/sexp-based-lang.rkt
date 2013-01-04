@@ -90,5 +90,6 @@
          (rename-out [#%plain-module-begin #%module-begin]))
 
 (define-syntax (rules stx)
-  (rules-codegen #:parser-provider-module 'ragg/cfg-parser/cfg-parser #;'parser-tools/yacc 
+  (rules-codegen #:parser-provider-module 'ragg/cfg-parser/cfg-parser ;; 'parser-tools/yacc 
+                 #:parser-provider-form   'cfg-parser                 ;; 'parser
                  stx))

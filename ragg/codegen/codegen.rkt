@@ -12,8 +12,12 @@
 (provide rules-codegen)
 
 
-
-(define (rules-codegen stx #:parser-provider-module [parser-provider-module 'parser-tools/yacc])
+;; Generates the body of the module.
+;; FIXME: abstract this so we can just call (rules ...) without
+;; generating the whole module body.
+(define (rules-codegen stx 
+                       #:parser-provider-module [parser-provider-module 'parser-tools/yacc]
+                       #:parser-provider-form [parser-provider-form 'parser])
   (syntax-case stx ()
     [(_  r ...)
      (begin
@@ -74,7 +78,8 @@
                       (map (lambda (x) (string->symbol (format "token-~a" x)))
                            implicit-token-types)]
                      [generated-grammar #`(grammar #,@generated-rule-codes)]
-                     [parser-module parser-provider-module])
+                     [parser-module parser-provider-module]
+                     [parser-form parser-provider-form])
 
          (quasisyntax/loc stx
            (begin             
@@ -126,12 +131,12 @@
                     ;; context as the rest of this body, so I need to hack this.  I don't like this, but
                     ;; I don't know what else to do.  Hence recolored-start-rule.
                     (define recolored-start-rule (datum->syntax (syntax #,stx) (syntax-e #'start-rule)))
-                    #`(let ([THE-GRAMMAR (parser (tokens enumerated-tokens)
-                                                 (src-pos)
-                                                 (start #,recolored-start-rule)
-                                                 (end EOF)
-                                                 (error THE-ERROR-HANDLER)
-                                                 generated-grammar)])
+                    #`(let ([THE-GRAMMAR (parser-form (tokens enumerated-tokens)
+                                                      (src-pos)
+                                                      (start #,recolored-start-rule)
+                                                      (end EOF)
+                                                      (error THE-ERROR-HANDLER)
+                                                      generated-grammar)])
                         (case-lambda [(tokenizer)
                                       (define next-token
                                         (make-permissive-tokenizer tokenizer all-tokens-hash/mutable))
