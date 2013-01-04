@@ -276,9 +276,11 @@ the BNF.  For each rule @racket[r] and its associated pattern @racket[p],
 @item{For @tech{quantifed pattern}s and @tech{optional pattern}s: the corresponding values, spliced into the structure.}
 ]
 
-Consequently, it is the presence of rule identifiers in a grammar that
-introduces nested structure into the syntax object.
+Consequently, the presence of rule identifiers in a grammar informs the parse
+to introduces nested structure into the syntax object.
 
+
+If the parse cannot be performed successfully, an instance of @racket[exn:fail:parsing] is raised.
 }
 
 
@@ -357,6 +359,17 @@ The token structure type.
 Rather than directly using the @racket[token-struct] constructor, please use
 the helper function @racket[token] to construct instances.
 }
+
+
+
+
+@defstruct[(exn:fail:parsing exn:fail) 
+           ([message string?]
+            [continuation-marks continuation-mark-set?]
+            [srclocs (listof srcloc?)])]{
+The exception raised when parsing fails.
+}
+
 
 
 @defthing[current-source (parameterof any/c)]{
