@@ -11,8 +11,8 @@
 
 @section{Informal quickstart}
 
-@(define informal-eval (make-base-eval))
-@(informal-eval '(require ragg/examples/nested-word-list 
+@(define my-eval (make-base-eval))
+@(my-eval '(require ragg/examples/nested-word-list 
                           racket/list
                           racket/match))
 
@@ -46,7 +46,7 @@ or more repetitions of the previous thing, and we treat the uppercased
 for atomic @emph{tokens}.
 
 Here are a few examples of tokens:
-@interaction[#:eval informal-eval
+@interaction[#:eval my-eval
 (require ragg/support)
 (token 'LEFT-PAREN)
 (token 'WORD "crunchy" #:span 7)
@@ -71,7 +71,7 @@ nested-word-list: WORD
 
 Now it is a proper program.  But what does it do?
 
-@interaction[#:eval informal-eval
+@interaction[#:eval my-eval
 @eval:alts[(require "nested-word-list.rkt") (void)]
 parse
 ]
@@ -79,7 +79,7 @@ parse
 It gives us a @racket[parse] function.  Let's investigate what @racket[parse]
 does for us.  What happens if we pass it a sequence of tokens?
 
-@interaction[#:eval informal-eval
+@interaction[#:eval my-eval
              (define a-parsed-value
                (parse (list (token 'LEFT-PAREN "(")
                             (token 'WORD "some")
@@ -90,7 +90,7 @@ does for us.  What happens if we pass it a sequence of tokens?
              a-parsed-value]
 
 Wait... that looks suspiciously like a syntax object!
-@interaction[#:eval informal-eval
+@interaction[#:eval my-eval
 (syntax->datum a-parsed-value)
 ]
 
@@ -98,7 +98,7 @@ Wait... that looks suspiciously like a syntax object!
 That's @racket[(some [pig])], essentially.
 
 What happens if we pass it a more substantial source of tokens?
-@interaction[#:eval informal-eval
+@interaction[#:eval my-eval
 @code:comment{tokenize: string -> (sequenceof token-struct?)}
 @code:comment{Generate tokens from a string:}
 (define (tokenize s)
@@ -354,7 +354,7 @@ factor : INT
 }|
 }
 the following interaction shows how to extract a parser for @racket[term]s.
-@interaction[#:eval informal-eval
+@interaction[#:eval my-eval
 @eval:alts[(require "simple-arithmetic-grammar.rkt") 
                     (require ragg/examples/simple-arithmetic-grammar)]
 (define term-parse (make-rule-parser term))
@@ -458,21 +458,17 @@ blah!
 
 @section{Bugs and caveats and TODOs}
 
+[Operator precedence story currently not ready yet.]
+
 [Missing test for grammars with undefined rules.]
 
 [Missing test for grammars with repeated rules.]
 
 [Missing explanation for ambiguous parses]
 
-[Handle specials with distinguished SPECIAL token name]
-
 [Larger, more comprehensive test suite]
 
 [Missing convenient syntax for simple lexers]
-
-[Symbols can be tokens?]
-
-[Strings can be tokens?]
 
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -481,10 +477,16 @@ blah!
 
 @section{Miscellaneous and thanks}
 
-Thanks to Joe Politz for advice and feedback.  Also, he suggested the name
-``ragg''.  Other alternatives I'd been considering were
-``autogrammar'' or ``chompy''.  Thankfully, he is a better Namer than me.
-Daniel Patterson provided feedback that led to @racket[make-rule-parser].
+Joe Politz gave me good advice and feedback.  Also, he suggested the name
+``ragg''.  Other alternatives I'd been considering were ``autogrammar'' or
+``chompy''.  Thankfully, he is a better Namer than me.  Daniel Patterson
+provided feedback that led to @racket[make-rule-parser].  Robby Findler and
+Guillaume Marceau provided steadfast suggestions to look into other parsing
+frameworks like
+@link["http://en.wikipedia.org/wiki/Syntax_Definition_Formalism"]{SDF} and
+@link["http://sablecc.org/"]{SableCC}.  Special thanks to Shriram
+Krishnamurthi, who convinced me that other people might find this package
+useful.
 
 
-@close-eval[informal-eval]
+@close-eval[my-eval]
