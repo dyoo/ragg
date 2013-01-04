@@ -184,8 +184,9 @@ A @deftech{pattern} is one of the following:
 @item{an implicit sequence of @tech{pattern}s separated by whitespace}
 @item{a terminal: either a literal string or a @tech{token identifier}}
 @item{a @tech{rule identifier}}
-@item{a quantifed pattern: a @tech{pattern} followed by either @litchar{*} (``zero or more'') or @litchar{+} (``one or more'')}
-@item{an optional pattern: a @tech{pattern} surrounded by @litchar{[} and @litchar{]}}
+@item{a @deftech{choice pattern}: a sequence of @tech{pattern}s delimited with @litchar{|} characters.}
+@item{a @deftech{quantifed pattern}: a @tech{pattern} followed by either @litchar{*} (``zero or more'') or @litchar{+} (``one or more'')}
+@item{an @deftech{optional pattern}: a @tech{pattern} surrounded by @litchar{[} and @litchar{]}}
 @item{an explicit sequence: a @tech{pattern} surrounded by @litchar{(} and @litchar{)}}]
 
 A @deftech{line comment} begins with either @litchar{#} or @litchar{;} and
@@ -193,6 +194,7 @@ continues till the end of the line.
 
 
 For example, in the following program:
+@nested[#:style 'inset
 @verbatim|{
 #lang ragg
 ;; A parser for a silly language
@@ -201,12 +203,12 @@ verb: greeting
 optional-adjective: ["happy" | "frumpy"]
 greeting: "hello" | "hola" | "aloha"
 object: "world" | WORLD
-}|
+}|]
 
 the elements @tt{sentence}, @tt{verb}, @tt{greeting}, and @tt{object} are rule
 identifiers.  The third line, @litchar{sentence: verb optional-adjective
 object}, is a rule whose right side is an implicit pattern sequence of three
-sub-patterns.
+sub-patterns.  The uppercased @tt{WORLD} is a token identifier.  The last rule in the program associates @tt{greeting} with a @tech{choice pattern}.
 
 
 
@@ -255,7 +257,9 @@ bindings.  The most important of these is @racket[parse]:
 @defproc[(parse [source any/c #f] 
                 [tokens sequence?])
          syntax?]{
-Parses the sequence of tokens according to the rules in the grammar.
+
+Parses the sequence of tokens according to the rules in the grammar.  On a
+successful parse, returns a syntax object.
 
 The structure of the syntax object follows the overal structure of the rules in
 the BNF.  For each rule @racket[r] and its associated pattern @racket[p],
@@ -267,8 +271,9 @@ the BNF.  For each rule @racket[r] and its associated pattern @racket[p],
       @racket[p2], ..., the corresponding values, spliced into the
       structure.}
 @item{For terminals, the value associated to the token.}
-@item{For rule identifiers: the associated parse value for the rule.}
-@item{For quantifed or optional patterns: the corresponding values, spliced into the structure.}
+@item{For @tech{rule identifier}s: the associated parse value for the rule.}
+@item{For @tech{choice pattern}s: the associated parse value for one of the matching subpatterns.}
+@item{For @tech{quantifed pattern}s and @tech{optional pattern}s: the corresponding values, spliced into the structure.}
 ]
 
 Consequently, it is the presence of rule identifiers in a grammar that
