@@ -54,6 +54,10 @@
                      "Nonterminal 1flarbl has no definition")
 
 
+(check-compile-error "#lang ragg\nx : x"
+                     "x has no finite derivation")
+
+
 
 ;; I need to ask on nontermination of:
 ;;
