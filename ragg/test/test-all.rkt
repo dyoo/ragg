@@ -5,6 +5,7 @@
          "test-0n1n.rkt"
          "test-01-equal.rkt"
          "test-simple-arithmetic-grammar.rkt"
+         "test-baby-json.rkt"
          "test-flatten.rkt"
          "test-lexer.rkt"
          "test-parser.rkt"
