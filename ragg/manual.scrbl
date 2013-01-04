@@ -248,6 +248,45 @@ examples}.
 
 
 
+@subsection{Syntax errors}
+
+Besides the basic syntax errors that can occur with a malformed grammar, there
+are a few other classes of situations that @litchar{#lang ragg} will consider
+as syntax errors.
+
+@tt{ragg} will raise a syntax error if the grammar:
+@itemize[
+@item{doesn't have any rules.}
+
+@item{has a rule with the same left hand side as any other rule.}
+
+@item{refers to rules that have not been defined.  e.g. the
+following program:
+@nested[#:style 'code-inset
+@verbatim|{
+#lang ragg
+foo: bar
+}|
+]
+should raise an error because @tt{bar} has not been defined.}
+
+
+@item{contains a rule that has no finite derivation.  e.g. the following
+program:
+@nested[#:style 'code-inset
+@verbatim|{
+#lang ragg
+infinite-a: "a" infinite-a
+}|
+]
+should raise an error because no finite sequence of tokens will satisfy
+@tt{infinite-a}.}
+
+]
+
+Otherwise, @tt{ragg} should be fairly tolerant and permit even ambiguous
+grammars.
+
 @subsection{Semantics}
 @declare-exporting[ragg/examples/nested-word-list]
 
@@ -276,8 +315,8 @@ the BNF.  For each rule @racket[r] and its associated pattern @racket[p],
 @item{For @tech{quantifed pattern}s and @tech{optional pattern}s: the corresponding values, spliced into the structure.}
 ]
 
-Consequently, the presence of rule identifiers in a grammar informs the parse
-to introduces nested structure into the syntax object.
+Consequently, it's only the presence of rule identifiers in a rule that informs
+the parser to introduces nested structure into the syntax object.
 
 
 If the parse cannot be performed successfully, an instance of @racket[exn:fail:parsing] is raised.
@@ -318,6 +357,13 @@ the following interaction shows how to extract a parser for @racket[term]s.
 ]
 
 }
+
+
+
+@subsection{Token sources}
+
+
+
 
 
 @section{Support API}
@@ -385,7 +431,6 @@ blah!
 
 
 
-@subsection{Token sources}
 
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
