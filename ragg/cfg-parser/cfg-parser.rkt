@@ -86,17 +86,20 @@
 (define (parse-and simple-a? parse-a parse-b
                    stream depth end success-k fail-k 
                    max-depth tasks)
+  (define a-start-pos (cond [(and (pair? stream) (car stream)) => tok-start] 
+                            [else no-pos-val]))
   (letrec ([mk-got-k
             (lambda (success-k fail-k)
               (lambda (val stream depth max-depth tasks next1-k)
+                (define a-end-pos (cond [(and (pair? stream) (car stream)) => tok-end] [else no-pos-val]))
                 (if simple-a?
-                    (parse-b val stream depth end
+                    (parse-b val a-start-pos a-end-pos stream depth end
                              (mk-got2-k success-k fail-k next1-k)
                              (mk-fail2-k success-k fail-k next1-k)
                              max-depth tasks)
                     (parallel-or
                      (lambda (success-k fail-k max-depth tasks)
-                       (parse-b val stream depth end
+                       (parse-b val a-start-pos a-end-pos stream depth end
                                 success-k fail-k
                                 max-depth tasks))
                      (lambda (success-k fail-k max-depth tasks)
@@ -356,11 +359,11 @@
                     (or (not l)
                         (andmap values (caddr l))))
                 #,(car pat)
-                (lambda (#,id stream depth end success-k fail-k max-depth tasks)
-                  (let-syntax ([#,id-start-pos (at-tok-pos #'tok-start #'(and (pair? stream) (car stream)))]
-                               [#,id-end-pos (at-tok-pos #'tok-end #'(and (pair? stream) (car stream)))]
+                (lambda (#,id start-pos end-pos stream depth end success-k fail-k max-depth tasks)
+                  (let-syntax ([#,id-start-pos (make-rename-transformer #'start-pos) #;(at-tok-pos #'tok-start #'(and (pair? stream) (car stream)))]
+                               [#,id-end-pos (make-rename-transformer #'end-pos) #;(at-tok-pos #'tok-end #'(and (pair? stream) (car stream)))]
                                #,@(if n-end-pos
-                                      #`([#,n-end-pos (at-tok-pos #'tok-end #'(and (pair? stream) (car stream)))])
+                                      #`([#,n-end-pos (make-rename-transformer #'end-pos) #;(at-tok-pos #'tok-end #'(and (pair? stream) (car stream)))])
                                       null))
                     #,(loop (cdr pat) (add1 pos))))
                 stream depth 
