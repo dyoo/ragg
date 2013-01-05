@@ -36,6 +36,11 @@
 EOF
 ))))
 
+(check-equal? (syntax->datum the-parsed-object-stx)
+              '(drawing (rows (repeat 3) (chunk 9 "X") (end #f))
+                        (rows (repeat 6) (chunk 3 " ") (chunk 3 "X") (chunk 3 " ") (end #f))
+                        (rows (repeat 3) (chunk 9 "X") (end #f))))
+
 (define the-parsed-object (syntax->list the-parsed-object-stx))
 
 (check-equal? (syntax-line the-parsed-object-stx) 1)
