@@ -31,6 +31,7 @@
 
 (require parser-tools/yacc
          parser-tools/lex
+         racket/list
          (for-syntax racket/base))
 
 (require (for-syntax syntax/boundmap
@@ -84,14 +85,21 @@
 ;; then after parse-a succeeds once, we parallelize parse-b
 ;; and trying a second result for parse-a.
 (define (parse-and simple-a? parse-a parse-b
-                   stream depth end success-k fail-k 
+                   stream-a depth end success-k fail-k 
                    max-depth tasks)
-  (define a-start-pos (cond [(and (pair? stream) (car stream)) => tok-start] 
+  (define a-start-pos (cond [(and (pair? stream-a) (car stream-a)) => tok-start] 
                             [else no-pos-val]))
   (letrec ([mk-got-k
             (lambda (success-k fail-k)
               (lambda (val stream depth max-depth tasks next1-k)
-                (define a-end-pos (cond [(and (pair? stream) (car stream)) => tok-end] [else no-pos-val]))
+                (define a-end-pos (cond [(and (pair? stream) (car stream)) 
+                                         =>
+                                         tok-start]
+                                        [(and (pair? stream-a) (last stream-a))
+                                         =>
+                                         tok-end]
+                                        [else 
+                                         no-pos-val]))
                 (if simple-a?
                     (parse-b val a-start-pos a-end-pos stream depth end
                              (mk-got2-k success-k fail-k next1-k)
@@ -121,7 +129,7 @@
                          fail-k
                          max-depth
                          tasks)))])
-    (parse-a stream depth end
+    (parse-a stream-a depth end
              (mk-got-k success-k fail-k)
              fail-k
              max-depth tasks)))

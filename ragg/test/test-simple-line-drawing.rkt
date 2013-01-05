@@ -39,6 +39,9 @@ EOF
 (define the-parsed-object (syntax->list the-parsed-object-stx))
 
 (check-equal? (syntax-line the-parsed-object-stx) 1)
+(check-equal? (syntax-column the-parsed-object-stx) 0)
+(check-equal? (syntax-position the-parsed-object-stx) 1)
+(check-equal? (syntax-span the-parsed-object-stx) 26)
 
 (check-equal? (length the-parsed-object) 4)
 
