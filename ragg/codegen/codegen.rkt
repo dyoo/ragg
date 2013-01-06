@@ -210,28 +210,10 @@
            #`(list (d->s $X $X-start-pos $X-end-pos))]
           [(token val)
            #`(list (d->s $X $X-start-pos $X-end-pos))]))))
-
-  (define whole-rule-loc
-    (if (> (length translated-patterns) 0)
-        (with-syntax ([$1-start-pos
-                       (datum->syntax (first translated-patterns)
-                                      (string->symbol "$1-start-pos"))]
-                      [$n-end-pos
-                       (datum->syntax (last translated-patterns)
-                                      (string->symbol (format "$~a-end-pos"
-                                                              (length translated-patterns))))])
-          #`(positions->srcloc $1-start-pos $n-end-pos))
-        #'(list (current-source) #f #f #f #f)))
-  
   (with-syntax ([(translated-pattern ...) translated-patterns]
                 [(translated-action ...) translated-actions])
     #`[(translated-pattern ...)
-       (datum->syntax #f
-                      (append 
-                       (list (datum->syntax #f '#,rule-name/false
-                                            #,whole-rule-loc))
-                       translated-action ...)
-                      #,whole-rule-loc)]))
+       (rule-components->stx '#,rule-name/false translated-action ...)]))
 
 
 
