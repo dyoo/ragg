@@ -3,6 +3,7 @@
 (require (for-template racket/base)
          racket/list
          racket/set
+         racket/syntax
          (prefix-in support: ragg/support)
          syntax/srcloc
          ragg/rules/stx-types
@@ -189,9 +190,12 @@
     (for/list ([translated-pattern (in-list translated-patterns)]
                [primitive-pattern (syntax->list a-clause)]
                [pos (in-naturals 1)])
-      (with-syntax ([$X (datum->syntax translated-pattern (string->symbol (format "$~a" pos)))]
-                    [$X-start-pos (datum->syntax translated-pattern (string->symbol (format "$~a-start-pos" pos)))]
-                    [$X-end-pos (datum->syntax translated-pattern (string->symbol (format "$~a-end-pos" pos)))])        
+      (with-syntax ([$X 
+                     (format-id translated-pattern "$~a" pos)]
+                    [$X-start-pos 
+                     (format-id translated-pattern "$~a-start-pos" pos)]
+                    [$X-end-pos
+                     (format-id translated-pattern "$~a-end-pos" pos)])
         (syntax-case primitive-pattern (id lit token inferred-id)
           ;; When a rule usage is inferred, the value of $X is a syntax object
           ;; whose head is the name of the inferred rule . We strip that out,
@@ -223,8 +227,10 @@
                 [(translated-action ...) translated-actions])
     #`[(translated-pattern ...)
        (datum->syntax #f
-                      (append (list (datum->syntax #f '#,rule-name/false #,whole-rule-loc))
-                              translated-action ...)
+                      (append 
+                       (list (datum->syntax #f '#,rule-name/false
+                                            #,whole-rule-loc))
+                       translated-action ...)
                       #,whole-rule-loc)]))
 
 
