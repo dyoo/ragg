@@ -30,11 +30,10 @@
 
 
 (require parser-tools/yacc
-         parser-tools/lex
-         racket/list
-         (for-syntax racket/base))
+         parser-tools/lex)
 
-(require (for-syntax syntax/boundmap
+(require (for-syntax racket/base
+                     syntax/boundmap
                      parser-tools/private-lex/token-syntax))
 
 (provide cfg-parser)
@@ -85,29 +84,19 @@
 ;; then after parse-a succeeds once, we parallelize parse-b
 ;; and trying a second result for parse-a.
 (define (parse-and simple-a? parse-a parse-b
-                   stream-a depth end success-k fail-k 
+                   stream depth end success-k fail-k 
                    max-depth tasks)
-  (define a-start-pos (cond [(and (pair? stream-a) (car stream-a)) => tok-start] 
-                            [else no-pos-val]))
   (letrec ([mk-got-k
             (lambda (success-k fail-k)
               (lambda (val stream depth max-depth tasks next1-k)
-                (define a-end-pos (cond [(and (pair? stream) (car stream)) 
-                                         =>
-                                         tok-start]
-                                        [(and (pair? stream-a) (last stream-a))
-                                         =>
-                                         tok-end]
-                                        [else 
-                                         no-pos-val]))
                 (if simple-a?
-                    (parse-b val a-start-pos a-end-pos stream depth end
+                    (parse-b val stream depth end
                              (mk-got2-k success-k fail-k next1-k)
                              (mk-fail2-k success-k fail-k next1-k)
                              max-depth tasks)
                     (parallel-or
                      (lambda (success-k fail-k max-depth tasks)
-                       (parse-b val a-start-pos a-end-pos stream depth end
+                       (parse-b val stream depth end
                                 success-k fail-k
                                 max-depth tasks))
                      (lambda (success-k fail-k max-depth tasks)
@@ -129,7 +118,7 @@
                          fail-k
                          max-depth
                          tasks)))])
-    (parse-a stream-a depth end
+    (parse-a stream depth end
              (mk-got-k success-k fail-k)
              fail-k
              max-depth tasks)))
@@ -329,9 +318,7 @@
 
 ;; Finds the symbolic representative of a token class
 (define-for-syntax (map-token toks tok)
-  (car (token-identifier-mapping-get toks tok
-                                     (lambda ()
-                                       (error 'map-token "Could not find ~e in ~e" tok toks)))))
+  (car (token-identifier-mapping-get toks tok)))
 
 (define no-pos-val (make-position #f #f #f))
 (define-for-syntax no-pos 
@@ -351,11 +338,11 @@
                      (lambda (success-k fail-k max-depth tasks)
                        (fail-k max-depth tasks)))
         (let ([id (datum->syntax (car pat)
-                                 (string->symbol (format "$~a" pos)))]
+                                        (string->symbol (format "$~a" pos)))]
               [id-start-pos (datum->syntax (car pat)
-                                           (string->symbol (format "$~a-start-pos" pos)))]
+                                                  (string->symbol (format "$~a-start-pos" pos)))]
               [id-end-pos (datum->syntax (car pat)
-                                         (string->symbol (format "$~a-end-pos" pos)))]
+                                                (string->symbol (format "$~a-end-pos" pos)))]
               [n-end-pos (and (null? (cdr pat))
                               (datum->syntax (car pat) '$n-end-pos))])
           (cond
@@ -367,11 +354,11 @@
                     (or (not l)
                         (andmap values (caddr l))))
                 #,(car pat)
-                (lambda (#,id start-pos end-pos stream depth end success-k fail-k max-depth tasks)
-                  (let-syntax ([#,id-start-pos (make-rename-transformer #'start-pos) #;(at-tok-pos #'tok-start #'(and (pair? stream) (car stream)))]
-                               [#,id-end-pos (make-rename-transformer #'end-pos) #;(at-tok-pos #'tok-end #'(and (pair? stream) (car stream)))]
+                (lambda (#,id stream depth end success-k fail-k max-depth tasks)
+                  (let-syntax ([#,id-start-pos (at-tok-pos #'tok-start #'(and (pair? stream) (car stream)))]
+                               [#,id-end-pos (at-tok-pos #'tok-end #'(and (pair? stream) (car stream)))]
                                #,@(if n-end-pos
-                                      #`([#,n-end-pos (make-rename-transformer #'end-pos) #;(at-tok-pos #'tok-end #'(and (pair? stream) (car stream)))])
+                                      #`([#,n-end-pos (at-tok-pos #'tok-end #'(and (pair? stream) (car stream)))])
                                       null))
                     #,(loop (cdr pat) (add1 pos))))
                 stream depth 
@@ -517,8 +504,7 @@
                                                                   (syntax->list (e-terminals-def-t v)))]
                                                             [else null])))
                                                       (syntax->list #'(t ...))))]
-                                               [_else 
-                                                null]))
+                                               [_else null]))
                                            clauses))]
                            [all-end-toks (apply
                                           append
@@ -761,12 +747,12 @@
                                              "failed at ~a" 
                                              (tok-val bad-tok)))))])
                      (#,start tok-list 0 
-                                  (length tok-list)
-                                  success-k
-                                  fail-k
-                                  0 (make-tasks null null 
-                                                (make-hasheq) (make-hasheq)
-                                                (make-hash) #t)))))))))]))
+                              (length tok-list)
+                              success-k
+                              fail-k
+                              0 (make-tasks null null 
+                                            (make-hasheq) (make-hasheq)
+                                            (make-hash) #t)))))))))]))
 
 
 (module* test racket/base
