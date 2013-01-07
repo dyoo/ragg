@@ -264,3 +264,45 @@
          (loop v implicit explicit))])))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; rule-id: rule -> identifier-stx
+;; Get the binding id of a rule.
+(define (rule-id a-rule)
+ (syntax-case a-rule (rule)
+    [(rule id a-pattern)
+     #'id]))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; rule-collect-used-ids: rule-stx -> (listof identifier)
+;; Given a rule, extracts a list of identifiers
+(define (rule-collect-used-ids a-rule)
+  (syntax-case a-rule (rule)
+    [(rule id a-pattern)
+     (pattern-collect-used-ids #'a-pattern '())]))
+
+;; pattern-collect-used-ids: pattern-stx (listof identifier) -> (listof identifier)
+;; Returns a flat list of rule identifiers referenced in the pattern.
+(define (pattern-collect-used-ids a-pattern acc)
+  (let loop ([a-pattern a-pattern]
+             [acc acc])
+    (syntax-case a-pattern (id lit token choice repeat maybe seq)
+      [(id val)
+       (cons #'val acc)]
+      [(lit val)
+       acc]
+      [(token val)
+       acc]
+      [(choice vals ...)
+       (for/fold ([acc acc])
+                 ([v (in-list (syntax->list #'(vals ...)))])
+         (loop v acc))]
+      [(repeat min val)
+       (loop #'val acc)]
+      [(maybe val)
+       (loop #'val acc)]
+      [(seq vals ...)
+       (for/fold ([acc acc])
+                 ([v (in-list (syntax->list #'(vals ...)))])
+         (loop v acc))])))
