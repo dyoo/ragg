@@ -4,10 +4,11 @@
          racket/list
          racket/set
          racket/syntax
-         (prefix-in support: ragg/support)
          syntax/srcloc
          ragg/rules/stx-types
          "flatten.rkt"
+         syntax/id-table
+         (prefix-in support: ragg/support)
          (prefix-in stxparse: syntax/parse))
 
 (provide rules-codegen)
@@ -30,6 +31,7 @@
                              (format "The grammar does not appear to have any rules")
                              stx))
 
+       (check-all-rules-defined! rules)
 
        ;; We flatten the rules so we can use the yacc-style ruleset that parser-tools
        ;; supports.
@@ -275,6 +277,20 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; check-all-rules-defined!: (listof rule-stx) -> void
+(define (check-all-rules-defined! rules)
+  (define table (make-free-id-table))
+  ;; Pass one: collect all the defined rule names.
+  (for ([a-rule (in-list rules)])
+    (free-id-table-set! table (rule-id a-rule) #t))
+  ;; Pass two: check each referenced id, and make sure it's been defined.
+  (for ([a-rule (in-list rules)])
+    (for ([referenced-id (in-list (rule-collect-used-ids a-rule))])
+      (unless (free-id-table-ref table referenced-id (lambda () #f))
+        (raise-syntax-error #f (format "Nonterminal ~a has no definition" (syntax-e referenced-id))
+                            referenced-id)))))
+
+
 ;; rule-collect-used-ids: rule-stx -> (listof identifier)
 ;; Given a rule, extracts a list of identifiers
 (define (rule-collect-used-ids a-rule)
@@ -306,3 +322,4 @@
        (for/fold ([acc acc])
                  ([v (in-list (syntax->list #'(vals ...)))])
          (loop v acc))])))
+
