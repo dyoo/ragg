@@ -358,7 +358,13 @@
                 #,(car pat)
                 (let ([original-stream stream])
                   (lambda (#,id stream last-consumed-token depth end success-k fail-k max-depth tasks)
-                    (let-syntax ([#,id-start-pos (at-tok-pos #'tok-start #'(and (pair? original-stream) (car original-stream)))]
+                    (let-syntax ([#,id-start-pos (at-tok-pos #'(if (eq? original-stream stream)
+                                                                   tok-end
+                                                                   tok-start)
+                                                             #'(if (eq? original-stream stream)
+                                                                   last-consumed-token
+                                                                   (and (pair? original-stream) 
+                                                                        (car original-stream))))]
                                  [#,id-end-pos (at-tok-pos #'tok-end #'last-consumed-token)]
                                  #,@(if n-end-pos
                                         #`([#,n-end-pos (at-tok-pos #'tok-end #'last-consumed-token)])
@@ -487,7 +493,7 @@
   (syntax-case stx ()
     [(_ clause ...)
      (let ([clauses (syntax->list #'(clause ...))])
-       (let-values ([(start grammar cfg-error parser-clauses)
+       (let-values ([(start grammar cfg-error parser-clauses src-pos?)
                      (let ([all-toks (apply
                                       append
                                       (map (lambda (clause)
@@ -528,7 +534,8 @@
                              (values cfg-start
                                      cfg-grammar
                                      cfg-error
-                                     (reverse parser-clauses))
+                                     (reverse parser-clauses)
+                                     src-pos?)
                              (syntax-case (car clauses) (start error grammar src-pos)
                                [(start tok)
                                 (loop (cdr clauses) #'tok cfg-grammar cfg-error src-pos? parser-clauses)]
@@ -751,7 +758,15 @@
                                              "failed at ~a" 
                                              (tok-val bad-tok)))))])
                      (#,start tok-list
-                              #f
+                              ;; we simulate a token at the very beginning with zero width
+                              ;; for use with the position-generating code (*-start-pos, *-end-pos).
+                              (tok #f #f #f
+                                   (position 1
+                                             #,(if src-pos? #'1 #'#f) 
+                                             #,(if src-pos? #'0 #'#f))
+                                   (position 1 
+                                             #,(if src-pos? #'1 #'#f)
+                                             #,(if src-pos? #'0 #'#f))) 
                               0 
                               (length tok-list)
                               success-k
@@ -764,7 +779,59 @@
 
 (module* test racket/base
   (require (submod "..")
-           parser-tools/lex)
+           parser-tools/lex
+           racket/block
+           rackunit)
+
+  ;; Test: parsing regular expressions.
+  ;; Here is a test case on locations:
+  (block
+   (define-tokens regexp-tokens (ANCHOR STAR OR LIT LPAREN RPAREN EOF))
+   (define lex (lexer-src-pos ["|" (token-OR lexeme)]
+                              ["^" (token-ANCHOR lexeme)]
+                              ["*" (token-STAR lexeme)]
+                              [(repetition 1 +inf.0 alphabetic) (token-LIT lexeme)]
+                              ["(" (token-LPAREN lexeme)]
+                              [")" (token-RPAREN lexeme)]
+                              [whitespace (return-without-pos (lex input-port))]
+                              [(eof) (token-EOF 'eof)]))
+   (define -parse (cfg-parser
+                   (tokens regexp-tokens)
+                   (start top)
+                   (end EOF)
+                   (src-pos)
+                   (grammar [top [(maybe-anchor regexp)
+                                  (cond [$1 
+                                         `(anchored ,$2 ,(pos->sexp $1-start-pos) ,(pos->sexp $2-end-pos))]
+                                        [else
+                                         `(unanchored ,$2 ,(pos->sexp $1-start-pos) ,(pos->sexp $2-end-pos))])]]
+                            [maybe-anchor [(ANCHOR) #t]
+                                          [() #f]]
+                            [regexp [(regexp STAR) `(star ,$1 ,(pos->sexp $1-start-pos) ,(pos->sexp $2-end-pos))]
+                                    [(regexp OR regexp) `(or ,$1 ,$3 ,(pos->sexp $1-start-pos) ,(pos->sexp $3-end-pos))]
+                                    [(LPAREN regexp RPAREN) `(group ,$2 ,(pos->sexp $1-start-pos) ,(pos->sexp $3-end-pos))]
+                                    [(LIT) `(lit ,$1 ,(pos->sexp $1-start-pos) ,(pos->sexp $1-end-pos))]])))
+   (define (pos->sexp pos)
+     (position-offset pos))
+   
+   (define (parse s)
+     (define ip (open-input-string s))
+     (port-count-lines! ip)
+     (-parse (lambda () (lex ip))))
+   
+   (check-equal? (parse "abc")
+                 '(unanchored (lit "abc" 1 4) 1 4))
+   (check-equal? (parse "a | (b*) | c")
+                 '(unanchored (or (or (lit "a" 1 2)
+                                      (group (star (lit "b" 6 7) 6 8) 5 9)
+                                      1 9)
+                                  (lit "c" 12 13)
+                                  1 13)
+                              1 13)))
+  
+  
+  
+  
   
   ;; Tests used during development
   (define-tokens non-terminals (PLUS MINUS STAR BAR COLON EOF))
@@ -778,7 +845,6 @@
      [":" (token-COLON '|:|)]
      [whitespace (lex input-port)]
      [(eof) (token-EOF 'eof)]))
-  
   
   (define parse
     (cfg-parser
@@ -799,14 +865,39 @@
                         [(<random> PLUS) (add1 $1)]
                         [(<random> PLUS) (add1 $1)]])))
   
-  (define (result)
-    (let ([p (open-input-string #;"+*|-|-*|+**" #;"-|+*|+**" 
-                                #;"+*|+**|-" #;"-|-*|-|-*"
-                                #;"-|-*|-|-**|-|-*|-|-**"
-                                "-|-*|-|-**|-|-*|-|-***|-|-*|-|-**|-|-*|-|-****|-|-*|-|-**|-|-*|-|-***
+  (let ([p (open-input-string #;"+*|-|-*|+**" #;"-|+*|+**" 
+                              #;"+*|+**|-" #;"-|-*|-|-*"
+                              #;"-|-*|-|-**|-|-*|-|-**"
+                              "-|-*|-|-**|-|-*|-|-***|-|-*|-|-**|-|-*|-|-****|-|-*|-|-**|-|-*|-|-***
                |-|-*|-|-**|-|-*|-|-*****|-|-*|-|-**|-|-*|-|-***|-|-*|-|-**|-|-*|-|-****|
                -|-*|-|-**|-|-*|-|-***|-|-*|-|-**|-|-*|-|-*****"
-                                ;; This one fails:
-                                #;"+*")])
-      (time (parse (lambda () (lex p))))))
-  (result))
+                              ;; This one fails:
+                              #;"+*")])
+    (check-equal? (parse (lambda () (lex p)))
+                  '((((((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
+                        ||
+                        (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
+                       .
+                       *)
+                      ||
+                      (((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
+                        ||
+                        (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
+                       .
+                       *))
+                     .
+                     *)
+                    ||
+                    (((((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
+                        ||
+                        (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
+                       .
+                       *)
+                      ||
+                      (((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
+                        ||
+                        (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
+                       .
+                       *))
+                     .
+                     *)))))
