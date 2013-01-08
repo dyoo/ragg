@@ -73,8 +73,8 @@
                            no-position
                            no-position)]
       
-      [(token-struct type val offset line column span whitespace?)
-       (cond [whitespace?
+      [(token-struct type val offset line column span skip?)
+       (cond [skip?
               ;; skip whitespace, and just tokenize again.
               (permissive-tokenizer)]
              

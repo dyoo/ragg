@@ -19,7 +19,7 @@
                ["\n"
                 (token 'NEWLINE)]
                [" "
-                (token 'WHITESPACE #:whitespace? #t)]
+                (token 'WHITESPACE #:skip? #t)]
                [(eof)
                 (void)]))
   (lambda ()

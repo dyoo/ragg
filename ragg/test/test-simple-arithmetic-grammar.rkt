@@ -12,7 +12,7 @@
      [(repetition 1 +inf.0 numeric)
       (token 'INT (string->number lexeme))]
      [whitespace
-      (token 'WHITESPACE #:whitespace? #t)]
+      (token 'WHITESPACE #:skip? #t)]
      ["+"
       (token '+ "+")]
      ["*"

@@ -32,7 +32,7 @@
                            [(STRING) 
                             (token 'STRING text)]
                            [(COMMENT) 
-                            (token 'WHITESPACE #:whitespace? #t)]
+                            (token 'WHITESPACE #:skip? #t)]
                            [(NL NEWLINE)
                             (token 'NEWLINE text)]
                            [(DEDENT) 

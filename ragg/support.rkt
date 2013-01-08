@@ -7,7 +7,7 @@
          current-parser-error-handler
          current-tokenizer-error-handler)
 
-(struct token-struct (type val offset line column span whitespace?) 
+(struct token-struct (type val offset line column span skip?) 
         #:transparent)
 
 
@@ -22,10 +22,10 @@
            #:line [line #f]     ;; (U #f number)
            #:column [column #f] ;; (U #f number)
            #:span [span #f]     ;; boolean
-           #:whitespace? [whitespace? #f])
+           #:skip? [skip? #f])
     (token-struct (if (string? type) (string->symbol type) type)
                   val
-                  offset line column span whitespace?)))
+                  offset line column span skip?)))
 
 
 

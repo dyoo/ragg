@@ -469,7 +469,7 @@ produces tokens to be parsed.
                 [#:column column (or/c number? #f) #f]
                 [#:offset offset (or/c number? #f) #f]
                 [#:span span (or/c number? #f) #f]
-                [#:whitespace? whitespace boolean? #f]
+                [#:skip? skip? boolean? #f]
                 )
          token-struct?]{
 Creates instances of @racket[token-struct]s.
@@ -477,7 +477,7 @@ Creates instances of @racket[token-struct]s.
 The syntax objects produced by a parse will inject the value @racket[val] in
 place of the token name in the grammar.
 
-If @racket[#:whitespace?] is true, then the parser will skip over it during a
+If @racket[#:skip?] is true, then the parser will skip over it during a
 parse.}
 
 
@@ -487,7 +487,7 @@ parse.}
                          [line (or/c number? #f)]
                          [column (or/c number? #f)]
                          [span (or/c number? #f)]
-                         [whitespace? boolean?])
+                         [skip? boolean?])
                         #:transparent]{
 The token structure type.
 
