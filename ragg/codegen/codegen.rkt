@@ -8,6 +8,7 @@
          ragg/rules/stx-types
          "flatten.rkt"
          syntax/id-table
+         (prefix-in sat: "satisfaction.rkt")
          (prefix-in support: ragg/support)
          (prefix-in stxparse: syntax/parse))
 
@@ -263,7 +264,7 @@
       [(token val)
        (begin
          (when (eq? (syntax-e #'val) 'EOF)
-           (raise-syntax-error #f "EOF is a reserved token type, and can not be used in a grammar" #'val))
+           (raise-syntax-error #f "Token EOF is reserved and can not be used in a grammar" #'val))
          (values implicit (cons #'val explicit)))]
       [(choice vals ...)
        (for/fold ([implicit implicit]
@@ -289,6 +290,11 @@
     [(rule id a-pattern)
      #'id]))
 
+(define (rule-pattern a-rule)
+ (syntax-case a-rule (rule)
+    [(rule id a-pattern)
+     #'a-pattern]))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -302,7 +308,7 @@
   (for ([a-rule (in-list rules)])
     (for ([referenced-id (in-list (rule-collect-used-ids a-rule))])
       (unless (free-id-table-ref table referenced-id (lambda () #f))
-        (raise-syntax-error #f (format "Nonterminal ~a has no definition" (syntax-e referenced-id))
+        (raise-syntax-error #f (format "Rule ~a has no definition" (syntax-e referenced-id))
                             referenced-id)))))
 
 ;; check-all-rules-no-duplicates!: (listof rule-stx) -> void
@@ -363,4 +369,57 @@
 ;; NOTE: Assumes all referenced rules have definitions.
 (define (check-all-rules-satisfiable! rules)
   (define toplevel-rule-table (make-free-id-table))
-  (void))
+  (for ([a-rule (in-list rules)])
+    (free-id-table-set! toplevel-rule-table 
+                        (rule-id a-rule) 
+                        (sat:make-and)))
+  (define leaves '())
+  
+  (define (make-leaf)
+    (define a-leaf (sat:make-and))
+    (set! leaves (cons a-leaf leaves))
+    a-leaf)
+
+  (define (process-pattern a-pattern)
+    (syntax-case a-pattern (id lit token choice repeat maybe seq)
+      [(id val)
+       (free-id-table-ref toplevel-rule-table #'val)]
+      [(lit val)
+       (make-leaf)]
+      [(token val)
+       (make-leaf)]
+      [(choice vals ...)
+       (begin
+         (define an-or-node (sat:make-or))
+         (for ([v (in-list (syntax->list #'(vals ...)))])
+           (define a-child (process-pattern v))
+           (sat:add-child! an-or-node a-child))
+         an-or-node)]
+      [(repeat min val)
+       (syntax-case #'min ()
+         [0
+          (make-leaf)]
+         [else
+          (process-pattern #'val)])]
+      [(maybe val)
+       (make-leaf)]
+      [(seq vals ...)
+       (begin
+         (define an-and-node (sat:make-and))
+         (for ([v (in-list (syntax->list #'(vals ...)))])
+           (define a-child (process-pattern v))
+           (sat:add-child! an-and-node a-child))
+         an-and-node)]))
+  
+  (for ([a-rule (in-list rules)])
+    (define rule-node (free-id-table-ref toplevel-rule-table (rule-id a-rule)))
+    (sat:add-child! rule-node (process-pattern (rule-pattern a-rule))))
+  
+  (for ([a-leaf leaves])
+    (sat:visit! a-leaf))
+  
+  (for ([a-rule (in-list rules)])
+    (define rule-node (free-id-table-ref toplevel-rule-table (rule-id a-rule)))
+    (unless (sat:node-yes? rule-node)
+      (raise-syntax-error #f (format "Rule ~a has no finite derivation" (syntax-e (rule-id a-rule)))
+                          (rule-id a-rule)))))
