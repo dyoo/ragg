@@ -8,4 +8,4 @@ drawing: rows*
 rows: repeat chunk+ end
 repeat: INTEGER
 chunk: INTEGER STRING
-end: NEWLINE
+end: NEWLINE*

@@ -30,6 +30,7 @@
                                (c prog))))))]))
 
 
+
 (check-compile-error "#lang ragg"
                      "The grammar does not appear to have any rules")
 
@@ -56,6 +57,11 @@
 
 (check-compile-error "#lang ragg\nx : x"
                      "x has no finite derivation")
+
+
+(check-compile-error "#lang ragg\nprogram: EOF"
+                     "EOF is a reserved token type, and can not be used in a grammar")
+
 
 
 

@@ -234,7 +234,8 @@
 ;; Given a rule, automatically derive the list of implicit and
 ;; explicit token types we need to generate.
 ;; 
-;; Note: EOF will always be included in the list of explicit token types.
+;; Note: EOF is reserved, and will always be included in the list
+;; of explicit token types, though the user is not allow to express it themselves.
 (define (rules-collect-token-types rules)
   (define-values (implicit explicit)
     (for/fold ([implicit '()]
@@ -258,7 +259,10 @@
       [(lit val)
        (values (cons #'val implicit) explicit)]
       [(token val)
-       (values implicit (cons #'val explicit))]
+       (begin
+         (when (eq? (syntax-e #'val) 'EOF)
+           (raise-syntax-error #f "EOF is a reserved token type, and can not be used in a grammar" #'val))
+         (values implicit (cons #'val explicit)))]
       [(choice vals ...)
        (for/fold ([implicit implicit]
                   [explicit explicit])

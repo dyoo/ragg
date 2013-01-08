@@ -159,7 +159,7 @@ generated syntax objects will as well.}
 
 @subsection{Example: a small DSL for ASCII diagrams}
 
-To motivate @tt{ragg}'s design, let's look at the following problem (a
+To motivate @tt{ragg}'s design, let's look at the following toy problem (a
 @link["http://stackoverflow.com/questions/12345647/rewrite-this-script-by-designing-an-interpreter-in-racket"]{restatement
 of a question on Stack Overflow}.)
 
@@ -191,10 +191,10 @@ XXXXXXXXX
 XXXXXXXXX
 }|}
 
-We're being very fast-and-loose with what we mean by the program above, so
-let's try to nail down some meanings.
-
-Each line of the program describes the output of several lines.  Let's look at two examples:
+We're being very fast-and-loose with what we mean by the program
+above, so let's try to nail down some meanings.  Each line of the
+program describes the output of several lines.  Let's look at two
+of the lines in the example:
 
 @itemize[
 @item{@litchar{3 9 X}: ``Repeat the following 3 times: print @racket["X"] nine times, followed by
@@ -204,24 +204,18 @@ a newline.''}
 followed by @racket["X"] three times, followed by @racket[" "] three times, followed by a newline.''}
 ]
 
-Let's assume here that the intent of @litchar[b] is to a representation for @racket[" "], and for
-other uppercase letters to represent themselves.
+We will assume here that the intent of @litchar{b} is to a
+representation for @racket[" "], and for other uppercase letters to
+represent the printing of themselves.
 
-
-Once we have a better idea of the pieces of each line, we have a better chance to capture that
-meaning in a formal notation.  Here's is a first pass at expressing it.
+Once we have a better idea of the pieces of each line, we have a
+better chance to capture that meaning in a formal notation.  Here's is
+a first pass at expressing the structure of these line-drawing programs.
 
 @filebox["simple-line-drawing.rkt"]{
-@verbatim|{
-#lang ragg
-line-drawing: rows-description*
-rows: row-repeat print-chunk*
-row-repeat: INTEGER
-print-chunk: INTEGER STRING
-}|
 }
 
-
+[NOT DONE YET]
 
 @subsubsection{From interpretation to compilation}
 
@@ -529,6 +523,8 @@ blah!
 @section{Bugs and caveats and TODOs}
 
 [Operator precedence story currently not ready yet.]
+
+[EOF is a reserved token type: don't use it.]
 
 [Missing test for grammars with undefined rules.]
 
