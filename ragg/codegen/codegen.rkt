@@ -32,7 +32,9 @@
                              stx))
 
        (check-all-rules-defined! rules)
-
+       (check-all-rules-no-duplicates! rules)
+       (check-all-rules-satisfiable! rules)
+       
        ;; We flatten the rules so we can use the yacc-style ruleset that parser-tools
        ;; supports.
        (define flattened-rules (flatten-rules rules))
@@ -303,6 +305,20 @@
         (raise-syntax-error #f (format "Nonterminal ~a has no definition" (syntax-e referenced-id))
                             referenced-id)))))
 
+;; check-all-rules-no-duplicates!: (listof rule-stx) -> void
+(define (check-all-rules-no-duplicates! rules)
+  (define table (make-free-id-table))
+  ;; Pass one: collect all the defined rule names.
+  (for ([a-rule (in-list rules)])
+    (define maybe-other-rule-id (free-id-table-ref table (rule-id a-rule) (lambda () #f)))
+    (when maybe-other-rule-id
+      (raise-syntax-error #f (format "Rule ~a has a duplicate definition" (syntax-e (rule-id a-rule)))
+                          (rule-id a-rule)
+                          #f
+                          (list (rule-id a-rule) maybe-other-rule-id)))
+    (free-id-table-set! table (rule-id a-rule) (rule-id a-rule))))
+
+
 
 ;; rule-collect-used-ids: rule-stx -> (listof identifier)
 ;; Given a rule, extracts a list of identifiers
@@ -336,3 +352,15 @@
                  ([v (in-list (syntax->list #'(vals ...)))])
          (loop v acc))])))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; check-all-rules-satisfiable: (listof rule-stx) -> void
+;; Does a simple graph traversal / topological sort-like thing to make sure that, for
+;; any rule, there's some finite sequence of tokens that
+;; satisfies it.  If this is not the case, then something horrible
+;; has happened, and we need to tell the user about it.
+;;
+;; NOTE: Assumes all referenced rules have definitions.
+(define (check-all-rules-satisfiable! rules)
+  (define toplevel-rule-table (make-free-id-table))
+  (void))

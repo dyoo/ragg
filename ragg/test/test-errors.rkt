@@ -3,7 +3,8 @@
 (require rackunit
          (for-syntax racket/base))
 
-;; Make sure we produce proper error messages on weird grammars.
+;; The tests in this module make sure we produce proper error messages
+;; on weird grammars.
 
 
 (define-namespace-anchor anchor)
@@ -16,6 +17,7 @@
     (compile (read-syntax #f ip))))
     
 
+;; Helper to let me quickly write compile-error checks.
 (define-syntax (check-compile-error stx)
   (syntax-case stx ()
     [(_ prog expected-msg)
@@ -45,6 +47,9 @@
 
 
 
+(check-compile-error "#lang ragg\n x: NUMBER\nx:STRING"
+                     "Rule x has a duplicate definition")
+
 ;; Check to see that missing definitions for rules also raise good syntax
 ;; errors:
 
@@ -55,13 +60,18 @@
                      "Nonterminal 1flarbl has no definition")
 
 
-(check-compile-error "#lang ragg\nx : x"
-                     "x has no finite derivation")
 
 
 (check-compile-error "#lang ragg\nprogram: EOF"
                      "EOF is a reserved token type, and can not be used in a grammar")
 
+
+
+
+
+;; Nontermination checks:
+(check-compile-error "#lang ragg\nx : x"
+                     "x has no finite derivation")
 
 
 
@@ -82,8 +92,7 @@
 ; b : a | b 
 
 
-
-
+;;
 ;; I need to ask about the behavior of:
 ;;
 ;; #lang ragg
