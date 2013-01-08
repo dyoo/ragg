@@ -134,30 +134,14 @@
 
 
 
-;; rule-components->stx: (U symbol false) (listof stx) ... -> stx
+;; rule-components->stx: (U symbol false) (listof stx) ... #:srcloc (U #f (list src line column offset span)) -> stx
 ;; Creates an stx out of the rule name and its components.
 ;; The location information of the rule spans that of its components.
-(define (rule-components->stx rule-name/false . components)
+(define (rule-components->stx rule-name/false #:srcloc [srcloc #f] . components)
   (define flattened-components (apply append components))
-  (define whole-rule-loc
-    (cond [(empty? flattened-components)
-           (list (current-source) #f #f #f #f)]
-          [else
-           (define f (first flattened-components))
-           (define l (last flattened-components))
-           (list (current-source)
-                 (syntax-line f)
-                 (syntax-column f)
-                 (syntax-position f)
-                 (if (and (number? (syntax-position f))
-                          (number? (syntax-position l))
-                          (number? (syntax-span l)))
-                     (- (+ (syntax-position l) (syntax-span l))
-                        (syntax-position f))
-                     #f))]))
   (datum->syntax #f 
                  (apply append
                         (list 
-                         (datum->syntax #f rule-name/false whole-rule-loc))
+                         (datum->syntax #f rule-name/false srcloc))
                         components)
-                 whole-rule-loc))
+                 srcloc))
