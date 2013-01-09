@@ -159,18 +159,17 @@ generated syntax objects will as well.}
 
 @subsection{Example: a small DSL for ASCII diagrams}
 
-To motivate @tt{ragg}'s design, let's look at the following toy problem (a
+@margin-note{This is a
 @link["http://stackoverflow.com/questions/12345647/rewrite-this-script-by-designing-an-interpreter-in-racket"]{restatement
-of a question on Stack Overflow}.)
-
-Let's say that we'd like to define a language for drawing simple ASCII diagrams.
-We'd like to be able write something like this:
+of a question on Stack Overflow}.}  To motivate @tt{ragg}'s design, let's look
+at the following toy problem: Let's say that we'd like to define a language for
+drawing simple ASCII diagrams.  We'd like to be able write something like this:
 
 @nested[#:style 'inset]{
 @verbatim|{
-3 9 X
-6 3 b 3 X 3 b
-3 9 X
+3 9 X;
+6 3 b 3 X 3 b;
+3 9 X;
 }|}
 
 whose interpretation should generate the following picture:
@@ -191,31 +190,187 @@ XXXXXXXXX
 XXXXXXXXX
 }|}
 
-We're being very fast-and-loose with what we mean by the program
-above, so let's try to nail down some meanings.  Each line of the
-program describes the output of several lines.  Let's look at two
-of the lines in the example:
+
+
+@subsubsection{Syntax and semantics of simple-line-drawings}
+We're being very fast-and-loose with what we mean by the program above, so
+let's try to nail down some meanings.  Each line of the program has a semicolon
+at the end, and describes the output of several @emph{rows} of the line
+drawing.  Let's look at two of the lines in the example:
 
 @itemize[
-@item{@litchar{3 9 X}: ``Repeat the following 3 times: print @racket["X"] nine times, followed by
+@item{@litchar{3 9 X;}: ``Repeat the following 3 times: print @racket["X"] nine times, followed by
 a newline.''}
 
-@item{@litchar{6 3 b 3 X 3 b}: ``Repeat the following 6 times: print @racket[" "] three times, 
+@item{@litchar{6 3 b 3 X 3 b;}: ``Repeat the following 6 times: print @racket[" "] three times, 
 followed by @racket["X"] three times, followed by @racket[" "] three times, followed by a newline.''}
 ]
 
-We will assume here that the intent of @litchar{b} is to a
-representation for @racket[" "], and for other uppercase letters to
-represent the printing of themselves.
+Then each line consists of a @emph{repeat} number, followed by pairs of
+(number, character) @emph{chunks}.  We will
+assume here that the intent of the lowercased character @litchar{b} to
+represent the printing of a 1-character whitespace @racket[" "], and for other
+uppercase letters to represent the printing of themselves.
 
-Once we have a better idea of the pieces of each line, we have a
-better chance to capture that meaning in a formal notation.  Here's is
-a first pass at expressing the structure of these line-drawing programs.
+Once we have a better idea of the pieces of each line, we have a better chance
+to capture that meaning in a formal notation.  Once we have each instruction in
+a structured format, we should be able to interpret it with a straighforward
+case analysis.
 
+Here's is a first pass at expressing the structure of these line-drawing
+programs.
+
+
+@subsubsection{Parsing the concrete syntax of simple-line-drawings}
 @filebox["simple-line-drawing.rkt"]{
+@verbatim|{
+#lang ragg
+drawing: rows*
+rows: repeat chunk+ ";"
+repeat: INTEGER
+chunk: INTEGER STRING
+}|
 }
 
-[NOT DONE YET]
+We write a @tt{ragg} program as an extended BNF grammar, where patterns can
+either be the names of other rules, or literal and symbolic tokens written as
+strings and uppercased identifiers.  The result of a @tt{ragg} program is a
+module with a @racket[parse] function that can parse tokens and produce a
+syntax object as a result.
+
+Let's exercise this function:
+@interaction[#:eval my-eval
+(require ragg/support)
+@eval:alts[(require "simple-line-drawing.rkt") 
+           (require ragg/examples/simple-line-drawing)]
+(define stx
+  (parse (list (token 'INTEGER 6) 
+               (token 'INTEGER 2)
+               (token 'STRING " ")
+               (token 'INTEGER 3)
+               (token 'STRING "X")
+               ";")))
+(syntax->datum stx)
+]
+
+Tokens can either be: plain strings, symbols, or instances produced by the
+@racket[token] function.  Preferably, we want to attach each token with
+auxiliary source location information.  The more source location we can
+provide, the better, as the syntax objects produced by @racket[parse] will
+incorporate them.
+
+Let write a helper function, a @emph{lexer}, to help us construct tokens more
+easily.  The Racket standard library comes with a module called
+@racketmodname[parser-tools/lex] which can help us write a position-sensitive
+tokenizer:
+
+@interaction[#:eval my-eval
+(require parser-tools/lex)
+(define (tokenize ip)
+  (define my-lexer
+    (lexer-src-pos 
+      [(repetition 1 +inf.0 numeric)
+       (token 'INTEGER (string->number lexeme))]
+      [upper-case
+       (token 'STRING lexeme)]
+      ["b"
+       (token 'STRING " ")]
+      [";"
+       (token ";" lexeme)]
+      [whitespace
+       (token 'WHITESPACE lexeme #:skip? #t)]
+      [(eof)
+       (void)]))
+  (define (next-token) (my-lexer ip))
+  next-token)
+
+(define a-sample-input-port (open-input-string "6 2 b 3 X;"))
+(port-count-lines! a-sample-input-port)
+(define token-thunk (tokenize a-sample-input-port))
+@code:comment{Now we can pass token-thunk to the parser:}
+(define another-stx (parse token-thunk))
+(syntax->datum another-stx)
+@code:comment{The syntax object has location information:}
+(syntax-line another-stx)
+(syntax-column another-stx)
+(syntax-span another-stx)
+]
+
+
+There are a few things to note from this lexer example: 
+@itemize[
+
+@item{The @racket[parse] function can consume either sequences of tokens, or a
+function that produces tokens.  Both of these are considered sources of tokens.}
+
+@item{Each token returned by a token source may be an instance of the
+@racket[position-token] structure of @racketmodname[parser-tools/lex].  The
+@racket[token] constructor also provides keyword arguments for providing
+location.}
+
+@item{@racket[parse] will consider a token source exhausted if any token is
+@racket[void].}
+
+@item{A token can have a @racket[#:skip?] attribute, which @racket[parse] will
+ignore.  Elements such as whitespace and comments will often have this
+attribute.}
+]
+
+
+@subsection{From parsing to interpretation}
+
+We now have a parser for programs written in this simple-line-drawing language.
+Our parser will give us back syntax objects:
+@interaction[#:eval my-eval
+(define parsed-program
+  (parse (tokenize (open-input-string "3 9 X; 6 3 b 3 X 3 b; 3 9 X;"))))
+(syntax->datum parsed-program)
+]
+
+Moreover, we know that these syntax objects have a regular, predictable
+structure.  Their structure follows the grammar, so we know we'll be looking at
+values of the form:
+
+@racketblock[
+    (drawing (rows (repeat <number>)
+                   (chunk <number> <string>) ... ";")
+             ...)
+]
+
+where @racket[drawing], @racket[rows], @racket[repeat], and @racket[chunk]
+should be treated literally, and everything else will be numbers or strings.
+
+
+Still, these syntax object values are just inert structures.  How do we
+interpret them, and make them @emph{print}?  We did claim at the beginning of
+this section that these syntax objects should be fairly easy to case-analyze
+and interpret, so let's do it.
+
+Racket provides a special form called @racket[syntax-parse] in the
+@racketmodname[syntax/parse] library.  @racket[syntax-parse] makes it fairly
+straightforward to do a case-analysis on syntax objects: we provide it a set of
+patterns to parse and actions to perform when those patterns match.
+
+
+As a simple example, we can write a function that looks at a syntax object and
+says @racket[#t] if it's the literal @racket[yes]:
+
+@interaction[#:eval my-eval
+(require syntax/parse)
+@code:comment{yes-syntax-object?: syntax-object -> boolean}
+@code:comment{Returns true if the syntax-object is yes.}
+(define (yes-syntax-object? stx)
+  (syntax-parse stx
+    [(~literal yes)
+     #t]
+    [else
+     #f]))
+(yes-syntax-object? #'yes)
+(yes-syntax-object? #'no)
+]
+
+
+
 
 @subsubsection{From interpretation to compilation}
 
@@ -526,16 +681,13 @@ blah!
 
 [EOF is a reserved token type: don't use it.]
 
-[Missing test for grammars with undefined rules.]
-
-[Missing test for grammars with repeated rules.]
-
 [Missing explanation for ambiguous parses]
 
 [Larger, more comprehensive test suite]
 
 [Missing convenient syntax for simple lexers]
 
+[What happens when we pass the wrong token to a parser?]
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

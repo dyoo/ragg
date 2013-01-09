@@ -7,7 +7,11 @@
          ragg/support)
 
 
-(provide (all-defined-out))
+(provide THE-ERROR-HANDLER 
+         make-permissive-tokenizer
+         atomic-datum->syntax
+         positions->srcloc
+         rule-components->syntax)
 
 
 
@@ -129,9 +133,10 @@
 
 ;; We create a syntax using read-syntax; by definition, it should have the
 ;; original? property set to #t, which we then copy over to syntaxes constructed
-;; with atomic-datum->syntax and rule-components->syntax
+;; with atomic-datum->syntax and rule-components->syntax.
 (define stx-with-original?-property
   (read-syntax #f (open-input-string "original")))
+
 
 ;; atomic-datum->syntax: datum position position
 ;; Helper that does the ugly work in wrapping a datum into a syntax

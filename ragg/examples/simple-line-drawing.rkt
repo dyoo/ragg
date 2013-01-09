@@ -5,7 +5,6 @@
 ;;
 
 drawing: rows*
-rows: repeat chunk+ end
+rows: repeat chunk+ ";"
 repeat: INTEGER
 chunk: INTEGER STRING
-end: NEWLINE*

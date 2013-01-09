@@ -16,10 +16,10 @@
                 (token 'STRING lexeme)]
                ["b"
                 (token 'STRING " ")]
-               ["\n"
-                (token 'NEWLINE)]
-               [" "
-                (token 'WHITESPACE #:skip? #t)]
+               [";"
+                (token ";" lexeme)]
+               [whitespace
+                (token 'WHITESPACE lexeme #:skip? #t)]
                [(eof)
                 (void)]))
   (lambda ()
@@ -29,9 +29,9 @@
 
 (define the-parsed-object-stx
   (parse (make-tokenizer (open-input-string #<<EOF
-3 9 X
-6 3 b 3 X 3 b
-3 9 X
+3 9 X;
+6 3 b 3 X 3 b;
+3 9 X;
 EOF
 ))))
 
@@ -40,29 +40,29 @@ EOF
 (check-true (syntax-original? (first (syntax->list the-parsed-object-stx))))
 
 (check-equal? (syntax->datum the-parsed-object-stx)
-              '(drawing (rows (repeat 3) (chunk 9 "X") (end #f))
-                        (rows (repeat 6) (chunk 3 " ") (chunk 3 "X") (chunk 3 " ") (end #f))
-                        (rows (repeat 3) (chunk 9 "X") (end))))
+              '(drawing (rows (repeat 3) (chunk 9 "X") ";")
+                        (rows (repeat 6) (chunk 3 " ") (chunk 3 "X") (chunk 3 " ") ";")
+                        (rows (repeat 3) (chunk 9 "X") ";")))
 
 (define the-parsed-object (syntax->list the-parsed-object-stx))
 
 (check-equal? (syntax-line the-parsed-object-stx) 1)
 (check-equal? (syntax-column the-parsed-object-stx) 0)
 (check-equal? (syntax-position the-parsed-object-stx) 1)
-(check-equal? (syntax-span the-parsed-object-stx) 25)
+(check-equal? (syntax-span the-parsed-object-stx) 28)
 
 (check-equal? (length the-parsed-object) 4)
 
 (check-equal? (syntax->datum (second the-parsed-object))
-              '(rows (repeat 3) (chunk 9 "X") (end #f)))
+              '(rows (repeat 3) (chunk 9 "X") ";"))
 (check-equal? (syntax-line (list-ref the-parsed-object 1)) 1)
 
 (check-equal? (syntax->datum (third the-parsed-object))
-              '(rows (repeat 6) (chunk 3 " ") (chunk 3 "X") (chunk 3 " ") (end #f)))
+              '(rows (repeat 6) (chunk 3 " ") (chunk 3 "X") (chunk 3 " ") ";"))
 (check-equal? (syntax-line (list-ref the-parsed-object 2)) 2)
 
 (check-equal? (syntax->datum (fourth the-parsed-object))
-              '(rows (repeat 3) (chunk 9 "X") (end)))
+              '(rows (repeat 3) (chunk 9 "X") ";"))
 (check-equal? (syntax-line (list-ref the-parsed-object 3)) 3)
 
 ;; FIXME: add tests to make sure location is as we expect.
