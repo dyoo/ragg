@@ -126,22 +126,30 @@
                (lex:position-offset start-pos))
             #f)))
 
-;; d->s: datum position position
+
+;; We create a syntax using read-syntax; by definition, it should have the
+;; original? property set to #t, which we then copy over to syntaxes constructed
+;; with atomic-datum->syntax and rule-components->syntax
+(define stx-with-original?-property
+  (read-syntax #f (open-input-string "original")))
+
+;; atomic-datum->syntax: datum position position
 ;; Helper that does the ugly work in wrapping a datum into a syntax
 ;; with source location.
-(define (d->s d start-pos end-pos)
-  (datum->syntax #f d (positions->srcloc start-pos end-pos)))
+(define (atomic-datum->syntax d start-pos end-pos)
+  (datum->syntax #f d (positions->srcloc start-pos end-pos) stx-with-original?-property))
 
 
 
-;; rule-components->stx: (U symbol false) (listof stx) ... #:srcloc (U #f (list src line column offset span)) -> stx
+;; rule-components->syntax: (U symbol false) (listof stx) ... #:srcloc (U #f (list src line column offset span)) -> stx
 ;; Creates an stx out of the rule name and its components.
 ;; The location information of the rule spans that of its components.
-(define (rule-components->stx rule-name/false #:srcloc [srcloc #f] . components)
+(define (rule-components->syntax rule-name/false #:srcloc [srcloc #f] . components)
   (define flattened-components (apply append components))
   (datum->syntax #f 
                  (apply append
                         (list 
-                         (datum->syntax #f rule-name/false srcloc))
+                         (datum->syntax #f rule-name/false srcloc stx-with-original?-property))
                         components)
-                 srcloc))
+                 srcloc
+                 stx-with-original?-property))

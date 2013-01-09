@@ -35,6 +35,10 @@
 EOF
 ))))
 
+(check-true (syntax-original? the-parsed-object-stx))
+;; Does the rule name "drawing" also have the proper "original?" property set?
+(check-true (syntax-original? (first (syntax->list the-parsed-object-stx))))
+
 (check-equal? (syntax->datum the-parsed-object-stx)
               '(drawing (rows (repeat 3) (chunk 9 "X") (end #f))
                         (rows (repeat 6) (chunk 3 " ") (chunk 3 "X") (chunk 3 " ") (end #f))

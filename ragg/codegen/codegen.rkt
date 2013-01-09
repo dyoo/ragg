@@ -212,9 +212,9 @@
           [(id val)
            #`(list $X)]
           [(lit val)
-           #`(list (d->s $X $X-start-pos $X-end-pos))]
+           #`(list (atomic-datum->syntax $X $X-start-pos $X-end-pos))]
           [(token val)
-           #`(list (d->s $X $X-start-pos $X-end-pos))]))))
+           #`(list (atomic-datum->syntax $X $X-start-pos $X-end-pos))]))))
   
   (define whole-rule-loc
     (if (empty? translated-patterns)
@@ -226,8 +226,8 @@
   (with-syntax ([(translated-pattern ...) translated-patterns]
                 [(translated-action ...) translated-actions])
     #`[(translated-pattern ...)
-       (rule-components->stx '#,rule-name/false translated-action ...
-                             #:srcloc #,whole-rule-loc)]))
+       (rule-components->syntax '#,rule-name/false translated-action ...
+                                #:srcloc #,whole-rule-loc)]))
 
 
 
