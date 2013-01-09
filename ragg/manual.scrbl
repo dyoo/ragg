@@ -404,7 +404,7 @@ Let's define @racket[interpret-row] now:
       ({~literal repeat} repeat-number)
       chunks ... ";")
 
-     (for ([i (in-range (syntax-e #'repeat-number))])
+     (for ([i (syntax-e #'repeat-number)])
        (for ([chunk-stx (syntax->list #'(chunks ...))])
          (interpret-chunk chunk-stx))
        (newline))]))]
@@ -439,9 +439,74 @@ And now we've got an interpreter!
 
 @subsubsection{From interpretation to compilation}
 
+@margin-note{For a similar treatment of these ideas, see:
+@link["http://hashcollision.org/brainfudge"]{F*dging up a Racket}.}  (Just as a
+warning: the following material is slightly more advanced, but shows how
+writing a compiler for the line-drawing language reuses the ideas for the
+interpreter.)
 
-FILL ME IN: I NEED A LONG-RUNNING EXAMPLE OF A DSL HERE.  THE GOAL
-IS TO SHOW HOW RAGG HELPS US TO MAKE OTHER #LANG'S REALLY QUICKLY.
+We now have an interpreter in hand.  But wouldn't it be nice to be able to
+write something like:
+
+@nested[#:style 'inset]{
+@verbatim|{
+3 9 X;
+6 3 b 3 X 3 b;
+3 9 X;
+}|}
+
+and have Racket automatically compile this down to something like this?
+@racketblock[
+(for ([i 3])
+  (for ([k 9]) (displayln "X"))
+  (newline))
+
+(for ([i 6])
+  (for ([k 3]) (displayln " "))
+  (for ([k 3]) (displayln "X"))
+  (for ([k 3]) (displayln " "))
+  (newline))
+
+(for ([i 3])
+  (for ([k 9]) (displayln "X"))
+  (newline))
+]
+
+Well, of course it won't work: we don't have a @litchar{#lang} line.
+
+Let's add one.
+
+@filebox["letter-i.rkt"]{
+@verbatim|{
+#lang ragg/examples/simple-line-drawing
+3 9 X;
+6 3 b 3 X 3 b;
+3 9 X;
+}|
+}
+
+Now @filepath{letter-i.rkt} is a program.
+
+
+How does this work?  We'll do the following:
+
+@itemize[
+
+@item{Tell Racket to use our parser and lexer to read an input stream when it
+encounters a program in @litchar{#lang ragg/examples/simple-line-drawing}.}
+
+@item{Define a few transformation rules for @racket[drawing], @racket[rows], and @racket[chunk] to
+      rewrite them into standard Racket forms.  This will look very similar to the
+      definitions we wrote for the interpreter.}
+
+@item{Profit.}
+]
+
+
+
+
+
+
 
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

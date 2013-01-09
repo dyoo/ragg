@@ -1,10 +1,16 @@
 #lang racket/base
 (require (for-syntax racket/base syntax/parse))
 
-(provide drawing rows chunk 
-         #%module-begin
-         #%datum ;; We reuse Racket's treatment of raw datums, specifically for strings and numbers
-         )
+(provide #%module-begin
+         ;; We reuse Racket's treatment of raw datums, specifically
+         ;; for strings and numbers:
+         #%datum
+         
+         ;; And otherwise, we provide definitions of these three forms.
+         ;; During compiliation, Racket uses these definitions to 
+         ;; rewrite them into for loops, displays, and newlines.
+         drawing rows chunk)
+
 
 (define-syntax (drawing drawing-stx)
   (syntax-parse drawing-stx
@@ -18,11 +24,12 @@
   (syntax-parse row-stx
     [({~literal rows}
       ({~literal repeat} repeat-number)
-      chunks ... ";")
+      chunks ... 
+      ";")
 
      (syntax/loc row-stx
        (begin
-         (for ([i (in-range repeat-number)])
+         (for ([i repeat-number])
            chunks ...
            (newline))))]))
 

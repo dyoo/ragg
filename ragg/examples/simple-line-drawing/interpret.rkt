@@ -17,7 +17,7 @@
       ({~literal repeat} repeat-number)
       chunks ... ";")
 
-     (for ([i (in-range (syntax-e #'repeat-number))])
+     (for ([i (syntax-e #'repeat-number)])
        (for ([chunk-stx (syntax->list #'(chunks ...))])
          (interpret-chunk chunk-stx))
        (newline))]))
