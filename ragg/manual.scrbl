@@ -130,7 +130,7 @@ Welcome to @tt{ragg}.
 
 @section{Introduction}
 
-@tt{ragg} is a parsing framework with the design goal to be easy
+@tt{ragg} is a parsing framework for Racket with the design goal to be easy
 to use.  It includes the following features:
 @itemize[
 
@@ -153,6 +153,10 @@ tokens can optionally provide location: if tokens provide location, the
 generated syntax objects will as well.}
 
 @item{The underlying parser should be able to handle ambiguous grammars.}
+
+@item{It should integrate with the rest of the Racket
+@link["http://docs.racket-lang.org/guide/languages.html"]{language toolchain}.}
+
 ]
 
 
