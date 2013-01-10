@@ -785,6 +785,10 @@ should raise an error because @tt{bar} has not been defined, even though
 @tt{foo} refers to it in an @tech{optional pattern}.}
 
 
+@item{uses the token name @racket[EOF]; the end-of-file token type is reserved
+for internal use by @tt{ragg}.}
+
+
 @item{contains a rule that has no finite derivation.  e.g. the following
 program:
 @nested[#:style 'code-inset
@@ -808,16 +812,21 @@ A program written in @litchar{#lang ragg} produces a module that provides a few
 bindings.  The most important of these is @racket[parse]:
 
 @defproc[(parse [source any/c #f] 
-                [token-source sequence?])
+                [token-source (or/c (sequenceof token)
+                              (-> token))])
          syntax?]{
 
 Parses the sequence of tokens according to the rules in the grammar, using the
 first rule as the start production.  The parse must completely consume
-@racket[token-source].  See @secref{token-sources} for more details on what
-kind of values are considered to be tokens.
+@racket[token-source].
 
-If it succeeds, @racket[parse] will return a syntax object.
-The structure of the syntax object follows the overall structure of the rules in
+The token source can either be a sequence, or a 0-arity function that produces
+tokens.  In either case, a token whose type is either @racket[void] or
+@racket['EOF] terminates the source.
+
+
+If @racket[parse] succeeds, it will return a structured syntax object.  The
+structure of the syntax object follows the overall structure of the rules in
 the BNF.  For each rule @racket[r] and its associated pattern @racket[p],
 @racket[parse] generates a syntax object @racket[#'(r p-value)] where
 @racket[p-value]'s structure follows a case analysis on @racket[p]:
@@ -903,12 +912,6 @@ all-token-types
 ]
 
 }
-
-
-
-@subsection[#:tag "token-sources"]{Token sources}
-
-FILL ME IN PLEASE
 
 
 
