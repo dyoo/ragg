@@ -44,9 +44,7 @@
        
        ;; The first rule, by default, is the start rule.
        (define rule-ids (for/list ([a-rule (in-list rules)])
-                          (syntax-case a-rule (rule)
-                            [(rule id pattern)
-                             #'id])))
+                          (rule-id a-rule)))
        (define start-id (first rule-ids))
        
        
@@ -107,8 +105,9 @@
 
              (define-tokens enumerated-tokens (token-type ...))
 
+             ;; all-token-types lists all the tokens (except for EOF)
              (define all-token-types 
-               (set 'token-type ...))
+               (set-remove (set 'token-type ...) 'EOF))
 
              ;; For internal use by the permissive tokenizer only:
              (define all-tokens-hash/mutable

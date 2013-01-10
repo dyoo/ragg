@@ -1,6 +1,7 @@
 #lang racket/base
 (require ragg/examples/simple-arithmetic-grammar
          ragg/support
+         racket/set
          parser-tools/lex
          racket/list
          rackunit)
@@ -65,3 +66,7 @@
            (lambda () (parse #f (tokenize (open-input-string "7+")))))
 (check-exn exn:fail:parsing?
            (lambda () (parse #f (tokenize (open-input-string "7+6+")))))
+
+
+(check-equal? all-token-types
+              (set '+ '* 'INT))

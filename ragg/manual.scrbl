@@ -846,6 +846,21 @@ the following interaction shows how to extract a parser for @racket[term]s.
 }
 
 
+Finally, the module provides a set of all the used token types in the grammar
+in @racket[all-token-types]:
+@defthing[all-token-types (setof symbol?)]{
+A set of all the token types used in a grammar.
+
+For example:
+@interaction[#:eval my-eval
+@eval:alts[(require "simple-arithmetic-grammar.rkt") 
+                    (require ragg/examples/simple-arithmetic-grammar)]
+all-token-types
+]
+
+}
+
+
 
 @subsection[#:tag "token-sources"]{Token sources}
 
@@ -905,18 +920,6 @@ the helper function @racket[token] to construct instances.
 The exception raised when parsing fails.
 }
 
-
-
-@defthing[current-source (parameterof any/c)]{
-blah blah}
-
-@defthing[current-parser-error-handler (parameterof any/c)]{
-blah blah blah
-}
-
-@defthing[current-tokenizer-error-handler (parameterof any/c)]{
-blah!
-}
 
 
 
