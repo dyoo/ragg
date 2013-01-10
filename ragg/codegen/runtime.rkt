@@ -49,33 +49,37 @@
                            [(procedure? tokenizer)
                             tokenizer]))
 
+  ;; lookup: symbol any pos pos -> position-token
+  (define (lookup type val start-pos end-pos)
+    (lex:position-token
+     ((hash-ref token-type-hash type
+               (lambda ()
+                 ((current-tokenizer-error-handler) (format "~a" type) val
+                  (lex:position-offset start-pos)
+                  (lex:position-line start-pos)
+                  (lex:position-col start-pos)
+                  (and (number? (lex:position-offset start-pos))
+                       (number? (lex:position-offset end-pos))
+                       (- (lex:position-offset end-pos) 
+                          (lex:position-offset start-pos))))))
+      val)
+     start-pos end-pos))
+
   (define (permissive-tokenizer)
     (define next-token (tokenizer-thunk))
     (let loop ([next-token next-token])
     (match next-token
       [(or (? eof-object?) (? void?))
-       (lex:position-token ((hash-ref token-type-hash 'EOF) eof)
-                           no-position 
-                           no-position)]
+       (lookup 'EOF eof no-position no-position)]
 
       [(? symbol?)
-       (lex:position-token ((hash-ref token-type-hash next-token) next-token)
-                           no-position
-                           no-position)]
+       (lookup next-token next-token no-position no-position)]
 
       [(? string?)
-       (lex:position-token ((hash-ref token-type-hash
-                                      (string->symbol next-token))
-                            next-token)
-                           no-position
-                           no-position)]
+       (lookup (string->symbol next-token) next-token no-position no-position)]
 
       [(? char?)
-       (lex:position-token ((hash-ref token-type-hash
-                                      (string->symbol (string next-token)))
-                            next-token)
-                           no-position
-                           no-position)]
+       (lookup (string->symbol (string next-token)) next-token no-position no-position)]
       
       [(token-struct type val offset line column span skip?)
        (cond [skip?
@@ -83,16 +87,16 @@
               (permissive-tokenizer)]
              
              [(hash-has-key? token-type-hash type)
-              (lex:position-token ((hash-ref token-type-hash type) val)
-                                  (lex:position offset line column)
-                                  ;; try to synthesize a consistent end position.
-                                  (lex:position (if (and (number? offset) (number? span))
+              (define start-pos (lex:position offset line column))
+              ;; try to synthesize a consistent end position.
+              (define end-pos (lex:position (if (and (number? offset) (number? span))
                                                     (+ offset span)
                                                     offset)
                                                 line
                                                 (if (and (number? column) (number? span))
                                                     (+ column span)
-                                                    column)))]
+                                                    column)))
+              (lookup type val start-pos end-pos)]
              [else
               ;; We ran into a token of unrecognized type.  Let's raise an appropriate error.
               ((current-tokenizer-error-handler) type val 

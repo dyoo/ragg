@@ -40,3 +40,11 @@
            (lambda ()
              (parse #f (lex (open-input-string "010")))))
 
+
+;; This should fail predictably because we're passing in tokens
+;; that the parser doesn't know.
+(check-exn exn:fail:parsing? 
+           (lambda () (parse '("zero" "one" "zero"))))
+(check-exn (regexp (regexp-quote
+                    "Encountered unexpected token \"zero\" (\"zero\") while parsing"))
+           (lambda () (parse '("zero" "one" "zero"))))
