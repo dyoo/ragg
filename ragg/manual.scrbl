@@ -243,7 +243,7 @@ We write a @tt{ragg} program as an extended BNF grammar, where patterns can be:
 @itemize[
 @item{the names of other rules (e.g. @racket[chunk])}
 @item{literal and symbolic token names (e.g. @racket[";"], @racket[INTEGER])}
-@item{quantified patterns (e.g. @litchar{+}) to represent one-or-more repetitions}
+@item{quantified patterns (e.g. @litchar{+} to represent one-or-more repetitions)}
 ]
 The result of a @tt{ragg} program is a module with a @racket[parse] function
 that can parse tokens and produce a syntax object as a result.
