@@ -4,7 +4,8 @@
          racket/list
          racket/generator
          (prefix-in lex: parser-tools/lex) 
-         ragg/support)
+         ragg/support
+         ragg/private/internal-support)
 
 
 (provide THE-ERROR-HANDLER 

@@ -92,14 +92,13 @@
                       parser-module
                       ragg/codegen/runtime
                       ragg/support
+                      ragg/private/internal-support
+                      racket/set
                       (for-syntax syntax/parse racket/base))
              
              (provide parse
                       make-rule-parser
-                      ;; default-lex/1
-
-                      all-tokens-hash
-
+                      all-token-types
                       #;current-source
                       #;current-parser-error-handler
                       #;current-tokenizer-error-handler
@@ -108,8 +107,8 @@
 
              (define-tokens enumerated-tokens (token-type ...))
 
-             (define all-tokens-hash 
-               (make-immutable-hash (list (cons 'token-type token-type-constructor) ...)))
+             (define all-token-types 
+               (set 'token-type ...))
 
              ;; For internal use by the permissive tokenizer only:
              (define all-tokens-hash/mutable

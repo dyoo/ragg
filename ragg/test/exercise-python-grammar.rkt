@@ -21,7 +21,7 @@
          (define end-pos (position #f end-line end-col))
          (position-token (case type
                            [(NAME) 
-                            (cond [(hash-has-key? all-tokens-hash (string->symbol text))
+                            (cond [(set-member? all-token-types (string->symbol text))
                                    (token (string->symbol text) text)]
                                   [else
                                    (token 'NAME text)])]
