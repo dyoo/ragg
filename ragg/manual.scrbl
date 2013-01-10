@@ -258,10 +258,12 @@ Let's exercise this function:
 ]
 
 Tokens can either be: plain strings, symbols, or instances produced by the
-@racket[token] function.  Preferably, we want to attach each token with
-auxiliary source location information.  The more source location we can
-provide, the better, as the syntax objects produced by @racket[parse] will
-incorporate them.
+@racket[token] function.  (Plus one more special case which we'll describe in
+one moment!)
+
+Preferably, we want to attach each token with auxiliary source location
+information.  The more source location we can provide, the better, as the
+syntax objects produced by @racket[parse] will incorporate them.
 
 Let write a helper function, a @emph{lexer}, to help us construct tokens more
 easily.  The Racket standard library comes with a module called
@@ -308,10 +310,10 @@ There are a few things to note from this lexer example:
 function that produces tokens.  Both of these are considered sources of
 tokens.}
 
-@item{Each token returned by a token source may be an instance of the
-@racket[position-token] structure of @racketmodname[parser-tools/lex].  The
-@racket[token] constructor also provides keyword arguments for providing
-location.}
+@item{As a special case, each token can also be an instance of the
+@racket[position-token] structure of @racketmodname[parser-tools/lex], in which
+case the token will try to derive its position from that of the
+position-token.}
 
 @item{The @racket[parse] function will stop reading from a token source if any
 token is @racket[void].}
@@ -594,10 +596,10 @@ Here are the contents of @filepath{semantics.rkt}:
 
 Like the interpreter we wrote before, the semantics hold definitions for
 @racket[compile-drawing], @racket[compile-rows], and @racket[compile-chunk].
-However, each definition does not immediately execute, but rather returns a
-syntax object of the rewritten code.  @tt{ragg}'s native data structure is
-syntax objects because most of its language-processing infrastructure knows how
-to read and write these structured values.
+However, each definition does not immediately execute the act of drawing, but
+rather returns a syntax object of the rewritten code.  @tt{ragg}'s native data
+structure is syntax objects because most of Racket's language-processing
+infrastructure knows how to read and write these structured values.
 
 Also, notice that unlike in interpretation, @racket[compile-rows] doesn't
 compile each chunk by directly calling @racket[compile-chunk].  Rather, it
