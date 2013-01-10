@@ -1,0 +1,11 @@
+#lang setup/infotab
+(define name "ragg")
+(define categories '(devtools))
+(define can-be-loaded-with 'all)
+(define required-core-version "5.3.1")
+(define version "1.0")
+(define repositories '("4.x"))
+(define scribblings '(("manual.scrbl")))
+(define blurb '("ragg: a Racket AST Generator Generator.  A design goal is to be easy for beginners to use. Given a grammar in EBNF, ragg produces a parser that generates Racket's native syntax objects with full source location."))
+(define release-notes '((p "First release.")))
+(define deps (list))
