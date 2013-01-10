@@ -439,7 +439,7 @@ And now we've got an interpreter!
 
 @subsubsection{From interpretation to compilation}
 
-@margin-note{For a similar treatment of these ideas, see:
+@margin-note{For a slower tutorial, see:
 @link["http://hashcollision.org/brainfudge"]{F*dging up a Racket}.}  (Just as a
 warning: the following material is slightly more advanced, but shows how
 writing a compiler for the line-drawing language reuses the ideas for the
@@ -488,25 +488,140 @@ Let's add one.
 Now @filepath{letter-i.rkt} is a program.
 
 
-How does this work?  We'll do the following:
+How does this work?  We'll do two things:
 
 @itemize[
+@item{Tell Racket to use the @tt{ragg}-generated parser and lexer we defined
+earlier to read an input stream whenever it sees a program written with
+@litchar{#lang ragg/examples/simple-line-drawing}.}
 
-@item{Tell Racket to use our parser and lexer to read an input stream when it
-encounters a program in @litchar{#lang ragg/examples/simple-line-drawing}.}
-
-@item{Define a few transformation rules for @racket[drawing], @racket[rows], and @racket[chunk] to
-      rewrite them into standard Racket forms.  This will look very similar to the
-      definitions we wrote for the interpreter.}
-
-@item{Profit.}
+@item{Define transformation rules for @racket[drawing], @racket[rows], and
+      @racket[chunk] to rewrite these into standard Racket forms.  This will
+      look very similar to the definitions we wrote for the interpreter, but
+      the transformation will happen at compile-time.}
 ]
 
+We do the first by defining a @emph{reader} module: a reader module tells
+Racket how to parse and compile a file.  Whenever Racket sees a @litchar{#lang
+<name>}, it looks for corresponding reader module in
+@filepath{<name>/lang/reader}.
+
+Here's the definition for
+@filepath{ragg/examples/simple-line-drawing/lang/reader.rkt}:
+
+@filebox["ragg/examples/simple-line-drawing/lang/reader.rkt"]{
+@codeblock|{
+#lang s-exp syntax/module-reader
+ragg/examples/simple-line-drawing/semantics
+#:read my-read
+#:read-syntax my-read-syntax
+#:whole-body-readers? #t
+
+(require ragg/examples/simple-line-drawing/lexer
+         ragg/examples/simple-line-drawing/grammar)
+
+(define (my-read in)
+  (syntax->datum (my-read-syntax #f in)))
+
+(define (my-read-syntax src ip)
+  (list (parse src (tokenize ip))))
+}|
+}
+
+We use a helper module @racketmodname[syntax/module-reader], which provides
+utilities for creating a reader module.  It uses the lexer and
+@tt{ragg}-generated parser we defined earlier (saved into
+@link["http://hashcollision.org/ragg/examples/simple-line-drawing/lexer.rkt"]{lexer.rkt}
+and
+@link["http://hashcollision.org/ragg/examples/simple-line-drawing/grammar.rkt"]{grammar.rkt}
+modules), and also tells Racket that it should compile the forms in the syntax
+object using a module called @filepath{semantics.rkt}.
+
+Here are the contents of @filepath{semantics.rkt}:
+@filebox["ragg/examples/simple-line-drawing/semantics.rkt"]{
+@codeblock|{
+#lang racket/base
+(require (for-syntax racket/base syntax/parse))
+
+(provide #%module-begin
+         ;; We reuse Racket's treatment of raw datums, specifically
+         ;; for strings and numbers:
+         #%datum
+         
+         ;; And otherwise, we provide definitions of these three forms.
+         ;; During compiliation, Racket uses these definitions to 
+         ;; rewrite into for loops, displays, and newlines.
+         drawing rows chunk)
+
+;; Define a few compile-time functions to do the syntax rewriting:
+(begin-for-syntax
+  (define (compile-drawing drawing-stx)
+    (syntax-parse drawing-stx
+      [({~literal drawing} row-stxs ...)
+
+     (syntax/loc drawing-stx
+       (begin row-stxs ...))]))
+
+  (define (compile-rows row-stx)
+    (syntax-parse row-stx
+      [({~literal rows}
+        ({~literal repeat} repeat-number)
+        chunks ... 
+        ";")
+
+       (syntax/loc row-stx
+         (for ([i repeat-number])
+           chunks ...
+           (newline)))]))
+
+  (define (compile-chunk chunk-stx)
+    (syntax-parse chunk-stx
+      [({~literal chunk} chunk-size chunk-string)
+
+       (syntax/loc chunk-stx
+         (for ([k chunk-size])
+           (display chunk-string)))])))
+
+
+;; Wire up the use of "drawing", "rows", and "chunk" to these
+;; transformers:
+(define-syntax drawing compile-drawing)
+(define-syntax rows compile-rows)
+(define-syntax chunk compile-chunk)
+}|
+}
+
+
+Like the interpreter we wrote before, the semantics hold definitions for
+@racket[compile-drawing], @racket[compile-rows], and @racket[compile-chunk].
+However, each definition does not immediately execute, but rather returns a
+syntax object of the rewritten code.  @tt{ragg}'s native data structure is
+syntax objects because most of its language-processing infrastructure knows how
+to read and write these structured values.
+
+Also, notice that unlike in interpretation, @racket[compile-rows] doesn't
+compile each chunk by directly calling @racket[compile-chunk].  Rather, it
+depends on the Racket macro expander to call each @racket[compile-XXX] function
+as it encounters a @racket[drawing], @racket[rows], or @racket[chunk] in the
+parsed value.  The three statements at the bottom of @filepath{semantics.rkt} inform
+the macro expansion system to do this:
+
+@racketblock[
+(define-syntax drawing compile-drawing)
+(define-syntax rows compile-rows)
+(define-syntax chunk compile-chunk)
+]
+
+(By the way, we can just as easily rewrite the semantics so that
+@racket[compile-rows] explicitly calls @racket[compile-chunk].  Often, though,
+it's easier to write the transformation functions in this piecemeal way and
+depend on the Racket macro expansion system to do the rewriting as it
+encounters each of the forms.)
 
 
 
-
-
+The rest of this document describes the @tt{ragg} language and the parsers it
+generates.
 
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

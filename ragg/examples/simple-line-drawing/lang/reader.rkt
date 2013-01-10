@@ -1,12 +1,12 @@
 #lang s-exp syntax/module-reader
-ragg/examples/simple-line-drawing/language
+ragg/examples/simple-line-drawing/semantics
 #:read my-read
 #:read-syntax my-read-syntax
 #:info my-get-info
 #:whole-body-readers? #t
 
 (require ragg/examples/simple-line-drawing/lexer
-         ragg/examples/simple-line-drawing)
+         ragg/examples/simple-line-drawing/grammar)
 
 (define (my-read in)
   (syntax->datum (my-read-syntax #f in)))
