@@ -1021,12 +1021,13 @@ transformed in the parser output.}
 
 @section{Miscellaneous and thanks}
 
-Joe Politz gave me good advice and feedback.  Also, he suggested the name
-``ragg''.  Other alternatives I'd been considering were ``autogrammar'' or
-``chompy''.  Thankfully, he is a better Namer than me.  Daniel Patterson
-provided feedback that led to @racket[make-rule-parser].  Robby Findler and
-Guillaume Marceau provided steadfast suggestions to look into other parsing
-frameworks like
+Thanks to Matthew Flatt for pointing me to @racket[cfg-parser] from the
+@racketmodname[algol60/algol60] library.  Joe Politz gave me good advice and
+feedback.  Also, he suggested the name ``ragg''.  Other alternatives I'd been
+considering were ``autogrammar'' or ``chompy''.  Thankfully, he is a better
+Namer than me.  Daniel Patterson provided feedback that led to
+@racket[make-rule-parser].  Robby Findler and Guillaume Marceau provided
+steadfast suggestions to look into other parsing frameworks like
 @link["http://en.wikipedia.org/wiki/Syntax_Definition_Formalism"]{SDF} and
 @link["http://sablecc.org/"]{SableCC}.  Special thanks to Shriram
 Krishnamurthi, who convinced me that other people might find this package
