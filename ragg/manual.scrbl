@@ -2,7 +2,9 @@
 @(require scribble/eval
           (for-label racket
                      ragg/support
-                     ragg/examples/nested-word-list))
+                     ragg/examples/nested-word-list
+                     (only-in parser-tools/lex lexer-src-pos)
+                     (only-in syntax/parse syntax-parse ~literal)))
 
 
 @title{ragg: a Racket AST Generator Generator}
@@ -236,11 +238,15 @@ chunk: INTEGER STRING
 }|
 }
 
-We write a @tt{ragg} program as an extended BNF grammar, where patterns can
-either be the names of other rules, or literal and symbolic tokens written as
-strings and uppercased identifiers.  The result of a @tt{ragg} program is a
-module with a @racket[parse] function that can parse tokens and produce a
-syntax object as a result.
+@margin-note{@secref{ragg-syntax} describes @tt{ragg}'s syntax in more detail.}
+We write a @tt{ragg} program as an extended BNF grammar, where patterns can be:
+@itemize[
+@item{the names of other rules (e.g. @racket[chunk])}
+@item{literal and symbolic token names (e.g. @racket[";"], @racket[INTEGER])}
+@item{quantified patterns (e.g. @litchar{+}) to represent one-or-more repetitions}
+]
+The result of a @tt{ragg} program is a module with a @racket[parse] function
+that can parse tokens and produce a syntax object as a result.
 
 Let's exercise this function:
 @interaction[#:eval my-eval
@@ -258,8 +264,8 @@ Let's exercise this function:
 ]
 
 Tokens can either be: plain strings, symbols, or instances produced by the
-@racket[token] function.  (Plus one more special case which we'll describe in
-one moment!)
+@racket[token] function.  (Plus one more special case which we'll describe in a
+moment.)
 
 Preferably, we want to attach each token with auxiliary source location
 information.  The more source location we can provide, the better, as the
@@ -310,9 +316,9 @@ There are a few things to note from this lexer example:
 function that produces tokens.  Both of these are considered sources of
 tokens.}
 
-@item{As a special case, each token can also be an instance of the
-@racket[position-token] structure of @racketmodname[parser-tools/lex], in which
-case the token will try to derive its position from that of the
+@item{As a special case for acceptable tokens, a token can also be an instance
+of the @racket[position-token] structure of @racketmodname[parser-tools/lex],
+in which case the token will try to derive its position from that of the
 position-token.}
 
 @item{The @racket[parse] function will stop reading from a token source if any
@@ -346,7 +352,8 @@ values of the form:
 ]
 
 where @racket[drawing], @racket[rows], @racket[repeat], and @racket[chunk]
-should be treated literally, and everything else will be numbers or strings.
+should be treated literally using @racket[~literal], and everything else will
+be numbers or strings.
 
 
 Still, these syntax object values are just inert structures.  How do we
@@ -356,11 +363,10 @@ and interpret, so let's do it.
 
 @margin-note{This is a very quick-and-dirty treatment of @racket[syntax-parse].
 See the @racketmodname[syntax/parse] documentation for a gentler guide to its
-features.}
-Racket provides a special form called @racket[syntax-parse] in the
-@racketmodname[syntax/parse] library.  @racket[syntax-parse] lets us do 
-a case-analysis on syntax objects: we provide it a set of
-patterns to parse and actions to perform when those patterns match.
+features.}  Racket provides a special form called @racket[syntax-parse] in the
+@racketmodname[syntax/parse] library.  @racket[syntax-parse] lets us do a
+structural case-analysis on syntax objects: we provide it a set of patterns to
+parse and actions to perform when those patterns match.
 
 
 As a simple example, we can write a function that looks at a syntax object and
@@ -380,8 +386,10 @@ says @racket[#t] if it's the literal @racket[yes], and @racket[#f] otherwise:
 (yes-syntax-object? #'nooooooooooo)
 ]
 
-We can use @racket[syntax-parse] to do a similar case analysis on the syntax objects
-that our @racket[parse] function gives us.
+We can use @racket[syntax-parse] to do a similar case analysis on the syntax
+objects that our @racket[parse] function gives us.  Let's write an interpreter.
+We start by defining a function on syntax-objects of the form @racket[(drawing
+row-stx ...)].
 @interaction[#:eval my-eval
 (define (interpret-drawing drawing-stx)
   (syntax-parse drawing-stx
@@ -390,12 +398,12 @@ that our @racket[parse] function gives us.
      (for ([row-stx (syntax->list #'(row-stxs ...))])
        (interpret-row row-stx))]))]
 
-``When we encounter a syntax object with @racket[(drawing row-stx ...)], then
-@racket[interpret-row] each @racket[row-stx].''.  The pattern we express in
-@racket[syntax-parse] above marks what things should be treated literally, and
-the @racket[...] is a a part of the pattern matching language known by
-@racket[syntax-parse] that lets us match multiple instances of the last
-pattern.
+This means: ``When we encounter a syntax object with @racket[(drawing row-stx
+...)], then @racket[interpret-row] each @racket[row-stx].''.  The pattern we
+express in @racket[syntax-parse] above marks what things should be treated
+literally, and the @racket[...] is a a part of the pattern matching language
+known by @racket[syntax-parse] that lets us match multiple instances of the
+last pattern.
 
 
 Let's define @racket[interpret-row] now:
@@ -411,9 +419,15 @@ Let's define @racket[interpret-row] now:
          (interpret-chunk chunk-stx))
        (newline))]))]
 
+For a @racket[rows], we extract out the @racket[repeat-number] out of the
+syntax object and use it as the range of the @racket[for] loop.  The inner loop
+walks across each @racket[chunk-stx] and calls @racket[interpret-chunk] on it.
 
-Finally, we need to write a definition for @racket[interpret-chunk] to
-interpret the execution of each chunk:
+
+Finally, we need to write a definition for @racket[interpret-chunk].  We want
+it to extract out the @racket[chunk-size] and @racket[chunk-string] portions,
+and print to standard output:
+
 @interaction[#:eval my-eval
 (define (interpret-chunk chunk-stx)
   (syntax-parse chunk-stx
@@ -423,10 +437,13 @@ interpret the execution of each chunk:
        (display (syntax-e #'chunk-string)))]))
 ]
 
+
+
 With these definitions in hand, now we can pass it syntax objects 
 that we construct directly by hand:
 
 @interaction[#:eval my-eval
+(interpret-chunk #'(chunk 3 "X"))
 (interpret-drawing #'(drawing (rows (repeat 5) (chunk 3 "X") ";")))
 ]
 
@@ -447,8 +464,7 @@ warning: the following material is slightly more advanced, but shows how
 writing a compiler for the line-drawing language reuses the ideas for the
 interpreter.)
 
-We now have an interpreter in hand.  But wouldn't it be nice to be able to
-write something like:
+Wouldn't it be nice to be able to write something like:
 
 @nested[#:style 'inset]{
 @verbatim|{
@@ -490,7 +506,10 @@ Let's add one.
 Now @filepath{letter-i.rkt} is a program.
 
 
-How does this work?  We'll do two things:
+How does this work?  From the previous sections, we've seen how to take the
+contents of a file and interpret it.  What we want to do now is teach Racket
+how to compile programs labeled with this @litchar{#lang} line.  We'll do two
+things:
 
 @itemize[
 @item{Tell Racket to use the @tt{ragg}-generated parser and lexer we defined
@@ -498,10 +517,15 @@ earlier to read an input stream whenever it sees a program written with
 @litchar{#lang ragg/examples/simple-line-drawing}.}
 
 @item{Define transformation rules for @racket[drawing], @racket[rows], and
-      @racket[chunk] to rewrite these into standard Racket forms.  This will
-      look very similar to the definitions we wrote for the interpreter, but
-      the transformation will happen at compile-time.}
+      @racket[chunk] to rewrite these into standard Racket forms.}
 ]
+
+The second part, the writing of the transformation rules, will look very
+similar to the definitions we wrote for the interpreter, but the transformation
+will happen at compile-time.  (We @emph{could} resort to simply calling into
+the interpreter we just wrote up.  This section's meant to show that doing
+compilation instead of interpretation is also viable.)
+
 
 We do the first by defining a @emph{reader} module: a reader module tells
 Racket how to parse and compile a file.  Whenever Racket sees a @litchar{#lang
@@ -543,7 +567,8 @@ object using a module called @filepath{semantics.rkt}.
 a language, see @link["http://cs.brown.edu/~sk/Publications/Books/ProgLangs/"]{Programming Languages: Application and
 Interpretation}.}
 
-Here are the contents of @filepath{semantics.rkt}:
+Let's look into @filepath{semantics.rkt} and see what's involved in
+compilation:
 @filebox["ragg/examples/simple-line-drawing/semantics.rkt"]{
 @codeblock|{
 #lang racket/base
@@ -597,15 +622,30 @@ Here are the contents of @filepath{semantics.rkt}:
 }|
 }
 
+The semantics hold definitions for @racket[compile-drawing],
+@racket[compile-rows], and @racket[compile-chunk], similar to what we had for
+interpretation with @racket[interpret-drawing], @racket[interpret-rows], and
+@racket[interpret-chunk].  However, compilation is not the same as
+interpretation: each definition does not immediately execute the act of
+drawing, but rather returns a syntax object whose evaluation will do the actual
+work.
 
-Like the interpreter we wrote before, the semantics hold definitions for
-@racket[compile-drawing], @racket[compile-rows], and @racket[compile-chunk].
-However, each definition does not immediately execute the act of drawing, but
-rather returns a syntax object of the rewritten code.  @tt{ragg}'s native data
-structure is syntax objects because most of Racket's language-processing
-infrastructure knows how to read and write these structured values.
+There are a few things to note:
 
-Also, notice that unlike in interpretation, @racket[compile-rows] doesn't
+@itemize[
+
+@item{@tt{ragg}'s native data structure is the syntax object because the
+majority of Racket's language-processing infrastructure knows how to read and
+write this structured value.}
+
+
+@item{
+@margin-note{By the way, we can just as easily rewrite the semantics so that
+@racket[compile-rows] does explicitly call @racket[compile-chunk].  Often,
+though, it's easier to write the transformation functions in this piecemeal way
+and depend on the Racket macro expansion system to do the rewriting as it
+encounters each of the forms.}
+Unlike in interpretation, @racket[compile-rows] doesn't
 compile each chunk by directly calling @racket[compile-chunk].  Rather, it
 depends on the Racket macro expander to call each @racket[compile-XXX] function
 as it encounters a @racket[drawing], @racket[rows], or @racket[chunk] in the
@@ -616,15 +656,14 @@ the macro expansion system to do this:
 (define-syntax drawing compile-drawing)
 (define-syntax rows compile-rows)
 (define-syntax chunk compile-chunk)
+]}
 ]
 
-(By the way, we can just as easily rewrite the semantics so that
-@racket[compile-rows] explicitly calls @racket[compile-chunk].  Often, though,
-it's easier to write the transformation functions in this piecemeal way and
-depend on the Racket macro expansion system to do the rewriting as it
-encounters each of the forms.)
 
-
+Altogether, @tt{ragg}'s intent is to be a parser generator generator for Racket
+that's easy and fun to use.  It's meant to fit naturally with the other tools
+in the Racket language toolchain.  Hopefully, it will reduce the friction in
+making new languages with alternative concrete syntaxes.
 
 The rest of this document describes the @tt{ragg} language and the parsers it
 generates.
@@ -635,7 +674,7 @@ generates.
 
 @section{The language}
 
-@subsection{Syntax and terminology}
+@subsection[#:tag "ragg-syntax"]{Syntax and terminology}
 A program in the @tt{ragg} language consists of the language line
 @litchar{#lang ragg}, followed by a collection of @tech{rule}s and
 @tech{line comment}s.
@@ -798,7 +837,12 @@ pattern that informs the parser to introduces nested structure into the syntax
 object.
 
 
-If the parse cannot be performed successfully, an instance of @racket[exn:fail:parsing] is raised.
+If the grammar has ambiguity, @tt{ragg} will choose and return a parse, though
+it does not guarantee which one it chooses.
+
+
+If the parse cannot be performed successfully, an instance of
+@racket[exn:fail:parsing] is raised.
 }
 
 
@@ -918,7 +962,10 @@ the helper function @racket[token] to construct instances.
             [continuation-marks continuation-mark-set?]
             [srclocs (listof srcloc?)])]{
 The exception raised when parsing fails.
-}
+
+@racket[exn:fail:parsing] implements Racket's @racket[prop:exn:srcloc]
+property, so if this exception reaches DrRacket's default error handler,
+DrRacket should highlight the offending locations in the source.}
 
 
 
