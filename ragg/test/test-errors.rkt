@@ -33,6 +33,8 @@
 
 
 
+
+                     
 (check-compile-error "#lang ragg"
                      "The grammar does not appear to have any rules")
 
@@ -119,3 +121,14 @@ b : [b]
 c : c
 EOF
                      "Rule c has no finite derivation")
+
+
+
+
+(check-compile-error #<<EOF
+#lang racket/base
+(require ragg/examples/simple-line-drawing)
+(define bad-parser (make-rule-parser crunchy))
+EOF
+                     "Rule crunchy is not defined in the grammar"
+                     )

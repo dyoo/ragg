@@ -133,6 +133,12 @@
                     ;; The cfg-parser depends on the start-rule provided in (start ...) to have the same
                     ;; context as the rest of this body, so I need to hack this.  I don't like this, but
                     ;; I don't know what else to do.  Hence recolored-start-rule.
+                    (unless (member (syntax-e #'start-rule)
+                                    '#,(map syntax-e rule-ids))
+                      (raise-syntax-error #f
+                                          (format "Rule ~a is not defined in the grammar" (syntax-e #'start-rule))
+                                          stx-2))
+                    
                     (define recolored-start-rule (datum->syntax (syntax #,stx) (syntax-e #'start-rule)))
                     #`(let ([THE-GRAMMAR (parser-form (tokens enumerated-tokens)
                                                       (src-pos)
