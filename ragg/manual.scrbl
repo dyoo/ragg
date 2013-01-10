@@ -540,7 +540,7 @@ modules), and also tells Racket that it should compile the forms in the syntax
 object using a module called @filepath{semantics.rkt}.
 
 @margin-note{For a systematic treatment on capturing the semantics of
-a language, see @link["http://cs.brown.edu/~sk/Publications/Books/ProgLangs/"]{Programming Languages, Application and
+a language, see @link["http://cs.brown.edu/~sk/Publications/Books/ProgLangs/"]{Programming Languages: Application and
 Interpretation}.}
 
 Here are the contents of @filepath{semantics.rkt}:
