@@ -850,9 +850,9 @@ If the grammar has ambiguity, @tt{ragg} will choose and return a parse, though
 it does not guarantee which one it chooses.
 
 
-If the parse cannot be performed successfully, an instance of
-@racket[exn:fail:parsing] is raised.
-}
+If the parse cannot be performed successfully, or if a token in the
+@racket[token-source] uses a type that isn't mentioned in the grammar, then
+@racket[parse] raises an instance @racket[exn:fail:parsing].}
 
 
 
@@ -927,10 +927,10 @@ produces tokens to be parsed.
 
 @defproc[(token [type (or/c string? symbol?)]
                 [val any/c #f]
-                [#:line line (or/c number? #f) #f]
-                [#:column column (or/c number? #f) #f]
-                [#:offset offset (or/c number? #f) #f]
-                [#:span span (or/c number? #f) #f]
+                [#:line line (or/c positive-integer? #f) #f]
+                [#:column column (or/c natural-number? #f) #f]
+                [#:offset offset (or/c positive-integer? #f) #f]
+                [#:span span (or/c natural-number? #f) #f]
                 [#:skip? skip? boolean? #f]
                 )
          token-struct?]{
@@ -945,10 +945,10 @@ parse.}
 
 @defstruct[token-struct ([type symbol?]
                          [val any/c]
-                         [offset (or/c number? #f)]
-                         [line (or/c number? #f)]
-                         [column (or/c number? #f)]
-                         [span (or/c number? #f)]
+                         [offset (or/c positive-integer? #f)]
+                         [line (or/c natural-number? #f)]
+                         [column (or/c positive-integer? #f)]
+                         [span (or/c natural-number? #f)]
                          [skip? boolean?])
                         #:transparent]{
 The token structure type.
@@ -979,19 +979,41 @@ DrRacket should highlight the offending locations in the source.}
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-@section{Bugs and caveats and TODOs}
+@section{Caveats and things to do}
 
-[Operator precedence story currently not ready yet.]
+Here are a few caveats and future aims for @tt{ragg}.
 
-[EOF is a reserved token type: don't use it.]
+@itemize[
 
-[Missing explanation for ambiguous parses]
+@item{@tt{ragg} doesn't currently have a good story about operator precedence.
+Future versions of @tt{ragg} will support the specification of operator
+precedence to deal with grammar ambiguity, probably by extending the BNF
+grammar rules in @litchar{#lang ragg} with keyword arguments.}
 
-[Larger, more comprehensive test suite]
 
-[Missing convenient syntax for simple lexers]
+@item{I currently depend on the lexer framework provided by
+@racketmodname[parser-tools/lex], which has a steeper learning curve than I'd
+like.  A future version of @tt{ragg} will probably try to provide a nicer set
+of tools for defining lexers.}
 
-[What happens when we pass the wrong token to a parser?]
+
+@item{The underlying parsing engine (an Earley-style parser) has not been fully
+optimized, so it may exhibit degenerate parse times.  A future version of
+@tt{ragg} will guarantee @math{O(n^3)} time bounds so that at the very least,
+parses will be polynomial-time.}
+
+
+@item{@tt{ragg} doesn't yet have a good story on dealing with parser error
+recovery.  If a parse fails, it tries to provide the source location, but does
+little else.}
+
+@item{@tt{ragg} is slightly misnamed: what it really builds is a concrete
+syntax tree rather than an abstract syntax tree.  A future version of @tt{ragg}
+will probably support annotations on patterns so that they can be omitted or
+transformed in the parser output.}
+
+]
+
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
