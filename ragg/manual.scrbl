@@ -196,7 +196,7 @@ XXXXXXXXX
 
 
 
-@subsubsection{Syntax and semantics of simple-line-drawings}
+@subsection{Syntax and semantics}
 We're being very fast-and-loose with what we mean by the program above, so
 let's try to nail down some meanings.  Each line of the program has a semicolon
 at the end, and describes the output of several @emph{rows} of the line
@@ -225,7 +225,7 @@ Here's is a first pass at expressing the structure of these line-drawing
 programs.
 
 
-@subsubsection{Parsing the concrete syntax of simple-line-drawings}
+@subsection{Parsing the concrete syntax}
 @filebox["simple-line-drawing.rkt"]{
 @verbatim|{
 #lang ragg
@@ -538,6 +538,10 @@ and
 @link["http://hashcollision.org/ragg/examples/simple-line-drawing/grammar.rkt"]{grammar.rkt}
 modules), and also tells Racket that it should compile the forms in the syntax
 object using a module called @filepath{semantics.rkt}.
+
+@margin-note{For a systematic treatment on capturing the semantics of
+a language, see @link["http://cs.brown.edu/~sk/Publications/Books/ProgLangs/"]{Programming Languages, Application and
+Interpretation}.}
 
 Here are the contents of @filepath{semantics.rkt}:
 @filebox["ragg/examples/simple-line-drawing/semantics.rkt"]{
