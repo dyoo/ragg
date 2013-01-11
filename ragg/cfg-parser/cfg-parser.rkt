@@ -744,39 +744,55 @@
                                    val
                                    (next success-k fail-k max-depth tasks)))]
                             [fail-k (lambda (max-depth tasks)
-                                      (let ([bad-tok (list-ref tok-list 
-                                                               (min (sub1 (length tok-list))
-                                                                    max-depth))])
+                                      (cond
+                                       [(null? tok-list)
                                         (if error-proc
                                             (error-proc #t
-                                                        (tok-orig-name bad-tok)
-                                                        (tok-val bad-tok)
-                                                        (tok-start bad-tok)
-                                                        (tok-end bad-tok))
+                                                        'no-tokens
+                                                        #f
+                                                        (make-position #f #f #f)
+                                                        (make-position #f #f #f))
                                             (error
                                              'cfg-parse
-                                             "failed at ~a" 
-                                             (tok-val bad-tok)))))])
-                     (cond 
-                      [(null? tok-list)
-                       (error 'cfg-parse "no tokens")]
-                      [else
-                       (#,start tok-list
-                                ;; we simulate a token at the very beginning with zero width
-                                ;; for use with the position-generating code (*-start-pos, *-end-pos).
-                                (tok (tok-name (car tok-list))
-                                     (tok-orig-name (car tok-list))
-                                     (tok-val (car tok-list))
-                                     (tok-start (car tok-list))
-                                     (tok-start (car tok-list)))
-                                0 
-                                (length tok-list)
-                                success-k
-                                fail-k
-                                0 
-                                (make-tasks null null 
-                                            (make-hasheq) (make-hasheq)
-                                            (make-hash) #t))]))))))))]))
+                                             "no tokens"))]
+                                       [else
+                                        (let ([bad-tok (list-ref tok-list 
+                                                                 (min (sub1 (length tok-list))
+                                                                      max-depth))])
+                                          (if error-proc
+                                              (error-proc #t
+                                                          (tok-orig-name bad-tok)
+                                                          (tok-val bad-tok)
+                                                          (tok-start bad-tok)
+                                                          (tok-end bad-tok))
+                                              (error
+                                               'cfg-parse
+                                               "failed at ~a" 
+                                               (tok-val bad-tok))))]))])
+                     (#,start tok-list
+                              ;; we simulate a token at the very beginning with zero width
+                              ;; for use with the position-generating code (*-start-pos, *-end-pos).
+                              (if (null? tok-list)
+                                  (tok #f #f #f
+                                       (position 1
+                                                 #,(if src-pos? #'1 #'#f) 
+                                                 #,(if src-pos? #'0 #'#f))
+                                       (position 1 
+                                                 #,(if src-pos? #'1 #'#f)
+                                                 #,(if src-pos? #'0 #'#f)))
+                                  (tok (tok-name (car tok-list))
+                                       (tok-orig-name (car tok-list))
+                                       (tok-val (car tok-list))
+                                       (tok-start (car tok-list))
+                                       (tok-start (car tok-list))))
+                              0 
+                              (length tok-list)
+                              success-k
+                              fail-k
+                              0 
+                              (make-tasks null null 
+                                          (make-hasheq) (make-hasheq)
+                                          (make-hash) #t)))))))))]))
 
 
 (module* test racket/base
