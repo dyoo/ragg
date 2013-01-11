@@ -123,6 +123,12 @@ EOF
                      "Rule c has no finite derivation")
 
 
+(check-compile-error #<<EOF
+#lang ragg
+foo: "foo"
+EOF
+                     "Rule foo has the same name as literal \"foo\"")
+
 
 
 (check-compile-error #<<EOF
