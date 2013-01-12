@@ -186,12 +186,13 @@ PLT File...} under DrRacket's File menu), or use the command line:
 ]
 
 
+
 @subsection{Example: a small DSL for ASCII diagrams}
 
 @margin-note{This is a
 @link["http://stackoverflow.com/questions/12345647/rewrite-this-script-by-designing-an-interpreter-in-racket"]{restatement
 of a question on Stack Overflow}.}  To motivate @tt{ragg}'s design, let's look
-at the following toy problem: Let's say that we'd like to define a language for
+at the following toy problem: we'd like to define a language for
 drawing simple ASCII diagrams.  We'd like to be able write something like this:
 
 @nested[#:style 'inset]{
@@ -237,7 +238,7 @@ followed by @racket["X"] three times, followed by @racket[" "] three times, foll
 
 Then each line consists of a @emph{repeat} number, followed by pairs of
 (number, character) @emph{chunks}.  We will
-assume here that the intent of the lowercased character @litchar{b} to
+assume here that the intent of the lowercased character @litchar{b} is to
 represent the printing of a 1-character whitespace @racket[" "], and for other
 uppercase letters to represent the printing of themselves.
 
@@ -246,7 +247,7 @@ to capture that meaning in a formal notation.  Once we have each instruction in
 a structured format, we should be able to interpret it with a straighforward
 case analysis.
 
-Here's is a first pass at expressing the structure of these line-drawing
+Here is a first pass at expressing the structure of these line-drawing
 programs.
 
 
