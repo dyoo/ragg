@@ -298,7 +298,6 @@ tokenizer:
   next-token)
 
 (define a-sample-input-port (open-input-string "6 2 b 3 X;"))
-(port-count-lines! a-sample-input-port)
 (define token-thunk (tokenize a-sample-input-port))
 @code:comment{Now we can pass token-thunk to the parser:}
 (define another-stx (parse token-thunk))
