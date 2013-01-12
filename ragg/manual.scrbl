@@ -161,6 +161,23 @@ generated syntax objects will as well.}
 
 ]
 
+@subsection{Installation}
+
+@itemize[
+
+@item{@margin-note{At the time of this writing, Racket 5.3.2 is in
+@link["http://pre.racket-lang.org/"]{pre-release}.} If you are using a version
+of Racket > 5.3.1, then follow the instructions on the
+@link["https://plt-etc.byu.edu:9004/info/ragg"]{PLaneT2 page}.}
+
+
+
+@item{For those who are using Racket <= 5.3.1, you can download the following PLT package:
+@link["ragg.plt"]{ragg.plt} (last update: 2012-01-12).
+Once downloaded, either use DrRacket's package installation features (@link["http://docs.racket-lang.org/drracket/Menus.html#(idx._(gentag._57._(lib._scribblings/drracket/drracket..scrbl)))"]{Install PLT File...} under the File menu), or use
+the command line: @nested[#:style 'inset]{@tt{raco setup -A ragg.plt}}}
+
+]
 
 
 @subsection{Example: a small DSL for ASCII diagrams}
