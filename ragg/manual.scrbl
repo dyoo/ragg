@@ -24,7 +24,7 @@ following string:
 
 
 @margin-note{(... and pretend that we don't already know about the built-in
-@racket[read] function.)}  How do we go about turn this kind of string into a
+@racket[read] function.)}  How do we go about turning this kind of string into a
 structured value?  That is, how would we @emph{parse} it?
 
 We need to first consider the shape of the things we'd like to parse.  The
