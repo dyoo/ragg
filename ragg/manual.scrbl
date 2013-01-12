@@ -376,8 +376,7 @@ values of the form:
 ]
 
 where @racket[drawing], @racket[rows], @racket[repeat], and @racket[chunk]
-should be treated literally using @racket[~literal], and everything else will
-be numbers or strings.
+should be treated literally, and everything else will be numbers or strings.
 
 
 Still, these syntax object values are just inert structures.  How do we
@@ -410,30 +409,39 @@ says @racket[#t] if it's the literal @racket[yes], and @racket[#f] otherwise:
 (yes-syntax-object? #'nooooooooooo)
 ]
 
-We can use @racket[syntax-parse] to do a similar case analysis on the syntax
-objects that our @racket[parse] function gives us.  Let's write an interpreter.
-We start by defining a function on syntax-objects of the form @racket[(drawing
+Here, we use @racket[~literal] to let @racket[syntax-parse] know that
+@racket[yes] should show up literally in the syntax object.  The patterns can
+also have some structure to them, such as:
+@racketblock[({~literal drawing} row-stxs ...)]
+which matches on syntax objects that begin, literally, with @racket[drawing],
+followed by any number of rows (which are syntax objects too).
+
+
+Now that we know a little bit more about @racket[syntax-parse], 
+we can use it to do a case analysis on the syntax
+objects that our @racket[parse] function gives us.
+We start by defining a function on syntax objects of the form @racket[(drawing
 row-stx ...)].
 @interaction[#:eval my-eval
 (define (interpret-drawing drawing-stx)
   (syntax-parse drawing-stx
-    [({~literal drawing} row-stxs ...)
+    [({~literal drawing} rows-stxs ...)
 
-     (for ([row-stx (syntax->list #'(row-stxs ...))])
-       (interpret-row row-stx))]))]
+     (for ([row-stx (syntax->list #'(rows-stxs ...))])
+       (interpret-rows rows-stx))]))]
 
 This means: ``When we encounter a syntax object with @racket[(drawing row-stx
-...)], then @racket[interpret-row] each @racket[row-stx].''.  The pattern we
+...)], then @racket[interpret-rows] each @racket[rows-stx].''.  The pattern we
 express in @racket[syntax-parse] above marks what things should be treated
 literally, and the @racket[...] is a a part of the pattern matching language
 known by @racket[syntax-parse] that lets us match multiple instances of the
 last pattern.
 
 
-Let's define @racket[interpret-row] now:
+Let's define @racket[interpret-rows] now:
 @interaction[#:eval my-eval
-(define (interpret-row row-stx)
-  (syntax-parse row-stx
+(define (interpret-rows rows-stx)
+  (syntax-parse rows-stx
     [({~literal rows}
       ({~literal repeat} repeat-number)
       chunks ... ";")
