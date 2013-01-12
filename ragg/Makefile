@@ -3,3 +3,7 @@ doc:
 
 web:
 	scp -r * hashcollision.org:webapps/htdocs/ragg/
+
+
+plt:
+	raco pack --collect ragg.plt ragg
