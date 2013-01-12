@@ -279,6 +279,7 @@ tokenizer:
 @interaction[#:eval my-eval
 (require parser-tools/lex)
 (define (tokenize ip)
+  (port-count-lines! ip)
   (define my-lexer
     (lexer-src-pos 
       [(repetition 1 +inf.0 numeric)
