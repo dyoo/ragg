@@ -412,7 +412,7 @@ says @racket[#t] if it's the literal @racket[yes], and @racket[#f] otherwise:
 Here, we use @racket[~literal] to let @racket[syntax-parse] know that
 @racket[yes] should show up literally in the syntax object.  The patterns can
 also have some structure to them, such as:
-@racketblock[({~literal drawing} row-stxs ...)]
+@racketblock[({~literal drawing} rows-stxs ...)]
 which matches on syntax objects that begin, literally, with @racket[drawing],
 followed by any number of rows (which are syntax objects too).
 
@@ -421,21 +421,23 @@ Now that we know a little bit more about @racket[syntax-parse],
 we can use it to do a case analysis on the syntax
 objects that our @racket[parse] function gives us.
 We start by defining a function on syntax objects of the form @racket[(drawing
-row-stx ...)].
+rows-stx ...)].
 @interaction[#:eval my-eval
 (define (interpret-drawing drawing-stx)
   (syntax-parse drawing-stx
     [({~literal drawing} rows-stxs ...)
 
-     (for ([row-stx (syntax->list #'(rows-stxs ...))])
+     (for ([rows-stx (syntax->list #'(rows-stxs ...))])
        (interpret-rows rows-stx))]))]
 
-This means: ``When we encounter a syntax object with @racket[(drawing row-stx
-...)], then @racket[interpret-rows] each @racket[rows-stx].''.  The pattern we
-express in @racket[syntax-parse] above marks what things should be treated
-literally, and the @racket[...] is a a part of the pattern matching language
-known by @racket[syntax-parse] that lets us match multiple instances of the
-last pattern.
+When we encounter a syntax object with @racket[(drawing rows-stx
+...)], then @racket[interpret-rows] each @racket[rows-stx].
+
+@;The pattern we
+@;express in @racket[syntax-parse] above marks what things should be treated
+@;literally, and the @racket[...] is a a part of the pattern matching language
+@;known by @racket[syntax-parse] that lets us match multiple instances of the
+@;last pattern.
 
 
 Let's define @racket[interpret-rows] now:
@@ -470,7 +472,8 @@ and print to standard output:
 ]
 
 
-
+@margin-note{Here are the definitions in a single file:
+@link["examples/simple-line-drawing/interpret.rkt"]{interpret.rkt}.}
 With these definitions in hand, now we can pass it syntax objects 
 that we construct directly by hand:
 
@@ -620,19 +623,19 @@ compilation:
 (begin-for-syntax
   (define (compile-drawing drawing-stx)
     (syntax-parse drawing-stx
-      [({~literal drawing} row-stxs ...)
+      [({~literal drawing} rows-stxs ...)
 
      (syntax/loc drawing-stx
-       (begin row-stxs ...))]))
+       (begin rows-stxs ...))]))
 
-  (define (compile-rows row-stx)
-    (syntax-parse row-stx
+  (define (compile-rows rows-stx)
+    (syntax-parse rows-stx
       [({~literal rows}
         ({~literal repeat} repeat-number)
         chunks ... 
         ";")
 
-       (syntax/loc row-stx
+       (syntax/loc rows-stx
          (for ([i repeat-number])
            chunks ...
            (newline)))]))
