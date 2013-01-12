@@ -295,7 +295,7 @@ Preferably, we want to attach each token with auxiliary source location
 information.  The more source location we can provide, the better, as the
 syntax objects produced by @racket[parse] will incorporate them.
 
-Let write a helper function, a @emph{lexer}, to help us construct tokens more
+Let's write a helper function, a @emph{lexer}, to help us construct tokens more
 easily.  The Racket standard library comes with a module called
 @racketmodname[parser-tools/lex] which can help us write a position-sensitive
 tokenizer:
