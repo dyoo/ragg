@@ -47,6 +47,8 @@ or more repetitions of the previous thing, and we treat the uppercased
 @racket[LEFT-PAREN], @racket[RIGHT-PAREN], and @racket[WORD] as placeholders
 for atomic @emph{tokens}.
 
+@margin-note{See @secref{install-ragg} for instructions on installing
+@tt{ragg.}}
 Here are a few examples of tokens:
 @interaction[#:eval my-eval
 (require ragg/support)
@@ -161,7 +163,7 @@ generated syntax objects will as well.}
 
 ]
 
-@subsection{Installation}
+@subsection[#:tag "install-ragg"]{Installation}
 
 @itemize[
 
@@ -173,9 +175,13 @@ of Racket > 5.3.1, then follow the instructions on the
 
 
 @item{For those who are using Racket <= 5.3.1, you can download the following PLT package:
-@link["ragg.plt"]{ragg.plt} (last update: 2012-01-12).
-Once downloaded, either use DrRacket's package installation features (@link["http://docs.racket-lang.org/drracket/Menus.html#(idx._(gentag._57._(lib._scribblings/drracket/drracket..scrbl)))"]{Install PLT File...} under the File menu), or use
-the command line: @nested[#:style 'inset]{@tt{raco setup -A ragg.plt}}}
+
+@centered{@link["ragg.plt"]{ragg.plt} (last update: 2012-01-12).}
+
+Once downloaded, either use DrRacket's package installation features
+(@link["http://docs.racket-lang.org/drracket/Menus.html#(idx._(gentag._57._(lib._scribblings/drracket/drracket..scrbl)))"]{Install
+PLT File...} under DrRacket's File menu), or use the command line:
+@nested[#:style 'inset]{@tt{raco setup -A ragg.plt}}}
 
 ]
 
