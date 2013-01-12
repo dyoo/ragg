@@ -565,7 +565,7 @@ compilation is also viable.)
 We do the first part by defining a @emph{module reader}: a
 @link["http://docs.racket-lang.org/guide/syntax_module-reader.html"]{module
 reader} tells Racket how to parse and compile a file.  Whenever Racket sees a
-@litchar{#lang <name>}, it looks for corresponding module reader in
+@litchar{#lang <name>}, it looks for a corresponding module reader in
 @filepath{<name>/lang/reader}.
 
 Here's the definition for
@@ -755,9 +755,9 @@ object: "world" | WORLD
 }|]
 
 the elements @tt{sentence}, @tt{verb}, @tt{greeting}, and @tt{object} are rule
-identifiers.  The third line, @litchar{sentence: verb optional-adjective
+identifiers.  The first rule, @litchar{sentence: verb optional-adjective
 object}, is a rule whose right side is an implicit pattern sequence of three
-sub-patterns.  The uppercased @tt{WORLD} is a token identifier.  The last rule in the program associates @tt{greeting} with a @tech{choice pattern}.
+sub-patterns.  The uppercased @tt{WORLD} is a token identifier.  The fourth rule in the program associates @tt{greeting} with a @tech{choice pattern}.
 
 
 
@@ -888,7 +888,7 @@ it does not guarantee which one it chooses.
 
 If the parse cannot be performed successfully, or if a token in the
 @racket[token-source] uses a type that isn't mentioned in the grammar, then
-@racket[parse] raises an instance @racket[exn:fail:parsing].}
+@racket[parse] raises an instance of @racket[exn:fail:parsing].}
 
 
 
