@@ -493,7 +493,7 @@ And now we've got an interpreter!
 
 @subsection{From interpretation to compilation}
 
-@margin-note{For a slower tutorial, see:
+@margin-note{For a gentler tutorial on writing @litchar{#lang} extensions, see:
 @link["http://hashcollision.org/brainfudge"]{F*dging up a Racket}.}  (Just as a
 warning: the following material is slightly more advanced, but shows how
 writing a compiler for the line-drawing language reuses the ideas for the
@@ -548,7 +548,7 @@ things:
 
 @itemize[
 @item{Tell Racket to use the @tt{ragg}-generated parser and lexer we defined
-earlier to read an input stream whenever it sees a program written with
+earlier whenever it sees a program written with
 @litchar{#lang ragg/examples/simple-line-drawing}.}
 
 @item{Define transformation rules for @racket[drawing], @racket[rows], and
@@ -557,14 +557,15 @@ earlier to read an input stream whenever it sees a program written with
 
 The second part, the writing of the transformation rules, will look very
 similar to the definitions we wrote for the interpreter, but the transformation
-will happen at compile-time.  (We @emph{could} resort to simply calling into
-the interpreter we just wrote up.  This section's meant to show that doing
-compilation instead of interpretation is also viable.)
+will happen at compile-time.  (We @emph{could} just resort to simply calling
+into the interpreter we just wrote up, but this section is meant to show that
+compilation is also viable.)
 
 
-We do the first by defining a @emph{reader} module: a reader module tells
-Racket how to parse and compile a file.  Whenever Racket sees a @litchar{#lang
-<name>}, it looks for corresponding reader module in
+We do the first part by defining a @emph{module reader}: a
+@link["http://docs.racket-lang.org/guide/syntax_module-reader.html"]{module
+reader} tells Racket how to parse and compile a file.  Whenever Racket sees a
+@litchar{#lang <name>}, it looks for corresponding module reader in
 @filepath{<name>/lang/reader}.
 
 Here's the definition for
@@ -590,7 +591,7 @@ ragg/examples/simple-line-drawing/semantics
 }
 
 We use a helper module @racketmodname[syntax/module-reader], which provides
-utilities for creating a reader module.  It uses the lexer and
+utilities for creating a module reader.  It uses the lexer and
 @tt{ragg}-generated parser we defined earlier (saved into
 @link["http://hashcollision.org/ragg/examples/simple-line-drawing/lexer.rkt"]{lexer.rkt}
 and
