@@ -1058,7 +1058,7 @@ transformed in the parser output.}
 @section{Miscellaneous and thanks}
 
 Thanks to Matthew Flatt for pointing me to @racket[cfg-parser] from the
-@racketmodname[algol60/algol60] library.  Joe Politz gave me good advice and
+@racketmodname[algol60/cfg-parser] library.  Joe Politz gave me good advice and
 feedback.  Also, he suggested the name ``ragg''.  Other alternatives I'd been
 considering were ``autogrammar'' or ``chompy''.  Thankfully, he is a better
 Namer than me.  Daniel Patterson provided feedback that led to
