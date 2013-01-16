@@ -15,7 +15,7 @@
    (date->string a-date))
 
 @(define (compute-md5sum filename)
-   (bytes->string/utf-8 (call-with-input-file filename md5)))
+   (bytes->string/utf-8 (call-with-input-file filename md5 #:mode 'binary)))
 
 
 
