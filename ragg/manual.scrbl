@@ -864,7 +864,7 @@ bindings.  The most important of these is @racket[parse]:
 
 @defproc[(parse [source any/c #f] 
                 [token-source (or/c (sequenceof token)
-                              (-> token))])
+                                    (-> token))])
          syntax?]{
 
 Parses the sequence of @tech{tokens} according to the rules in the grammar, using the
