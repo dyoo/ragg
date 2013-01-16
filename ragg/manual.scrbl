@@ -288,7 +288,7 @@ Let's exercise this function:
 ]
 
 Tokens can either be: plain strings, symbols, or instances produced by the
-@racket[token] function.  (Plus one more special case which we'll describe in a
+@racket[token] function.  (Plus a few more special cases, one in which we'll describe in a
 moment.)
 
 Preferably, we want to attach each token with auxiliary source location
@@ -852,13 +852,25 @@ bindings.  The most important of these is @racket[parse]:
                               (-> token))])
          syntax?]{
 
-Parses the sequence of tokens according to the rules in the grammar, using the
+Parses the sequence of @tech{tokens} according to the rules in the grammar, using the
 first rule as the start production.  The parse must completely consume
 @racket[token-source].
 
-The token source can either be a sequence, or a 0-arity function that produces
-tokens.  In either case, a token whose type is either @racket[void] or
-@racket['EOF] terminates the source.
+The @deftech{token source} can either be a sequence, or a 0-arity function that
+produces @tech{tokens}.
+
+A @deftech{token} in @tt{ragg} can be any of the following values:
+@itemize[
+@item{a string}
+@item{a symbol}
+@item{an instance produced by @racket[token]}
+@item{an instance produced by the token constructors of @racketmodname[parser-tools/lex]}
+@item{an instance of @racketmodname[parser-tools/lex]'s @racket[position-token] whose 
+      @racket[position-token-token] is a @tech{token}.}
+]
+
+A token whose type is either @racket[void] or @racket['EOF] terminates the
+source.
 
 
 If @racket[parse] succeeds, it will return a structured syntax object.  The
@@ -1058,7 +1070,7 @@ transformed in the parser output.}
 @section{Miscellaneous and thanks}
 
 Thanks to Matthew Flatt for pointing me to @racket[cfg-parser] from the
-@racketmodname[algol60/cfg-parser] library.  Joe Politz gave me good advice and
+@racket[cfg-parser] library.  Joe Politz gave me good advice and
 feedback.  Also, he suggested the name ``ragg''.  Other alternatives I'd been
 considering were ``autogrammar'' or ``chompy''.  Thankfully, he is a better
 Namer than me.  Daniel Patterson provided feedback that led to
