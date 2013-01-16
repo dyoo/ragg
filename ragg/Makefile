@@ -4,7 +4,7 @@ doc:
 clean:
 	git clean -fdx .
 
-web: clean doc plt
+web: clean plt doc
 	scp -r * hashcollision.org:webapps/htdocs/ragg/
 
 

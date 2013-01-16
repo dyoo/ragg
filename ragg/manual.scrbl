@@ -1,10 +1,22 @@
 #lang scribble/manual
 @(require scribble/eval
+          racket/date
+          file/md5
           (for-label racket
                      ragg/support
                      ragg/examples/nested-word-list
                      (only-in parser-tools/lex lexer-src-pos)
                      (only-in syntax/parse syntax-parse ~literal)))
+
+
+@(define (lookup-date filename)
+   (define modify-seconds (file-or-directory-modify-seconds filename))
+   (define a-date (seconds->date modify-seconds))
+   (date->string a-date))
+
+@(define (compute-md5sum filename)
+   (bytes->string/utf-8 (call-with-input-file filename md5)))
+
 
 
 @title{ragg: a Racket AST Generator Generator}
@@ -176,7 +188,10 @@ of Racket > 5.3.1, then follow the instructions on the
 
 @item{For those who are using Racket <= 5.3.1, you can download the following PLT package:
 
-@centered{@link["ragg.plt"]{ragg.plt} (last update: 2012-01-12).}
+@nested[#:style 'inset]{@link["ragg.plt"]{ragg.plt} [md5sum: @compute-md5sum{ragg.plt}]
+     
+        Last updated: @lookup-date{ragg.plt}
+        }
 
 Once downloaded, either use DrRacket's package installation features
 (@link["http://docs.racket-lang.org/drracket/Menus.html#(idx._(gentag._57._(lib._scribblings/drracket/drracket..scrbl)))"]{Install
