@@ -13,5 +13,6 @@
          "test-parser.rkt"
          "exercise-python-grammar.rkt"
          "test-errors.rkt"
+         "test-old-token.rkt"
          "test-weird-grammar.rkt"
          (submod ragg/codegen/satisfaction test))

@@ -81,6 +81,11 @@
 
       [(? char?)
        (lookup (string->symbol (string next-token)) next-token no-position no-position)]
+
+      ;; Compatibility 
+      [(? lex:token?)
+       (loop (token (lex:token-name next-token)
+                    (lex:token-value next-token)))]
       
       [(token-struct type val offset line column span skip?)
        (cond [skip?
