@@ -26,9 +26,10 @@
 
 ;; tokenize-stxs: (listof stx) -> (listof position-token)
 (define (tokenize-stxs stxs)
-  (reverse (for/fold ([acc/rev '()])
-                     ([stx stxs])
-             (tokenize stx acc/rev))))
+  (reverse (cons (position-token (token-EOF 'eof) #f #f)
+                 (for/fold ([acc/rev '()])
+                           ([stx stxs])
+                   (tokenize stx acc/rev)))))
 
 
 ;; Returns a _reversed_ list of the tokens we can extract from stx.
@@ -85,9 +86,9 @@
 
     [_
      (string-stx? stx)
-     (cons (position-token (token-LIT (syntax-e stx))
-                     start-pos
-                     end-pos)
+     (cons (position-token (token-LIT (format "~s" (syntax-e stx)))
+                           start-pos
+                           end-pos)
            acc/rev)]
     [else
      ((current-parser-error-handler) 
