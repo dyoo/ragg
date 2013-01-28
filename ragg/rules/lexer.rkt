@@ -43,6 +43,8 @@
     (token-RPAREN lexeme)]
    ["]"
     (token-RBRACKET lexeme)]
+   ["||"
+    (token-PIPE lexeme)]
    ["|"
     (token-PIPE lexeme)]
    [(:or "+" "*")
