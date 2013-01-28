@@ -44,6 +44,8 @@
        (define rules-stx
          (ragg:rules->stx (syntax-source stx) rules #:original-stx stx))
 
+       ;(displayln rules-stx)
+       
        (quasisyntax/loc stx
          (#%plain-module-begin
           #,(ragg:rules-codegen #:parser-provider-module 'ragg/cfg-parser/cfg-parser ;; 'parser-tools/yacc 
