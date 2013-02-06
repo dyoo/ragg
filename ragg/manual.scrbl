@@ -9,13 +9,20 @@
                      (only-in syntax/parse syntax-parse ~literal)))
 
 
-@(define (lookup-date filename)
-   (define modify-seconds (file-or-directory-modify-seconds filename))
-   (define a-date (seconds->date modify-seconds))
-   (date->string a-date))
+@(define (lookup-date filename [default ""])
+   (cond
+     [(file-exists? filename)
+      (define modify-seconds (file-or-directory-modify-seconds filename))
+      (define a-date (seconds->date modify-seconds))
+      (date->string a-date)]
+     [else
+      default]))
 
-@(define (compute-md5sum filename)
-   (bytes->string/utf-8 (call-with-input-file filename md5 #:mode 'binary)))
+@(define (compute-md5sum filename [default ""])
+   (cond [(file-exists? filename)
+          (bytes->string/utf-8 (call-with-input-file filename md5 #:mode 'binary))]
+         [else
+          default]))
 
 
 
@@ -188,9 +195,9 @@ of Racket > 5.3.1, then follow the instructions on the
 
 @item{For those who are using Racket <= 5.3.1, you can download the following PLT package:
 
-@nested[#:style 'inset]{@link["ragg.plt"]{ragg.plt} [md5sum: @compute-md5sum{ragg.plt}]
+@nested[#:style 'inset]{@link["ragg.plt"]{ragg.plt} [md5sum: @compute-md5sum["ragg.plt" "ab79038b40e510a5cf13363825c4aef4"]]
      
-        Last updated: @lookup-date{ragg.plt}
+        Last updated: @lookup-date["ragg.plt" "Wednesday, January 16th, 2013"]
         }
 
 Once downloaded, either use DrRacket's package installation features
