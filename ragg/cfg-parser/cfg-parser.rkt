@@ -65,10 +65,10 @@
 (define-for-syntax (nt-fixpoint nts proc nt-ids patss)
   (define (ormap-all val f as bs)
     (cond
-      [(null? as) val]
-      [else (ormap-all (or (f (car as) (car bs)) val)
-                       f
-                       (cdr as) (cdr bs))]))
+     [(null? as) val]
+     [else (ormap-all (or (f (car as) (car bs)) val)
+                      f
+                      (cdr as) (cdr bs))]))
   (let loop ()
     (when (ormap-all #f
                      (lambda (nt pats)
@@ -348,56 +348,56 @@
               [n-end-pos (and (null? (cdr pat))
                               (datum->syntax (car pat) '$n-end-pos))])
           (cond
-            [(bound-identifier-mapping-get nts (car pat) (lambda () #f))
-             ;; Match non-termimal
-             #`(parse-and
-                ;; First part is simple? (If so, we don't have to parallelize the `and'.)
-                #,(let ([l (bound-identifier-mapping-get nts (car pat) (lambda () #f))])
-                    (or (not l)
-                        (andmap values (caddr l))))
-                #,(car pat)
-                (let ([original-stream stream])
-                  (lambda (#,id stream last-consumed-token depth end success-k fail-k max-depth tasks)
-                    (let-syntax ([#,id-start-pos (at-tok-pos #'(if (eq? original-stream stream)
-                                                                   tok-end
-                                                                   tok-start)
-                                                             #'(if (eq? original-stream stream)
-                                                                   last-consumed-token
-                                                                   (and (pair? original-stream) 
-                                                                        (car original-stream))))]
-                                 [#,id-end-pos (at-tok-pos #'tok-end #'last-consumed-token)]
-                                 #,@(if n-end-pos
-                                        #`([#,n-end-pos (at-tok-pos #'tok-end #'last-consumed-token)])
-                                        null))
-                      #,(loop (cdr pat) (add1 pos)))))
-                stream last-consumed-token depth 
-                #,(let ([cnt (apply +
-                                    (map (lambda (item)
-                                           (cond
-                                             [(bound-identifier-mapping-get nts item (lambda () #f))
-                                              => (lambda (l) (car l))]
-                                             [else 1]))
-                                         (cdr pat)))])
-                    #`(- end #,cnt))
-                success-k fail-k max-depth tasks)]
-            [else
-             ;; Match token
-             (let ([tok-id (map-token toks (car pat))])
-               #`(if (and (pair? stream)
-                          (eq? '#,tok-id (tok-name (car stream))))
-                     (let* ([stream-a (car stream)]
-                            [#,id (tok-val stream-a)]
-                            [last-consumed-token (car stream)]
-                            [stream (cdr stream)]
-                            [depth (add1 depth)])
-                       (let ([max-depth (max max-depth depth)])
-                         (let-syntax ([#,id-start-pos (at-tok-pos #'tok-start #'stream-a)]
-                                      [#,id-end-pos (at-tok-pos #'tok-end #'stream-a)]
-                                      #,@(if n-end-pos
-                                             #`([#,n-end-pos (at-tok-pos #'tok-end #'stream-a)])
-                                             null))
-                           #,(loop (cdr pat) (add1 pos)))))
-                     (fail-k max-depth tasks)))])))))
+           [(bound-identifier-mapping-get nts (car pat) (lambda () #f))
+            ;; Match non-termimal
+            #`(parse-and
+               ;; First part is simple? (If so, we don't have to parallelize the `and'.)
+               #,(let ([l (bound-identifier-mapping-get nts (car pat) (lambda () #f))])
+                   (or (not l)
+                       (andmap values (caddr l))))
+               #,(car pat)
+               (let ([original-stream stream])
+                 (lambda (#,id stream last-consumed-token depth end success-k fail-k max-depth tasks)
+                   (let-syntax ([#,id-start-pos (at-tok-pos #'(if (eq? original-stream stream)
+                                                                  tok-end
+                                                                  tok-start)
+                                                            #'(if (eq? original-stream stream)
+                                                                  last-consumed-token
+                                                                  (and (pair? original-stream) 
+                                                                       (car original-stream))))]
+                                [#,id-end-pos (at-tok-pos #'tok-end #'last-consumed-token)]
+                                #,@(if n-end-pos
+                                       #`([#,n-end-pos (at-tok-pos #'tok-end #'last-consumed-token)])
+                                       null))
+                     #,(loop (cdr pat) (add1 pos)))))
+               stream last-consumed-token depth 
+               #,(let ([cnt (apply +
+                                   (map (lambda (item)
+                                          (cond
+                                           [(bound-identifier-mapping-get nts item (lambda () #f))
+                                            => (lambda (l) (car l))]
+                                           [else 1]))
+                                        (cdr pat)))])
+                   #`(- end #,cnt))
+               success-k fail-k max-depth tasks)]
+           [else
+            ;; Match token
+            (let ([tok-id (map-token toks (car pat))])
+              #`(if (and (pair? stream)
+                         (eq? '#,tok-id (tok-name (car stream))))
+                    (let* ([stream-a (car stream)]
+                           [#,id (tok-val stream-a)]
+                           [last-consumed-token (car stream)]
+                           [stream (cdr stream)]
+                           [depth (add1 depth)])
+                      (let ([max-depth (max max-depth depth)])
+                        (let-syntax ([#,id-start-pos (at-tok-pos #'tok-start #'stream-a)]
+                                     [#,id-end-pos (at-tok-pos #'tok-end #'stream-a)]
+                                     #,@(if n-end-pos
+                                            #`([#,n-end-pos (at-tok-pos #'tok-end #'stream-a)])
+                                            null))
+                          #,(loop (cdr pat) (add1 pos)))))
+                    (fail-k max-depth tasks)))])))))
 
 ;; Starts parsing to match a non-terminal. There's a minor
 ;; optimization that checks for known starting tokens. Otherwise,
@@ -425,69 +425,73 @@
               [old-stream stream])
           #;(printf "Loop ~a\n" table-key)
           (cond
-            [(hash-ref (tasks-cache tasks) table-key (lambda () #f))
-             => (lambda (result)
-                  #;(printf "Reuse ~a\n" table-key)
-                  (result success-k fail-k max-depth tasks))]
-            [else
-             #;(printf "Try ~a ~a\n" table-key (map tok-name stream))
-             (hash-set! (tasks-cache tasks) table-key
-                        (lambda (success-k fail-k max-depth tasks)
-                          #;(printf "Wait ~a ~a\n" table-key answer-key)
-                          (wait-for-answer #t max-depth tasks answer-key success-k fail-k
-                                           (lambda (max-depth tasks)
-                                             #;(printf "Deadlock ~a ~a\n" table-key answer-key)
-                                             (fail-k max-depth tasks)))))
-             (let result-loop ([max-depth max-depth][tasks tasks][k k])
-               (letrec ([orig-stream stream]
-                        [new-got-k
-                         (lambda (val stream last-consumed-token depth max-depth tasks next-k)
-                           ;; Check whether we already have a result that consumed the same amount:
-                           (let ([result-key (vector #f key old-depth depth)])
-                             (cond
-                               [(hash-ref (tasks-cache tasks) result-key (lambda () #f))
-                                ;; Go for the next-result
-                                (result-loop max-depth
+           [(hash-ref (tasks-cache tasks) table-key (lambda () #f))
+            => (lambda (result)
+                 #;(printf "Reuse ~a\n" table-key)
+                 (result success-k fail-k max-depth tasks))]
+           [else
+            #;(printf "Tasks ~a ~a\n" 
+                    (hash-count (tasks-waits tasks))
+                    (hash-count (tasks-multi-waits tasks)))
+            #;(printf "Try ~a ~a\n" table-key
+                    (map tok-name stream))
+            (hash-set! (tasks-cache tasks) table-key
+                       (lambda (success-k fail-k max-depth tasks)
+                         #;(printf "Wait ~a ~a\n" table-key answer-key)
+                         (wait-for-answer #t max-depth tasks answer-key success-k fail-k
+                                          (lambda (max-depth tasks)
+                                            #;(printf "Deadlock ~a ~a\n" table-key answer-key)
+                                            (fail-k max-depth tasks)))))
+            (let result-loop ([max-depth max-depth][tasks tasks][k k])
+              (letrec ([orig-stream stream]
+                       [new-got-k
+                        (lambda (val stream last-consumed-token depth max-depth tasks next-k)
+                          ;; Check whether we already have a result that consumed the same amount:
+                          (let ([result-key (vector #f key old-depth depth)])
+                            (cond
+                             [(hash-ref (tasks-cache tasks) result-key (lambda () #f))
+                              ;; Go for the next-result
+                              (result-loop max-depth
+                                           tasks
+                                           (lambda (end max-depth tasks success-k fail-k)
+                                             (next-k success-k fail-k max-depth tasks)))]
+                             [else
+                              #;(printf "Success ~a ~a\n" table-key answer-key)
+                              (map tok-name (let loop ([d old-depth][s old-stream])
+                                              (if (= d depth)
+                                                  null
+                                                  (cons (car s) (loop (add1 d) (cdr s))))))
+                              (let ([next-k (lambda (success-k fail-k max-depth tasks)
+                                              (loop (add1 n)
+                                                    success-k
+                                                    fail-k
+                                                    max-depth
+                                                    tasks
+                                                    (lambda (end max-depth tasks success-k fail-k)
+                                                      (next-k success-k fail-k max-depth tasks))))])
+                                (hash-set! (tasks-cache tasks) result-key #t)
+                                (hash-set! (tasks-cache tasks) table-key
+                                           (lambda (success-k fail-k max-depth tasks)
+                                             (success-k val stream last-consumed-token depth max-depth tasks next-k)))
+                                (report-answer-all answer-key
+                                                   max-depth
+                                                   tasks
+                                                   (list val stream last-consumed-token depth next-k)
+                                                   (lambda (max-depth tasks)
+                                                     (success-k val stream last-consumed-token depth max-depth tasks next-k))))])))]
+                       [new-fail-k
+                        (lambda (max-depth tasks)
+                          #;(printf "Failure ~a\n" table-key)
+                          (hash-set! (tasks-cache tasks) table-key
+                                     (lambda (success-k fail-k max-depth tasks)
+                                       (fail-k max-depth tasks)))
+                          (report-answer-all answer-key
+                                             max-depth
                                              tasks
-                                             (lambda (end max-depth tasks success-k fail-k)
-                                               (next-k success-k fail-k max-depth tasks)))]
-                               [else
-                                #;(printf "Success ~a ~a\n" table-key 
-                                          (map tok-name (let loop ([d old-depth][s old-stream])
-                                                          (if (= d depth)
-                                                              null
-                                                              (cons (car s) (loop (add1 d) (cdr s)))))))
-                                (let ([next-k (lambda (success-k fail-k max-depth tasks)
-                                                (loop (add1 n)
-                                                      success-k
-                                                      fail-k
-                                                      max-depth
-                                                      tasks
-                                                      (lambda (end max-depth tasks success-k fail-k)
-                                                        (next-k success-k fail-k max-depth tasks))))])
-                                  (hash-set! (tasks-cache tasks) result-key #t)
-                                  (hash-set! (tasks-cache tasks) table-key
-                                             (lambda (success-k fail-k max-depth tasks)
-                                               (success-k val stream last-consumed-token depth max-depth tasks next-k)))
-                                  (report-answer-all answer-key
-                                                     max-depth
-                                                     tasks
-                                                     (list val stream last-consumed-token depth next-k)
-                                                     (lambda (max-depth tasks)
-                                                       (success-k val stream last-consumed-token depth max-depth tasks next-k))))])))]
-                        [new-fail-k
-                         (lambda (max-depth tasks)
-                           #;(printf "Failure ~a\n" table-key)
-                           (hash-set! (tasks-cache tasks) table-key
-                                      (lambda (success-k fail-k max-depth tasks)
-                                        (fail-k max-depth tasks)))
-                           (report-answer-all answer-key
-                                              max-depth
-                                              tasks
-                                              null
-                                              (lambda (max-depth tasks)
-                                                (fail-k max-depth tasks))))])
-                 (k end max-depth tasks new-got-k new-fail-k)))])))))
+                                             null
+                                             (lambda (max-depth tasks)
+                                               (fail-k max-depth tasks))))])
+                (k end max-depth tasks new-got-k new-fail-k)))])))))
 
 (define-syntax (cfg-parser stx)
   (syntax-case stx ()
@@ -504,15 +508,15 @@
                                                  (map (lambda (t)
                                                         (let ([v (syntax-local-value t (lambda () #f))])
                                                           (cond
-                                                            [(terminals-def? v)
-                                                             (map (lambda (v)
-                                                                    (cons v #f))
-                                                                  (syntax->list (terminals-def-t v)))]
-                                                            [(e-terminals-def? v)
-                                                             (map (lambda (v)
-                                                                    (cons v #t))
-                                                                  (syntax->list (e-terminals-def-t v)))]
-                                                            [else null])))
+                                                           [(terminals-def? v)
+                                                            (map (lambda (v)
+                                                                   (cons v #f))
+                                                                 (syntax->list (terminals-def-t v)))]
+                                                           [(e-terminals-def? v)
+                                                            (map (lambda (v)
+                                                                   (cons v #t))
+                                                                 (syntax->list (e-terminals-def-t v)))]
+                                                           [else null])))
                                                       (syntax->list #'(t ...))))]
                                                [_else null]))
                                            clauses))]
@@ -670,10 +674,7 @@
                                                                            [simple?s (caddr info)])
                                                                   (if (null? pats)
                                                                       #'(fail-k max-depth tasks)
-                                                                      #`(#,(if (or (null? (cdr pats))
-                                                                                   (car simple?s))
-                                                                               #'parse-or
-                                                                               #'parse-parallel-or)
+                                                                      #`(parse-parallel-or
                                                                          (lambda (stream last-consumed-token depth end success-k fail-k max-depth tasks)
                                                                            #,(build-match nts
                                                                                           toks 
@@ -796,126 +797,126 @@
 
 
 (module* test racket/base
-  (require (submod "..")
-           parser-tools/lex
-           racket/block
-           rackunit)
+         (require (submod "..")
+                  parser-tools/lex
+                  racket/block
+                  rackunit)
 
-  ;; Test: parsing regular expressions.
-  ;; Here is a test case on locations:
-  (block
-   (define-tokens regexp-tokens (ANCHOR STAR OR LIT LPAREN RPAREN EOF))
-   (define lex (lexer-src-pos ["|" (token-OR lexeme)]
-                              ["^" (token-ANCHOR lexeme)]
-                              ["*" (token-STAR lexeme)]
-                              [(repetition 1 +inf.0 alphabetic) (token-LIT lexeme)]
-                              ["(" (token-LPAREN lexeme)]
-                              [")" (token-RPAREN lexeme)]
-                              [whitespace (return-without-pos (lex input-port))]
-                              [(eof) (token-EOF 'eof)]))
-   (define -parse (cfg-parser
-                   (tokens regexp-tokens)
-                   (start top)
-                   (end EOF)
-                   (src-pos)
-                   (grammar [top [(maybe-anchor regexp)
-                                  (cond [$1 
-                                         `(anchored ,$2 ,(pos->sexp $1-start-pos) ,(pos->sexp $2-end-pos))]
-                                        [else
-                                         `(unanchored ,$2 ,(pos->sexp $1-start-pos) ,(pos->sexp $2-end-pos))])]]
-                            [maybe-anchor [(ANCHOR) #t]
-                                          [() #f]]
-                            [regexp [(regexp STAR) `(star ,$1 ,(pos->sexp $1-start-pos) ,(pos->sexp $2-end-pos))]
-                                    [(regexp OR regexp) `(or ,$1 ,$3 ,(pos->sexp $1-start-pos) ,(pos->sexp $3-end-pos))]
-                                    [(LPAREN regexp RPAREN) `(group ,$2 ,(pos->sexp $1-start-pos) ,(pos->sexp $3-end-pos))]
-                                    [(LIT) `(lit ,$1 ,(pos->sexp $1-start-pos) ,(pos->sexp $1-end-pos))]])))
-   (define (pos->sexp pos)
-     (position-offset pos))
-   
-   (define (parse s)
-     (define ip (open-input-string s))
-     (port-count-lines! ip)
-     (-parse (lambda () (lex ip))))
-   
-   (check-equal? (parse "abc")
-                 '(unanchored (lit "abc" 1 4) 1 4))
-   (check-equal? (parse "a | (b*) | c")
-                 '(unanchored (or (or (lit "a" 1 2)
-                                      (group (star (lit "b" 6 7) 6 8) 5 9)
-                                      1 9)
-                                  (lit "c" 12 13)
-                                  1 13)
-                              1 13)))
-  
-  
-  
-  
-  
-  ;; Tests used during development
-  (define-tokens non-terminals (PLUS MINUS STAR BAR COLON EOF))
-  
-  (define lex
-    (lexer
-     ["+" (token-PLUS '+)]
-     ["-" (token-MINUS '-)]
-     ["*" (token-STAR '*)]
-     ["|" (token-BAR '||)]
-     [":" (token-COLON '|:|)]
-     [whitespace (lex input-port)]
-     [(eof) (token-EOF 'eof)]))
-  
-  (define parse
-    (cfg-parser
-     (tokens non-terminals)
-     (start <program>)
-     (end EOF)
-     (error (lambda (a b stx) 
-              (error 'parse "failed at ~s" stx)))
-     (grammar [<program> [(PLUS) "plus"]
-                         [(<minus-program> BAR <minus-program>) (list $1 $2 $3)]
-                         [(<program> COLON) (list $1)]]
-              [<minus-program> [(MINUS) "minus"]
-                               [(<program> STAR) (cons $1 $2)]]
-              [<simple> [(<alts> <alts> <alts> MINUS) "yes"]]
-              [<alts> [(PLUS) 'plus]
-                      [(MINUS) 'minus]]
-              [<random> [() '0]
-                        [(<random> PLUS) (add1 $1)]
-                        [(<random> PLUS) (add1 $1)]])))
-  
-  (let ([p (open-input-string #;"+*|-|-*|+**" #;"-|+*|+**" 
-                              #;"+*|+**|-" #;"-|-*|-|-*"
-                              #;"-|-*|-|-**|-|-*|-|-**"
-                              "-|-*|-|-**|-|-*|-|-***|-|-*|-|-**|-|-*|-|-****|-|-*|-|-**|-|-*|-|-***
+         ;; Test: parsing regular expressions.
+         ;; Here is a test case on locations:
+         (block
+          (define-tokens regexp-tokens (ANCHOR STAR OR LIT LPAREN RPAREN EOF))
+          (define lex (lexer-src-pos ["|" (token-OR lexeme)]
+                                     ["^" (token-ANCHOR lexeme)]
+                                     ["*" (token-STAR lexeme)]
+                                     [(repetition 1 +inf.0 alphabetic) (token-LIT lexeme)]
+                                     ["(" (token-LPAREN lexeme)]
+                                     [")" (token-RPAREN lexeme)]
+                                     [whitespace (return-without-pos (lex input-port))]
+                                     [(eof) (token-EOF 'eof)]))
+          (define -parse (cfg-parser
+                          (tokens regexp-tokens)
+                          (start top)
+                          (end EOF)
+                          (src-pos)
+                          (grammar [top [(maybe-anchor regexp)
+                                         (cond [$1 
+                                                `(anchored ,$2 ,(pos->sexp $1-start-pos) ,(pos->sexp $2-end-pos))]
+                                               [else
+                                                `(unanchored ,$2 ,(pos->sexp $1-start-pos) ,(pos->sexp $2-end-pos))])]]
+                                   [maybe-anchor [(ANCHOR) #t]
+                                                 [() #f]]
+                                   [regexp [(regexp STAR) `(star ,$1 ,(pos->sexp $1-start-pos) ,(pos->sexp $2-end-pos))]
+                                           [(regexp OR regexp) `(or ,$1 ,$3 ,(pos->sexp $1-start-pos) ,(pos->sexp $3-end-pos))]
+                                           [(LPAREN regexp RPAREN) `(group ,$2 ,(pos->sexp $1-start-pos) ,(pos->sexp $3-end-pos))]
+                                           [(LIT) `(lit ,$1 ,(pos->sexp $1-start-pos) ,(pos->sexp $1-end-pos))]])))
+          (define (pos->sexp pos)
+            (position-offset pos))
+          
+          (define (parse s)
+            (define ip (open-input-string s))
+            (port-count-lines! ip)
+            (-parse (lambda () (lex ip))))
+          
+          (check-equal? (parse "abc")
+                        '(unanchored (lit "abc" 1 4) 1 4))
+          (check-equal? (parse "a | (b*) | c")
+                        '(unanchored (or (or (lit "a" 1 2)
+                                             (group (star (lit "b" 6 7) 6 8) 5 9)
+                                             1 9)
+                                         (lit "c" 12 13)
+                                         1 13)
+                                     1 13)))
+         
+         
+         
+         
+         
+         ;; Tests used during development
+         (define-tokens non-terminals (PLUS MINUS STAR BAR COLON EOF))
+         
+         (define lex
+           (lexer
+            ["+" (token-PLUS '+)]
+            ["-" (token-MINUS '-)]
+            ["*" (token-STAR '*)]
+            ["|" (token-BAR '||)]
+            [":" (token-COLON '|:|)]
+            [whitespace (lex input-port)]
+            [(eof) (token-EOF 'eof)]))
+         
+         (define parse
+           (cfg-parser
+            (tokens non-terminals)
+            (start <program>)
+            (end EOF)
+            (error (lambda (a b stx) 
+                     (error 'parse "failed at ~s" stx)))
+            (grammar [<program> [(PLUS) "plus"]
+                                [(<minus-program> BAR <minus-program>) (list $1 $2 $3)]
+                                [(<program> COLON) (list $1)]]
+                     [<minus-program> [(MINUS) "minus"]
+                                      [(<program> STAR) (cons $1 $2)]]
+                     [<simple> [(<alts> <alts> <alts> MINUS) "yes"]]
+                     [<alts> [(PLUS) 'plus]
+                             [(MINUS) 'minus]]
+                     [<random> [() '0]
+                               [(<random> PLUS) (add1 $1)]
+                               [(<random> PLUS) (add1 $1)]])))
+         
+         (let ([p (open-input-string #;"+*|-|-*|+**" #;"-|+*|+**" 
+                   #;"+*|+**|-" #;"-|-*|-|-*"
+                   #;"-|-*|-|-**|-|-*|-|-**"
+                   "-|-*|-|-**|-|-*|-|-***|-|-*|-|-**|-|-*|-|-****|-|-*|-|-**|-|-*|-|-***
                |-|-*|-|-**|-|-*|-|-*****|-|-*|-|-**|-|-*|-|-***|-|-*|-|-**|-|-*|-|-****|
                -|-*|-|-**|-|-*|-|-***|-|-*|-|-**|-|-*|-|-*****"
-                              ;; This one fails:
-                              #;"+*")])
-    (check-equal? (parse (lambda () (lex p)))
-                  '((((((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
-                        ||
-                        (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
-                       .
-                       *)
-                      ||
-                      (((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
-                        ||
-                        (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
-                       .
-                       *))
-                     .
-                     *)
-                    ||
-                    (((((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
-                        ||
-                        (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
-                       .
-                       *)
-                      ||
-                      (((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
-                        ||
-                        (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
-                       .
-                       *))
-                     .
-                     *)))))
+                   ;; This one fails:
+                   #;"+*")])
+           (check-equal? (parse (lambda () (lex p)))
+                         '((((((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
+                               ||
+                               (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
+                              .
+                              *)
+                             ||
+                             (((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
+                               ||
+                               (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
+                              .
+                              *))
+                            .
+                            *)
+                           ||
+                           (((((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
+                               ||
+                               (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
+                              .
+                              *)
+                             ||
+                             (((((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *)
+                               ||
+                               (((((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *) || (((("minus" || "minus") . *) || (("minus" || "minus") . *)) . *)) . *))
+                              .
+                              *))
+                            .
+                            *)))))
