@@ -89,3 +89,35 @@ EOF
                  (adapt-python-tokenizer (open-input-string "sqrt(x^2+y^2)")
                                          #:end-marker-to-eof? #t)))
  '(expr (xor_expr (and_expr (shift_expr (arith_expr (term (factor (power (atom "sqrt") (trailer "(" (arglist (argument (test (or_test (and_test (not_test (comparison (expr (xor_expr (and_expr (shift_expr (arith_expr (term (factor (power (atom "x"))))))) "^" (and_expr (shift_expr (arith_expr (term (factor (power (atom "2")))) "+" (term (factor (power (atom "y"))))))) "^" (and_expr (shift_expr (arith_expr (term (factor (power (atom "2")))))))))))))))) ")"))))))))))
+
+(define (make-tuple-stream n)
+  (open-input-string 
+   (string-append "(" (string-append* (make-list n "1,")) ")")))
+
+
+;; Check for catastrophic memory usage through performance
+(check-true
+ (let ((parser-thread 
+        (thread (lambda ()
+                  (parse-expr (adapt-python-tokenizer (make-tuple-stream 50)
+                                                      #:end-marker-to-eof? #t))))))
+   (sleep 1)
+   (if 
+    (thread-running? parser-thread)
+    (begin (kill-thread parser-thread)
+           #f)
+    #t))
+ "50 item tuple times out after 1s")
+
+(check-true
+ (let ((parser-thread 
+        (thread (lambda ()
+                  (parse-expr (adapt-python-tokenizer (make-tuple-stream 500)
+                                                      #:end-marker-to-eof? #t))))))
+   (sleep 10)
+   (if 
+    (thread-running? parser-thread)
+    (begin (kill-thread parser-thread)
+           #f)
+    #t))
+ "500 item tuple times out after 10s")

@@ -675,6 +675,11 @@
                                                                   (if (null? pats)
                                                                       #'(fail-k max-depth tasks)
                                                                       #`(parse-parallel-or
+
+                                                                         #;#,(if (or (null? (cdr pats))
+                                                                                     (car simple?s))
+                                                                                 #'parse-or
+                                                                                 #'parse-parallel-or)
                                                                          (lambda (stream last-consumed-token depth end success-k fail-k max-depth tasks)
                                                                            #,(build-match nts
                                                                                           toks 
