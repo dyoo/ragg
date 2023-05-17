@@ -745,8 +745,8 @@ A @deftech{rule identifier} is an @tech{identifier} that is not in upper case.
 A @deftech{token identifier} is an @tech{identifier} that is in upper case.
 
 An @deftech{identifier} is a character sequence of letters, numbers, and
-characters in @racket["-.!$%&/<=>?^_~@"].  It must not contain
-@litchar{*} or @litchar{+}, as those characters are used to denote
+characters in @racket["-.!$%&/<=>^_~@"].  It must not contain
+@litchar{*}, @litchar{+}, or @litchar{?}, as those characters are used to denote
 quantification.
 
 
